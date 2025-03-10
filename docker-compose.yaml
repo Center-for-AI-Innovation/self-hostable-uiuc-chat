@@ -4,8 +4,9 @@ services:
     container_name: ai-ta-frontend
     networks:
       - uiuc-chat-network
+      - supabase_default
     ports:
-      - 3000:3000
+      - 3015:3000
     expose:
       - 3000
 
