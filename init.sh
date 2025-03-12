@@ -12,12 +12,22 @@ for arg in "$@"; do
   esac
 done
 
-# Sparse checkout for supabase/docker
-git submodule update --init --depth 1 --recursive && \
+# Simple approach: force using HTTPS for all submodules
+echo "Updating submodules using HTTPS..."
+# Configure Git to use HTTPS instead of SSH just for this script
+git config --global url."https://github.com/".insteadOf git@github.com:
+
+# Initialize supabase first with depth 1 (faster, we only need part of it)
+git submodule update --init --depth 1 supabase
+# Set up sparse checkout for supabase
 cd supabase && \
 git sparse-checkout init --cone && \
 git sparse-checkout set docker && \
 cd ..
+
+# Now initialize and update remaining submodules
+echo "Initializing and updating other submodules..."
+git submodule update --init --remote --recursive
 
 if [ ! -f ./supabase/docker/.env ]; then
   cp ./supabase/docker/.env.example ./supabase/docker/.env
