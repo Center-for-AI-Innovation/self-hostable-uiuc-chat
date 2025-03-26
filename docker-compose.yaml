@@ -169,7 +169,7 @@ services:
       - ./keycloak/realms/realm-export.json:/opt/keycloak/data/import/realm-export.json
       - ./keycloak/realms/master_realm_export.json:/opt/keycloak/data/import/master_realm_export.json
     ports:
-      - "7080:8080"
+      - "8080:8080"
     networks:
       - uiuc-chat-network
       - supabase_default
