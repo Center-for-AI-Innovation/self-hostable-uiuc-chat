@@ -47,7 +47,15 @@ The .env file is stored in the local path: `./supabase/docker/.env`
 
 Customize your env variables. The SQL database can be any of SQLite, Postgres, and Supabase. The object storage can be Minio or AWS S3. 
 
+### Take schema dump from Postgres (Supabase)
+```bash
+PGPASSWORD=<password> pg_dump -h aws-0-us-east-1.pooler.supabase.com -U postgres.twzwfuydgnnjcaopyfdv -d postgres --schema-only > schema.sql
+```
 
+### Restore dump in new Postgres
+```bash
+PGPASSWORD=<password> psql -h <new-hostname> -U <new-db> -d postgres -f schema.sql
+```
 
 Works on version: `Docker Compose version v2.27.1-desktop.1`
 
