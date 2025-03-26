@@ -152,12 +152,17 @@ services:
       - KC_DB_URL=jdbc:postgresql://supabase-db:5432/postgres
       - KC_DB_USERNAME=${POSTGRES_USER}
       - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
-      - KC_HOSTNAME=${KC_HOSTNAME}
+      - KC_HOSTNAME=localhost
       - KC_HTTP_PORT=8080
+      - PORT=8080
       - KC_HOSTNAME_STRICT=false
+      - KC_FEATURES=token-exchange
       - KC_PROXY_HEADERS=xforwarded
+      - KC_PROXY=edge
       - KC_HTTP_RELATIVE_PATH=/auth
       - KC_HTTP_ENABLED=true
+      - KC_METRICS_ENABLED=true
+      - KC_HOSTNAME_STRICT_BACKCHANNEL=false
       - PROXY_ADDRESS_FORWARDING=true
       - KC_DEV=true
       - KC_DB=postgres
@@ -188,7 +193,7 @@ services:
       - --db-password=${POSTGRES_PASSWORD}
       - --import-realm
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/auth/health/ready" ]
+      test: [ "CMD", "curl", "-f", "http://keycloak:8080/auth/health/ready" ]
       interval: 30s
       timeout: 10s
       retries: 3
