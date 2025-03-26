@@ -19,7 +19,7 @@ For commercial use of this project, you must obtain a separate commercial licens
 
 Failure to obtain a commercial license for commercial use is a violation of the terms of this project.
 
-## Self host with Docker
+## Quickstart (Self host with Docker)
 
 ### 🎉 Get started with a single command
 
@@ -30,6 +30,13 @@ This will:
 * Create a `.env` file. You can customize this later to change the default passwords.
 * Initialize all our databases (Redis, Minio, Qdrant, Postgres/Suapabse)
 * Start the backend service running on http://localhost:3012 To customize HTTP port used as the main entrypoint, set the `FLASK_PORT` variabel in your `.env`.
+
+
+To start fresh, you can use: 
+```bash
+# erase and factory reset all databases
+sudo bash init.sh --wipe_data
+```
 
 ### Configuring Postgres (Supabase)
 
@@ -56,5 +63,15 @@ Works on Apple Silicon M1 `aarch64`, and `x86`.
 See docs on https://docs.uiuc.chat
 
 ## 📣 Development
+
+## Fastest way to rebuild the images during dev
+
+```bash
+# rebuild only the frontend after file changes in that repo. Super quick, supports Docker's Layer Cache.
+sudo bash init.sh --rebuild=uiuc-chat-frontend
+
+# rebuild both frontend and backend after file changes
+sudo bash init.sh --rebuild="uiuc-chat-frontend flask-app "
+```
 
 If you're interested in contributing, check out our [official developer quickstart](https://docs.uiuc.chat/developers/developer-quickstart).

@@ -1,16 +1,29 @@
 #!/bin/bash
 
-# USAGE: sudo sh init.sh 
-# If you want to delete all your data for a fresh start, use: sudo sh init.sh --wipe_data
+# USAGE: sudo sh init.sh [options]
+# Options:
+#   --wipe_data        a fresh start: factory-reset, delete all databases and docker volumes
+#   --rebuild=CONTAINERS  Only rebuild specific containers (comma-separated list)
 
 # Parse command line arguments
 wipe_data=false
+rebuild_containers=""
 for arg in "$@"; do
   case $arg in
     --wipe_data) wipe_data=true ;;
-    *) echo "Usage: $0 [--wipe_data] (use --wipe_data to delete volumes)" && exit 1 ;;
+    --rebuild=*) rebuild_containers="${arg#*=}" ;;
+    *) echo "Usage: $0 [--wipe_data] [--rebuild=container1,container2]" && exit 1 ;;
   esac
 done
+
+# Set build variables based on option
+if [ -n "$rebuild_containers" ]; then
+  # Convert comma-separated list to space-separated for docker compose
+  rebuild_list=$(echo $rebuild_containers | tr ',' ' ')
+  build_command="up -d"
+else
+  build_command="up -d --build"
+fi
 
 # Simple approach: force using HTTPS for all submodules
 echo "Updating submodules using HTTPS..."
@@ -33,22 +46,16 @@ if [ ! -f ./supabase/docker/.env ]; then
   cp ./supabase/docker/.env.example ./supabase/docker/.env
 fi
 
-if [ ! -f ./uiuc-chat-frontend/.env ]; then
-  cp .env-frontend.template ./uiuc-chat-frontend/.env
-fi
-
 if [ ! -f .env ]; then
-  cp .env-backend.template .env
+  # each docker-compose service will read from .env
+  cp .env.template .env
 fi
-
 
 set -e
 # Start the Supabase Docker Compose
 echo "Starting Supabase services..."
 if [ "$wipe_data" = true ]; then
   docker compose -f ./supabase/docker/docker-compose.yml down -v
-else
-  docker compose -f ./supabase/docker/docker-compose.yml down
 fi
 sudo docker compose -f ./supabase/docker/docker-compose.yml -f ./docker-compose.override.yml up -d --build
 
@@ -80,11 +87,23 @@ chmod -R 777 ./supabase
 echo "Starting application services..."
 if [ "$wipe_data" = true ]; then
   docker compose -f ./docker-compose.yaml down -v
-else
-  docker compose -f ./docker-compose.yaml down
 fi
 
-# Start all services
-sudo docker compose -f ./docker-compose.yaml up -d --build
+# If specific containers are specified for rebuild in the main stack
+if [ -n "$rebuild_containers" ]; then
+  # Check if any of the specified containers are in the main stack
+  for container in $(echo $rebuild_list); do
+    if docker compose -f ./docker-compose.yaml ps -a --services | grep -q $container; then
+      echo "Rebuilding container: $container"
+      sudo docker compose -f ./docker-compose.yaml up -d --build $container
+    fi
+  done
+  
+  # Start any remaining services without building
+  sudo docker compose -f ./docker-compose.yaml up -d
+else
+  # Start all services
+  sudo docker compose -f ./docker-compose.yaml up -d --build
+fi
 
 echo "All services are up!"

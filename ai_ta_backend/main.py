@@ -642,6 +642,16 @@ def configure(binder: Binder) -> None:
 
   # Initialize the databases - this runs at every app startup: be robust to re-running.
 
+  from redis import Redis
+  redis_conn = Redis(port=int(os.environ["INGEST_REDIS_PORT"]),
+                   host=os.environ["INGEST_REDIS_HOST"],
+                   password=os.environ["INGEST_REDIS_PASSWORD"],
+                  #  socket_timeout=None,
+                   )
+  redis_conn.hset("course_metadatas", "chat", "{\"is_private\":false,\"course_owner\":\"kvday2@illinois.edu\",\"course_admins\":[\"kvday2@illinois.edu\"],\"approved_emails_list\":null,\"example_questions\":null,\"banner_image_s3\":null,\"course_intro_message\":\"Welcome to UIUC.chat. Use this page as a free alternative to ChatGPT.com and Claude.ai. \\n\\nThere's free and unlimited access to all the leading open source LLMs that we host here at UIUC's National Center for Supercomputing Applications (NCSA). \\n\\nLearn more at ai.ncsa.illinois.edu\",\"openai_api_key\":null,\"system_prompt\":null,\"disabled_models\":null,\"project_description\":null}")
+  # hset course_metadatas chat "{\"is_private\":false,\"course_owner\":\"kvday2@illinois.edu\",\"course_admins\":[\"kvday2@illinois.edu\"],\"approved_emails_list\":null,\"example_questions\":null,\"banner_image_s3\":null,\"course_intro_message\":\"Welcome to UIUC.chat. Use this page as a free alternative to ChatGPT.com and Claude.ai. \\n\\nThere's free and unlimited access to all the leading open source LLMs that we host here at UIUC's National Center for Supercomputing Applications (NCSA). \\n\\nLearn more at ai.ncsa.illinois.edu\",\"openai_api_key\":null,\"system_prompt\":null,\"disabled_models\":null,\"project_description\":null}"
+  del redis_conn
+
   # Qdrant
   # Initialize Qdrant collection if it doesn't exist
   try:

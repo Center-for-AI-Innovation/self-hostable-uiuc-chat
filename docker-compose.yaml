@@ -9,6 +9,8 @@ services:
       - 3015:3000
     expose:
       - 3000
+    env_file:
+      - .env
 
   redis:
     image: redis:7.2
