@@ -106,4 +106,10 @@ else
   sudo docker compose -f ./docker-compose.yaml up -d --build
 fi
 
-echo "All services are up!"
+echo "👇👇👇👇👇👇👇👇👇👇👇👇👇👇👇👇👇👇👇"
+echo "✅ All services are up and available at:"
+echo "Frontend: http://localhost:${FRONTEND_PORT:-3001}"
+echo "Backend: http://localhost:${FLASK_PORT:-3012}"
+echo "Minio dashboard: http://localhost:${PUBLIC_MINIO_DASHBOARD_PORT:-9001}"
+echo "Qdrant: http://localhost:6333/dashboard"
+echo "👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆"
