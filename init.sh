@@ -54,6 +54,7 @@ fi
 set -e
 # Start the Supabase Docker Compose
 echo "Starting Supabase services..."
+chmod -R 777 ./supabase
 if [ "$wipe_data" = true ]; then
   docker compose -f ./supabase/docker/docker-compose.yml down -v
 fi
@@ -83,7 +84,6 @@ echo "Creating Keycloak schema if it doesn't exist..."
 docker exec supabase-db psql -U postgres -d postgres -c "CREATE SCHEMA IF NOT EXISTS keycloak;"
 
 # Start the parent Docker Compose
-chmod -R 777 ./supabase
 echo "Starting application services..."
 if [ "$wipe_data" = true ]; then
   docker compose -f ./docker-compose.yaml down -v
