@@ -51,6 +51,9 @@ if [ ! -f .env ]; then
   cp .env.template .env
 fi
 
+# ✅ Load .env vars into shell so they can be used as build args
+export $(grep -v '^#' .env | xargs)
+
 set -e
 # Start the Supabase Docker Compose
 echo "Starting Supabase services..."

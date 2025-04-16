@@ -1,6 +1,21 @@
 services:
   uiuc-chat-frontend:
-    build: ./uiuc-chat-frontend
+    build:
+      context: ./uiuc-chat-frontend
+      args:
+        NEXT_PUBLIC_KEYCLOAK_URL: ${NEXT_PUBLIC_KEYCLOAK_URL}
+        NEXT_PUBLIC_KEYCLOAK_REALM: ${NEXT_PUBLIC_KEYCLOAK_REALM}
+        NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: ${NEXT_PUBLIC_KEYCLOAK_CLIENT_ID}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_CLERK_SIGN_IN_URL: ${NEXT_PUBLIC_CLERK_SIGN_IN_URL}
+        NEXT_PUBLIC_CLERK_SIGN_UP_URL: ${NEXT_PUBLIC_CLERK_SIGN_UP_URL}
+        NEXT_PUBLIC_DEFAULT_SYSTEM_PROMPT: ${NEXT_PUBLIC_DEFAULT_SYSTEM_PROMPT}
+        NEXT_PUBLIC_FIRECRAWL_API_URL: ${NEXT_PUBLIC_FIRECRAWL_API_URL}
+        NEXT_PUBLIC_MAGIC_BELL_API: ${NEXT_PUBLIC_MAGIC_BELL_API}
+        NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST}
+        NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY}
+        NEXT_PUBLIC_SIGNING_KEY: ${NEXT_PUBLIC_SIGNING_KEY}
     container_name: uiuc-chat-frontend
     networks:
       - uiuc-chat-network
@@ -141,6 +156,7 @@ services:
       - redis
 
   keycloak:
+    platform: linux/amd64  # M chip
     image: quay.io/keycloak/keycloak:26.1
     container_name: keycloak
     restart: unless-stopped    
