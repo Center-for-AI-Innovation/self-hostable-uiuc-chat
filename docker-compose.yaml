@@ -146,7 +146,7 @@ services:
       - redis
 
   keycloak:
-    platform: linux/amd64  # M chip
+#    platform: linux/amd64  # M chip
     image: quay.io/keycloak/keycloak:26.1
     container_name: keycloak
     restart: unless-stopped
