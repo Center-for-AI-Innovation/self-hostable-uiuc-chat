@@ -166,14 +166,25 @@ services:
       - --db-url=jdbc:postgresql://supabase-db:5432/postgres
       - --db-username=${POSTGRES_USER}
       - --db-password=${POSTGRES_PASSWORD}
+      - --db-schema=keycloak
       - --import-realm
     environment:
       - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN_USERNAME}
       - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
       - KC_METRICS_ENABLED=true
       - KC_HEALTH_ENABLED=true
+      # might need to add the following lines once we figure out the supabase issues:
+      # - KC_DB=postgres
+      # - KC_DB_SCHEMA=keycloak
+      # - KC_DB_URL_HOST=supabase-db
+      # - KC_DB_URL_PORT=5432
+      # - KC_DB_URL_DATABASE=postgres
+      # - KC_HEALTH_ENABLED=true
+      # - QUARKUS_DATASOURCE_JDBC_DRIVER=org.postgresql.Driver
+      # - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://supabase-db:5432/postgres
+      # - QUARKUS_TRANSACTION_MANAGER_ENABLE_RECOVERY=true
     volumes:
-      - ./keycloak/keywind:/opt/keycloak/themes/keywind
+      - ./keycloak-theme:/opt/keycloak/themes/keywind
       - ./keycloak/realms/realm-export.json:/opt/keycloak/data/import/realm-export.json
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://keycloak:8080/health/ready" ]
