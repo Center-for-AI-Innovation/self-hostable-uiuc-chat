@@ -4,6 +4,7 @@ coursera-dl/
 wandb
 *.ipynb
 *.pem
+*.idea
 
 # don't expose env files
 .env

@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    networks:
+      - uiuc-chat
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"     # AMQP protocol port
+      - "15672:15672"   # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: uiuc-chat-dev
+      RABBITMQ_DEFAULT_PASS: password
+
+  postgres:
+    image: postgis/postgis
+    restart: unless-stopped
+    networks:
+      - uiuc-chat
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_DB: uiuc-chat-dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
+volumes:
+  postgres_data:
+
+networks:
+  uiuc-chat:
