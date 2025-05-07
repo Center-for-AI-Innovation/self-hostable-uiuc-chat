@@ -49,12 +49,12 @@ class Worker:
 
     def process_job(self, channel, method, properties, body):
         inputs = json.loads(body.decode())
-        print("--Incoming job--")
-        print(inputs)
+        logging.info("--Incoming job--")
+        logging.info(inputs)
         ingester = Ingest()
         ingester.main_ingest(**inputs)
 
-        # TODO: Insert message into 'documents_in_progress' cleanup queue for removal from SQL, or reuse same queue?
+        #sql_session.delete_document_in_progress(inputs['job_id'])
 
         channel.basic_ack(delivery_tag=method.delivery_tag)
 
@@ -69,8 +69,10 @@ class Worker:
             auto_ack=False
         )
 
-        print("Waiting for messages. To exit press CTRL+C")
+        logging.info("Waiting for messages. To exit press CTRL+C")
         self.channel.start_consuming()
 
-worker = Worker()
-worker.listen_for_jobs()
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    worker = Worker()
+    worker.listen_for_jobs()
