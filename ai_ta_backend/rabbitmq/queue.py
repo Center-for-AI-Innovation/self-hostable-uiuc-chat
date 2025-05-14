@@ -73,8 +73,6 @@ class Queue:
         print("doc_progress_payload: ", doc_progress_payload)
         #sql_session.insert_document_in_progress(doc_progress_payload)
 
-        # TODO: Callback to remove from 'documents_in_progress' on success
-
         # RMQ message second
         self.channel.basic_publish(
             exchange='',

@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import time
+import logging
 from typing import List
 
 from dotenv import load_dotenv
@@ -44,6 +45,7 @@ from ai_ta_backend.service.workflow_service import WorkflowService
 from ai_ta_backend.utils.email.send_transactional_email import send_email
 from ai_ta_backend.utils.pubmed_extraction import extractPubmedData
 from ai_ta_backend.utils.rerun_webcrawl_for_project import webscrape_documents
+from ai_ta_backend.rabbitmq.queue import Queue
 
 app = Flask(__name__)
 CORS(app)
@@ -609,6 +611,25 @@ def run_flow(service: WorkflowService) -> Response:
       response.status_code = 500
       response.headers.add('Access-Control-Allow-Origin', '*')
       return response
+
+@app.route('/ingest', methods=['POST'])
+def ingest() -> Response:
+  logging.info("In /ingest")
+  active_queue = Queue()
+  data = request.get_json()
+  logging.info("Data received: %s", data)
+  # send data to redis_queue/ingestQueue.py
+  result = active_queue.addJobToIngestQueue(data)
+  logging.info("Result from addJobToIngestQueue:  %s", result)
+
+  response = jsonify(
+    {
+      "outcome": f'Queued Ingest task',
+      "ingest_task_id": result
+    }
+  )
+  response.headers.add('Access-Control-Allow-Origin', '*')
+  return response
 
 
 @app.route('/createProject', methods=['POST'])

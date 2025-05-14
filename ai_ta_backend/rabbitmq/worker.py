@@ -48,13 +48,13 @@ class Worker:
         )
 
     def process_job(self, channel, method, properties, body):
-        inputs = json.loads(body.decode())
         logging.info("--Incoming job--")
+        inputs = json.loads(body.decode())
         logging.info(inputs)
+
         ingester = Ingest()
         ingester.main_ingest(**inputs)
-
-        #sql_session.delete_document_in_progress(inputs['job_id'])
+        sql_session.delete_document_in_progress(inputs['job_id'])
 
         channel.basic_ack(delivery_tag=method.delivery_tag)
 
