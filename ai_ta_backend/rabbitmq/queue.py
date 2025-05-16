@@ -46,7 +46,7 @@ class Queue:
                 hasattr(self, 'channel') and self.channel.is_open
         )
 
-    def addJobToIngestQueue(self, inputs):
+    def addJobToIngestQueue(self, inputs, queue_name=None):
         """
         This adds a job to the queue, then eventually the queue worker uses ingest.py to ingest the document.
         """
@@ -76,13 +76,12 @@ class Queue:
         # RMQ message second
         self.channel.basic_publish(
             exchange='',
-            routing_key=self.rabbitmq_queue,
+            routing_key=self.rabbitmq_queue if queue_name is None else queue_name,
             body=json.dumps(message),
             properties=pika.BasicProperties(
                 delivery_mode=2
             )
         )
-        print("published")
         logging.info(f"Job {job_id} enqueued")
 
         return job_id

@@ -64,8 +64,8 @@ class Ingest:
         self.aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
         self.aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
         self.posthog_api_key = os.getenv('POSTHOG_API_KEY')
-        self.posthog = None
 
+        self.posthog = None
         self.qdrant_client = None
         self.vectorstore = None
         self.s3_client = None
@@ -167,6 +167,8 @@ class Ingest:
         else:
             return self.bulk_ingest(course_name, s3_paths, base_url=base_url, url=url,
                                     groups=document_groups, readable_filename=readable_filename)
+
+    def run_canvas_ingest(self):
 
     def bulk_ingest(self, course_name: str, s3_paths: Union[str, List[str]],
                   **kwargs) -> Dict[str, None | str | Dict[str, str]]:
