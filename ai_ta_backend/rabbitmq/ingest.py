@@ -168,8 +168,6 @@ class Ingest:
             return self.bulk_ingest(course_name, s3_paths, base_url=base_url, url=url,
                                     groups=document_groups, readable_filename=readable_filename)
 
-    def run_canvas_ingest(self):
-
     def bulk_ingest(self, course_name: str, s3_paths: Union[str, List[str]],
                   **kwargs) -> Dict[str, None | str | Dict[str, str]]:
         """Bulk ingest a list of s3 paths into the vectorstore, and also into the supabase database."""
