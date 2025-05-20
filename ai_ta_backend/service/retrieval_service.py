@@ -281,7 +281,7 @@ class RetrievalService:
           send_email(subject=f"LLM Monitor Alert - {', '.join(alert_details)}",
                      body_text=alert_body,
                      sender="hi@uiuc.chat",
-                     recipients=["kvday2@illinois.edu", "hbroome@illinois.edu", "rohan13@illinois.edu"],
+                     recipients=["hbroome@illinois.edu", "rohan13@illinois.edu"],
                      bcc_recipients=[])
       else:
         llm_monitor_tags["status"] = "safe"

@@ -9,10 +9,10 @@ from typing import List
 import pydantic
 import requests
 import sentry_sdk
-import supabase
 from dotenv import load_dotenv
 from retry import retry
 
+import supabase
 from ai_ta_backend.types.types import ClerkUser
 
 load_dotenv(override=True)
@@ -179,7 +179,7 @@ if __name__ == "__main__":
     success_or_fail = send_html_email(
         subject="UIUC.chat Product Update 1",
         html_text=html_content,
-        sender="kvday2@illinois.edu",
+        sender="rohan13@illinois.edu",
     )
-    # receipients=["kvday2@illinois.edu"])
+    # receipients=["rohan13@illinois.edu"])
     print("success_or_fail:", success_or_fail)
