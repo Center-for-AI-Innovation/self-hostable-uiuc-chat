@@ -156,8 +156,23 @@ class CanvasIngest():
         if not user_id:
             print("Failed to get user ID")
             return "Failed to get user ID"
-            
-        print(f"Checking for pending enrollments for user ID {user_id}...")
+        
+        # First, check if user is already enrolled in the target course
+        print(f"Checking if user is already enrolled in course ID {target_course_id}...")
+        current_enrollments_url = f"https://canvas.illinois.edu/api/v1/users/{user_id}/enrollments?state[]=active"
+        current_enrollment_response = requests.get(current_enrollments_url, headers=self.headers)
+        current_enrollment_response.raise_for_status()
+        current_enrollments = current_enrollment_response.json()
+        
+        # Check if already enrolled in target course
+        for enrollment in current_enrollments:
+            course_id = enrollment.get('course_id')
+            if str(course_id) == str(target_course_id):
+                print(f"User is already enrolled in course ID {target_course_id}")
+                return f"User is already enrolled in course ID {target_course_id}"
+        
+        # If not already enrolled, check for pending invitations
+        print(f"User not currently enrolled. Checking for pending enrollments for user ID {user_id}...")
         enrollments_url = f"https://canvas.illinois.edu/api/v1/users/{user_id}/enrollments?state[]=invited"
         enrollment_response = requests.get(enrollments_url, headers=self.headers)
         enrollment_response.raise_for_status()
@@ -175,7 +190,7 @@ class CanvasIngest():
         
         # If no enrollment found for the target course, throw error
         if not target_enrollment:
-            error_msg = f"No pending invitation found for course ID {target_course_id}"
+            error_msg = f"User is not enrolled and no pending invitation found for course ID {target_course_id}"
             print(error_msg)
             raise Exception(error_msg)
         
