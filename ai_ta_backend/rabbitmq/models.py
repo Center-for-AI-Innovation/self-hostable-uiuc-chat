@@ -13,12 +13,14 @@ from sqlalchemy import VARCHAR
 from sqlalchemy import Float
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.dialects.postgresql import JSONB
-
 from sqlalchemy.sql import func
 
 from uuid import uuid4
 
-from extensions import db
+try:
+    from ai_ta_backend.rabbitmq.extensions import db
+except ModuleNotFoundError:
+    from extensions import db
 
 
 class Base(db.Model):

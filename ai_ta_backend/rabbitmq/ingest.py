@@ -1,4 +1,3 @@
-from __future__ import annotations
 import os
 import re
 import json
@@ -44,9 +43,12 @@ from git.repo import Repo
 from bs4 import BeautifulSoup
 from pydub import AudioSegment
 
-from sql import SQLAlchemyIngestDB
-from embeddings import OpenAIAPIProcessor
-
+try:
+    from ai_ta_backend.rabbitmq.sql import SQLAlchemyIngestDB
+    from ai_ta_backend.rabbitmq.embeddings import OpenAIAPIProcessor
+except ModuleNotFoundError:
+    from sql import SQLAlchemyIngestDB
+    from embeddings import OpenAIAPIProcessor
 
 load_dotenv()
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -57,7 +59,7 @@ class Ingest:
     """
 
     def __init__(self):
-        self.openai_api_key = os.getenv('OPENAI_API_KEY')
+        self.openai_api_key = os.getenv('VLADS_OPENAI_KEY') #  TODO: os.getenv('OPENAI_API_KEY')
         self.qdrant_url = os.getenv('QDRANT_URL')
         self.qdrant_api_key = os.getenv('QDRANT_API_KEY')
         self.qdrant_collection_name = os.getenv('QDRANT_COLLECTION_NAME')
@@ -84,7 +86,7 @@ class Ingest:
             self.vectorstore = Qdrant(
                 client=self.qdrant_client,
                 collection_name=self.qdrant_collection_name,
-                embeddings=OpenAIEmbeddings(openai_api_type='openai', api_key=self.openai_api_key)
+                embeddings=OpenAIEmbeddings(openai_api_type='openai', openai_api_key=self.openai_api_key)
             )
         else:
             logging.error("QDRANT API KEY OR URL NOT FOUND!")

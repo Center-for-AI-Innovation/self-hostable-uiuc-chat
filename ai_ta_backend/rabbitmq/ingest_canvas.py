@@ -1,4 +1,3 @@
-from __future__ import annotations
 import os
 import re
 import uuid
@@ -15,7 +14,7 @@ from canvasapi import Canvas
 import yt_dlp
 from bs4 import BeautifulSoup
 
-from ai_ta_backend.rabbitmq.queue import Queue
+from ai_ta_backend.rabbitmq.rmqueue import Queue
 
 
 load_dotenv()

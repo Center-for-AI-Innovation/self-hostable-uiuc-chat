@@ -46,7 +46,7 @@ from ai_ta_backend.service.workflow_service import WorkflowService
 from ai_ta_backend.utils.email.send_transactional_email import send_email
 from ai_ta_backend.utils.pubmed_extraction import extractPubmedData
 from ai_ta_backend.utils.rerun_webcrawl_for_project import webscrape_documents
-from ai_ta_backend.rabbitmq.queue import Queue
+from ai_ta_backend.rabbitmq.rmqueue import Queue
 from ai_ta_backend.rabbitmq.ingest_canvas import IngestCanvas
 
 app = Flask(__name__)
@@ -664,9 +664,9 @@ def canvas_ingest(request) -> Response:
     ingester.ingest_course_content(canvas_course_id=canvas_course_id,
                                    course_name=course_name,
                                    content_ingest_dict=options)
-
-
-
+  except:
+    print("Error ingesting course content from Canvas.")
+    abort(500, description="Error ingesting course content from Canvas.")
 
   active_queue = Queue()
   data = request.get_json()

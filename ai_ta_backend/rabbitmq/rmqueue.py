@@ -4,7 +4,10 @@ import logging
 import uuid
 import json
 
-from sql import SQLAlchemyIngestDB
+try:
+    from ai_ta_backend.rabbitmq.sql import SQLAlchemyIngestDB
+except ModuleNotFoundError:
+    from sql import SQLAlchemyIngestDB
 
 
 # TODO: Move into the class?

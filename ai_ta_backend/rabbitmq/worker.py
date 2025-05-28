@@ -48,7 +48,9 @@ class Worker:
         )
 
     def process_job(self, channel, method, properties, body):
-        logging.info("--Incoming job--")
+        logging.info("----------------------------------------")
+        logging.info("--------------Incoming job--------------")
+        logging.info("----------------------------------------")
         inputs = json.loads(body.decode())
         logging.info(inputs)
 

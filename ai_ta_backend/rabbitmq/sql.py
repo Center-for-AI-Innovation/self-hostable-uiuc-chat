@@ -2,9 +2,8 @@ import os
 import logging
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
+from typing import List, TypeVar, Generic
 load_dotenv()
-
-import models
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -13,11 +12,15 @@ from sqlalchemy import delete
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import text
 from sqlalchemy import select, desc
-
-from typing import List, TypeVar, Generic
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy import select, desc
 from sqlalchemy.orm import Session
+
+try:
+    import ai_ta_backend.rabbitmq.models as models
+except ModuleNotFoundError:
+    import models
+
 
 # Define your base if you haven’t already
 Base = declarative_base()

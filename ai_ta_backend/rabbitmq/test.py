@@ -1,12 +1,11 @@
-from queue import Queue
+from rmqueue import Queue
 
 active_queue = Queue()
 test_data = {
     "course_name": "test_course",
-    "s3_paths": ["s3://example-bucket/test_file.txt"],
-    "readable_filename": "test_file.txt",
-    "url": "http://example.com/test_file.txt",
-    "groups": ["group1", "group2"]
+    "s3_paths": ["s3://uiuc-chat-rabbitmq-test/1.txt"],
+    "readable_filename": "1.txt",
+    "groups": ["group1"]
 }
 result = active_queue.addJobToIngestQueue(test_data)
 print(result)
