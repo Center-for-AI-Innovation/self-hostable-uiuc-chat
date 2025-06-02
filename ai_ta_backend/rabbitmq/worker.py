@@ -48,17 +48,21 @@ class Worker:
         )
 
     def process_job(self, channel, method, properties, body):
+        content = json.loads(body.decode())
+        job_id = content['job_id']
         logging.info("----------------------------------------")
         logging.info("--------------Incoming job--------------")
         logging.info("----------------------------------------")
-        inputs = json.loads(body.decode())['inputs']
+        inputs = content['inputs']
         logging.info(inputs)
 
         ingester = Ingest()
-        ingester.main_ingest(**inputs)
-        sql_session.delete_document_in_progress(inputs['job_id'])
-
-        channel.basic_ack(delivery_tag=method.delivery_tag)
+        try:
+            ingester.main_ingest(**inputs)
+            sql_session.delete_document_in_progress(job_id)
+        finally:
+            # TODO: Catch errors into a retry loop or something else?
+            channel.basic_ack(delivery_tag=method.delivery_tag)
 
     def listen_for_jobs(self):
         if not self.is_connected():

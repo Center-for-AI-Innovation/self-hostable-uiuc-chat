@@ -145,7 +145,6 @@ class Ingest:
                                                         doc_groups)
                     time.sleep(13 * retry_num)  # max is 65
                 else:
-                    logging.error("Unable to process success_fail_dict")
                     break
             if success_fail_dict['failure_ingest']:
                 print(f"INGEST FAILURE -- About to send to supabase. success_fail_dict: {success_fail_dict}")
@@ -327,7 +326,7 @@ class Ingest:
             oai = OpenAIAPIProcessor(
                 input_prompts_list=input_texts,
                 request_url='https://api.openai.com/v1/embeddings',
-                api_key=os.getenv('OPENAI_API_KEY'),
+                api_key=self.openai_api_key,
                 max_requests_per_minute=10_000,
                 max_tokens_per_minute=10_000_000,
                 max_attempts=1_000,

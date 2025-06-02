@@ -74,7 +74,7 @@ class Queue:
             "beam_task_id": job_id,  # TODO: beam name is deprecated
         }
         print("doc_progress_payload: ", doc_progress_payload)
-        #sql_session.insert_document_in_progress(doc_progress_payload)
+        sql_session.insert_document_in_progress(doc_progress_payload)
 
         # RMQ message second
         self.channel.basic_publish(
