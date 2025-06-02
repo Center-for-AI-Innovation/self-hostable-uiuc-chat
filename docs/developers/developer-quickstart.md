@@ -7,8 +7,8 @@ description: Thanks for contributing to UIUC.chat ❤️
 ## Start here
 
 * [ ] Send me (rohan13@illinois.edu) an email and request to be added to:
-  * [GitHub Organization](https://github.com/UIUC-Chatbot) & [Frontend repo](https://github.com/CAII-NCSA/uiuc-chat-frontend), <mark style="color:yellow;">include your GitHub username</mark>.
-  * [Secrets manager](https://env.ncsa.ai/), <mark style="color:yellow;">include your preferred email address</mark>.
+  * [GitHub Organization](https://github.com/UIUC-Chatbot) & [Frontend repo](https://github.com/Center-for-AI-Innovation/uiuc-chat-frontend), <mark style="color:yellow;">include your GitHub username</mark>.
+  * [Secrets manager](https://env.uiuc.chat/), <mark style="color:yellow;">include your preferred email address</mark>.
   * Supabase dashboard, <mark style="color:yellow;">include your GitHub's email address</mark>.
 
 <details>
@@ -26,7 +26,7 @@ description: Thanks for contributing to UIUC.chat ❤️
 
 {% hint style="warning" %}
 You must setup an account before continuing, for our secrets service [Infisical](https://infisical.com/docs/documentation/getting-started/introduction).\
-Confirm you can login here: [https://env.ncsa.ai/](https://env.ncsa.ai/)
+Confirm you can login here: [https://env.uiuc.chat/](https://env.uiuc.chat/)
 {% endhint %}
 
 Instead of sharing `.env` files manually, we use Infiscal as a central password manager for devs. We use its CLI and web interface.
@@ -56,17 +56,17 @@ sudo apt-get update && sudo apt-get install -y infisical
 
 ### Where are my `.env` variables?
 
-If it's running on `localhost`, the env vars come from **Infisical**, our shared secrets manager. You can add new env vars at [env.ncsa.ai](https://env.ncsa.ai).&#x20;
+If it's running on `localhost`, the env vars come from **Infisical**, our shared secrets manager. You can add new env vars at [env.uiuc.chat](https://env.uiuc.chat/)
 
 If it's in production, or any cloud service, the env vars are stored directly in that cloud service. Those include Vercel, Railway, Beam.cloud and more. You can edit env vars in those services, just be careful.
 
 ## Frontend Setup
 
-Frontend repo: [https://github.com/CAII-NCSA/uiuc-chat-frontend](https://github.com/CAII-NCSA/uiuc-chat-frontend)
+Frontend repo: [https://github.com/Center-for-AI-Innovation/uiuc-chat-frontend](https://github.com/Center-for-AI-Innovation/uiuc-chat-frontend)
 
 ```bash
 # clone the repo somewhere good
-git clone git@github.com:CAII-NCSA/uiuc-chat-frontend.git
+git clone git@github.com:Center-for-AI-Innovation/uiuc-chat-frontend.git
 ```
 
 <details>
@@ -126,7 +126,7 @@ cd uiuc-chat-frontend
 
 infisical login
 # ⭐️ --> select "Self Hosting"
-# ⭐️ --> enter "https://env.ncsa.ai"
+# ⭐️ --> enter "https://env.uiuc.chat"
 # ⭐️ click the login link
 # ⭐️ likely enter your main computer password
 ```
@@ -165,11 +165,11 @@ INF Injecting 32 Infisical secrets into your application process
 
 ## Backend Setup
 
-Backend repo: [https://github.com/UIUC-Chatbot/ai-ta-backend](https://github.com/UIUC-Chatbot/ai-ta-backend)
+Backend repo: [https://github.com/Center-for-AI-Innovation/ai-ta-backend](https://github.com/Center-for-AI-Innovation/ai-ta-backend)
 
 ```bash
 # clone the repo somewhere good
-git clone git@github.com:UIUC-Chatbot/ai-ta-backend.git
+git clone git@github.com:Center-for-AI-Innovation/ai-ta-backend.git
 ```
 
 <details>
@@ -220,7 +220,7 @@ pip install -r requirements.txt
 
 {% hint style="warning" %}
 You must setup an account before continuing, for our secrets service [Infisical](https://infisical.com/docs/documentation/getting-started/introduction).\
-Confirm you can login here: [https://env.ncsa.ai/](https://env.ncsa.ai/)
+Confirm you can login here: [https://env.uiuc.chat](https://env.uiuc.chat/)
 
 Also make sure to install Infiscal in your local machine as mentioned above
 {% endhint %}
@@ -229,7 +229,7 @@ Also make sure to install Infiscal in your local machine as mentioned above
 cd path/to/ai-ta-backend
 <strong>infisical login
 </strong># ⭐️ --> select "Self Hosting"
-# ⭐️ --> enter "https://env.ncsa.ai"
+# ⭐️ --> enter "https://env.uiuc.chat"
 # ⭐️ click the login link
 # ⭐️ likely enter your main computer password
 
