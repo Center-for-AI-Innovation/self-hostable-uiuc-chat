@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from typing import List, TypeVar, Generic
 load_dotenv()
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, NullPool
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import insert
 from sqlalchemy import delete
@@ -65,7 +65,7 @@ class SQLAlchemyIngestDB:
         # Build the appropriate connection string
         if db_type == 'supabase':
             encoded_password = quote_plus(os.getenv('SUPABASE_PASSWORD'))
-            db_uri = f"postgresql://{os.getenv('SUPABASE_USER')}:{encoded_password}@{os.getenv('SUPABASE_URL')}"
+            db_uri = f"postgresql://{os.getenv('SUPABASE_USER')}:{encoded_password}@{os.getenv('SUPABASE_PG_URL')}"
         elif db_type == 'sqlite':
             db_uri = f"sqlite:///{os.getenv('SQLITE_DB_NAME')}"
         else:
@@ -74,7 +74,7 @@ class SQLAlchemyIngestDB:
 
         # Create engine and session
         print("About to connect to DB from IngestSQL.py, with URI:", db_uri)
-        engine = create_engine(db_uri)
+        engine = create_engine(db_uri, poolclass=NullPool)
         Session = sessionmaker(bind=engine)
         # TODO: Move to self.connect() & handle if the session is broken before executing statements
         self.session = Session()

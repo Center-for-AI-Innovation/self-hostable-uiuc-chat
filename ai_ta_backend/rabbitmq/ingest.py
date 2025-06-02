@@ -65,6 +65,7 @@ class Ingest:
         self.qdrant_collection_name = os.getenv('QDRANT_COLLECTION_NAME')
         self.aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
         self.aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+        self.s3_bucket_name = os.getenv('S3_BUCKET_NAME')
         self.posthog_api_key = os.getenv('POSTHOG_API_KEY')
 
         self.posthog = None
@@ -226,7 +227,7 @@ class Ingest:
             for s3_path in s3_paths:
                 file_extension = Path(s3_path).suffix
                 with NamedTemporaryFile(suffix=file_extension) as tmpfile:
-                    self.s3_client.download_fileobj(Bucket=os.environ['S3_BUCKET_NAME'], Key=s3_path, Fileobj=tmpfile)
+                    self.s3_client.download_fileobj(Bucket=self.s3_bucket_name, Key=s3_path, Fileobj=tmpfile)
                     mime_type = str(mimetypes.guess_type(tmpfile.name, strict=False)[0])
                     mime_category = mime_type.split('/')[0] if '/' in mime_type else mime_type
 
@@ -496,10 +497,9 @@ class Ingest:
         """Delete file from S3, Qdrant, and Supabase."""
         print(f"Deleting {s3_path} from S3, Qdrant, and Supabase for course {course_name}")
         try:
-            bucket_name = os.getenv('S3_BUCKET_NAME')
             if s3_path:
                 try:
-                    self.s3_client.delete_object(Bucket=bucket_name, Key=s3_path)
+                    self.s3_client.delete_object(Bucket=self.s3_bucket_name, Key=s3_path)
                 except Exception as e:
                     print("Error in deleting file from s3:", e)
                     sentry_sdk.capture_exception(e)
@@ -612,7 +612,7 @@ class Ingest:
             file_name = s3_path.split("/")[-1]
             file_path = "media/" + file_name  # download from s3 to local folder for ingest
 
-            self.s3_client.download_file(os.getenv('S3_BUCKET_NAME'), s3_path, file_path)
+            self.s3_client.download_file(self.s3_bucket_name, s3_path, file_path)
 
             loader = PythonLoader(file_path)
             documents = loader.load()
@@ -650,7 +650,7 @@ class Ingest:
         try:
             with NamedTemporaryFile() as tmpfile:
                 # download from S3 into vtt_tmpfile
-                self.s3_client.download_fileobj(Bucket=os.environ['S3_BUCKET_NAME'], Key=s3_path, Fileobj=tmpfile)
+                self.s3_client.download_fileobj(Bucket=self.s3_bucket_name, Key=s3_path, Fileobj=tmpfile)
                 loader = TextLoader(tmpfile.name)
                 documents = loader.load()
                 texts = [doc.page_content for doc in documents]
@@ -677,7 +677,7 @@ class Ingest:
     def _ingest_html(self, s3_path: str, course_name: str, **kwargs) -> str:
         print(f"IN _ingest_html s3_path `{s3_path}` kwargs: {kwargs}")
         try:
-            response = self.s3_client.get_object(Bucket=os.environ['S3_BUCKET_NAME'], Key=s3_path)
+            response = self.s3_client.get_object(Bucket=self.s3_bucket_name, Key=s3_path)
             raw_html = response['Body'].read().decode('utf-8', errors='ignore')
 
             soup = BeautifulSoup(raw_html, 'html.parser')
@@ -725,7 +725,7 @@ class Ingest:
             transcript_list = []
             with NamedTemporaryFile(suffix=file_ext) as video_tmpfile:
                 # download from S3 into an video tmpfile
-                self.s3_client.download_fileobj(Bucket=os.environ['S3_BUCKET_NAME'], Key=s3_path, Fileobj=video_tmpfile)
+                self.s3_client.download_fileobj(Bucket=self.s3_bucket_name, Key=s3_path, Fileobj=video_tmpfile)
 
                 # try with original file first
                 try:
@@ -818,7 +818,7 @@ class Ingest:
     def _ingest_single_docx(self, s3_path: str, course_name: str, **kwargs) -> str:
         try:
             with NamedTemporaryFile() as tmpfile:
-                self.s3_client.download_fileobj(Bucket=os.getenv('S3_BUCKET_NAME'), Key=s3_path, Fileobj=tmpfile)
+                self.s3_client.download_fileobj(Bucket=self.s3_bucket_name, Key=s3_path, Fileobj=tmpfile)
 
                 loader = Docx2txtLoader(tmpfile.name)
                 documents = loader.load()
@@ -849,7 +849,7 @@ class Ingest:
             import pysrt
 
             # NOTE: slightly different method for .txt files, no need for download. It's part of the 'body'
-            response = self.s3_client.get_object(Bucket=os.environ['S3_BUCKET_NAME'], Key=s3_path)
+            response = self.s3_client.get_object(Bucket=self.s3_bucket_name, Key=s3_path)
             raw_text = response['Body'].read().decode('utf-8', errors='ignore')
 
             print("UTF-8 text to ingest as SRT:", raw_text)
@@ -884,7 +884,7 @@ class Ingest:
         try:
             with NamedTemporaryFile() as tmpfile:
                 # download from S3 into pdf_tmpfile
-                self.s3_client.download_fileobj(Bucket=os.getenv('S3_BUCKET_NAME'), Key=s3_path, Fileobj=tmpfile)
+                self.s3_client.download_fileobj(Bucket=self.s3_bucket_name, Key=s3_path, Fileobj=tmpfile)
 
                 loader = UnstructuredExcelLoader(tmpfile.name, mode="elements")
                 # loader = SRTLoader(tmpfile.name)
@@ -915,7 +915,7 @@ class Ingest:
         try:
             with NamedTemporaryFile() as tmpfile:
                 # download from S3 into pdf_tmpfile
-                self.s3_client.download_fileobj(Bucket=os.getenv('S3_BUCKET_NAME'), Key=s3_path, Fileobj=tmpfile)
+                self.s3_client.download_fileobj(Bucket=self.s3_bucket_name, Key=s3_path, Fileobj=tmpfile)
                 """
                 # Unstructured image loader makes the install too large (700MB --> 6GB. 3min -> 12 min build times). AND nobody uses it.
                 # The "hi_res" strategy will identify the layout of the document using detectron2. "ocr_only" uses pdfminer.six. https://unstructured-io.github.io/unstructured/core/partition.html#partition-image
@@ -952,7 +952,7 @@ class Ingest:
         try:
             with NamedTemporaryFile() as tmpfile:
                 # download from S3 into pdf_tmpfile
-                self.s3_client.download_fileobj(Bucket=os.getenv('S3_BUCKET_NAME'), Key=s3_path, Fileobj=tmpfile)
+                self.s3_client.download_fileobj(Bucket=self.s3_bucket_name, Key=s3_path, Fileobj=tmpfile)
 
                 loader = CSVLoader(file_path=tmpfile.name)
                 documents = loader.load()
@@ -989,7 +989,7 @@ class Ingest:
         try:
             with NamedTemporaryFile() as pdf_tmpfile:
                 # download from S3 into pdf_tmpfile
-                self.s3_client.download_fileobj(Bucket=os.getenv('S3_BUCKET_NAME'), Key=s3_path, Fileobj=pdf_tmpfile)
+                self.s3_client.download_fileobj(Bucket=self.s3_bucket_name, Key=s3_path, Fileobj=pdf_tmpfile)
                 ### READ OCR of PDF
                 try:
                     doc = fitz.open(pdf_tmpfile.name)  # type: ignore
@@ -1015,7 +1015,7 @@ class Ingest:
                             first_page_png.seek(0)  # Seek the file pointer back to the beginning
                             with open(first_page_png.name, 'rb') as f:
                                 print("Uploading image png to S3")
-                                self.s3_client.upload_fileobj(f, os.getenv('S3_BUCKET_NAME'), s3_upload_path)
+                                self.s3_client.upload_fileobj(f, self.s3_bucket_name, s3_upload_path)
 
                     # Extract text
                     text = page.get_text().encode("utf8").decode("utf8",
@@ -1063,7 +1063,7 @@ class Ingest:
         try:
             with NamedTemporaryFile() as pdf_tmpfile:
                 # download from S3 into pdf_tmpfile
-                self.s3_client.download_fileobj(Bucket=os.getenv('S3_BUCKET_NAME'), Key=s3_path, Fileobj=pdf_tmpfile)
+                self.s3_client.download_fileobj(Bucket=self.s3_bucket_name, Key=s3_path, Fileobj=pdf_tmpfile)
 
                 with pdfplumber.open(pdf_tmpfile.name) as pdf:
                     # for page in :
@@ -1119,7 +1119,7 @@ class Ingest:
         print("kwargs", kwargs)
         try:
             # NOTE: slightly different method for .txt files, no need for download. It's part of the 'body'
-            response = self.s3_client.get_object(Bucket=os.environ['S3_BUCKET_NAME'], Key=s3_path)
+            response = self.s3_client.get_object(Bucket=self.s3_bucket_name, Key=s3_path)
             text = response['Body'].read().decode('utf-8', errors='ignore')
             print("UTF-8 text to ignest (from s3)", text)
             text = [text]
@@ -1152,7 +1152,7 @@ class Ingest:
             with NamedTemporaryFile() as tmpfile:
                 # download from S3 into pdf_tmpfile
                 # print("in ingest PPTX")
-                self.s3_client.download_fileobj(Bucket=os.environ['S3_BUCKET_NAME'], Key=s3_path, Fileobj=tmpfile)
+                self.s3_client.download_fileobj(Bucket=self.s3_bucket_name, Key=s3_path, Fileobj=tmpfile)
 
                 loader = UnstructuredPowerPointLoader(tmpfile.name)
                 documents = loader.load()

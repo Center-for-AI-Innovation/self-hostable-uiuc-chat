@@ -51,7 +51,7 @@ class Worker:
         logging.info("----------------------------------------")
         logging.info("--------------Incoming job--------------")
         logging.info("----------------------------------------")
-        inputs = json.loads(body.decode())
+        inputs = json.loads(body.decode())['inputs']
         logging.info(inputs)
 
         ingester = Ingest()
