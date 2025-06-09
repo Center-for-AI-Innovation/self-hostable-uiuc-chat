@@ -1,6 +1,8 @@
 // uploadToS3.ts
 import express, { Request, Response } from 'express';
 import { crawl } from './api/crawlee.js';
+import healthRoute from './api/health.js'; // Import your health route
+
 import cors from 'cors';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -57,6 +59,9 @@ app.post('/crawl', async (req: Request, res: Response) => {
         }
     }
 });
+
+// add a health check route
+app.use('/api', healthRoute); // GET /api/health
 
 
 const PORT = process.env.PORT || 3000;
