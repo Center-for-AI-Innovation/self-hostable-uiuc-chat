@@ -1,4 +1,5 @@
 import os
+import ssl
 import pika
 import logging
 import uuid
@@ -14,10 +15,8 @@ sql_session = SQLAlchemyIngestDB()
 class Worker:
 
     def __init__(self):
-        self.rabbitmq_host = os.getenv('RABBITMQ_HOST', 'localhost')
-        self.rabbitmq_port = os.getenv('RABBITMQ_PORT', '5672')
-        self.rabbitmq_username = os.getenv('RABBITMQ_USERNAME', 'uiuc-chat-dev')
-        self.rabbitmq_password = os.getenv('RABBITMQ_PASSWORD', 'password')
+        self.rabbitmq_url = os.getenv('RABBITMQ_URL', 'amqp://uiuc-chat-dev:password@localhost:5672')
+        self.rabbitmq_ssl = os.getenv('RABBITMQ_SSL', True)
         self.rabbitmq_queue = os.getenv('RABBITMQ_QUEUE', 'uiuc-chat')
         self.connect()
 
@@ -30,13 +29,11 @@ class Worker:
         self.connection.close()
 
     def connect(self):
-        credentials = pika.PlainCredentials(self.rabbitmq_username, self.rabbitmq_password)
-        parameters = pika.ConnectionParameters(
-            host=self.rabbitmq_host,
-            port=self.rabbitmq_port,
-            credentials=credentials
-        )
-
+        parameters = pika.URLParameters(self.rabbitmq_url)
+        if self.rabbitmq_ssl:
+            # Necessary for AWS AmazonMQ
+            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+            ssl_context.set_ciphers('ECDHE+AESGCM:!ECDSA')
         self.connection = pika.BlockingConnection(parameters)
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue=self.rabbitmq_queue, durable=True)

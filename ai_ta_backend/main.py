@@ -620,6 +620,8 @@ def ingest() -> Response:
   data = request.get_json()
   logging.info("Data received: %s", data)
 
+  # TODO: Authentication?
+
   result = active_queue.addJobToIngestQueue(data)
   logging.info("Result from addJobToIngestQueue:  %s", result)
 
