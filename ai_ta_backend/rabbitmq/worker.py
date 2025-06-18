@@ -4,13 +4,15 @@ import pika
 import logging
 import uuid
 import json
+import threading
 
 from sql import SQLAlchemyIngestDB
 from ingest import Ingest
+from flask import Flask, request, jsonify
 
 
-# TODO: Move into the class?
-sql_session = SQLAlchemyIngestDB()
+app = Flask(__name__)
+sql_session = SQLAlchemyIngestDB()  # TODO: Move into the class?
 
 class Worker:
 
@@ -34,6 +36,7 @@ class Worker:
             # Necessary for AWS AmazonMQ
             ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
             ssl_context.set_ciphers('ECDHE+AESGCM:!ECDSA')
+            parameters.ssl_options = pika.SSLOptions(context=ssl_context)
         self.connection = pika.BlockingConnection(parameters)
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue=self.rabbitmq_queue, durable=True)
@@ -75,7 +78,19 @@ class Worker:
         logging.info("Waiting for messages. To exit press CTRL+C")
         self.channel.start_consuming()
 
-if __name__ == "__main__":
+
+@app.route('/api/healthcheck', methods=['GET'])
+def return_health():
+    message = {'status': 'OK'}
+    return jsonify(message)
+
+
+if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
+
     worker = Worker()
-    worker.listen_for_jobs()
+    worker_thread = threading.Thread(target=worker.listen_for_jobs)
+    worker_thread.start()
+    worker_thread.join(0)
+    logging.info("Running healthcheck endpoint")
+    app.run(host='0.0.0.0', port=8001)

@@ -33,6 +33,8 @@ services:
     restart: unless-stopped
     networks:
       - uiuc-chat
+    ports:
+      - "8001:8001"
     depends_on:
       - rabbitmq
       - postgres

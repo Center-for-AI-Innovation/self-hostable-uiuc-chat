@@ -21,5 +21,7 @@ WORKDIR /app
 COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
+EXPOSE 8001
+
 COPY ingest.py .
 CMD ["python", "worker.py"]

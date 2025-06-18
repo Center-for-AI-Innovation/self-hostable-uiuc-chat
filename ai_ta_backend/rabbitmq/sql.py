@@ -50,8 +50,6 @@ class SQLAlchemyIngestDB:
             'postgres': ['POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_HOST']
         }
 
-        print(os.getenv('POSTGRES_HOST'))
-
         # Detect which database configuration is available
         db_type = None
         for db, required_vars in DB_CONFIGS.items():

@@ -32,13 +32,12 @@ class Queue:
         self.connection.close()
 
     def connect(self):
-        credentials = pika.PlainCredentials(self.rabbitmq_username, self.rabbitmq_password)
-        parameters = pika.ConnectionParameters(
-            host=self.rabbitmq_host,
-            port=self.rabbitmq_port,
-            credentials=credentials
-        )
-
+        parameters = pika.URLParameters(self.rabbitmq_url)
+        if self.rabbitmq_ssl:
+            # Necessary for AWS AmazonMQ
+            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+            ssl_context.set_ciphers('ECDHE+AESGCM:!ECDSA')
+            parameters.ssl_options = pika.SSLOptions(context=ssl_context)
         self.connection = pika.BlockingConnection(parameters)
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue=self.rabbitmq_queue, durable=True)
