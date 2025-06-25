@@ -16,7 +16,7 @@ ENV PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 RUN pip install uv
 
 # Copy the requirements file first to leverage Docker cache
-COPY ai_ta_backend/requirements.txt .
+COPY uiuc-chat-backend/requirements.txt .
 
 # Install any needed packages specified in requirements.txt
 RUN uv pip install -r requirements.txt --system
@@ -28,7 +28,7 @@ RUN mkdir -p /usr/src/app/db
 COPY . .
 
 # Set the Python path to include the ai_ta_backend directory
-ENV PYTHONPATH="${PYTHONPATH}:/usr/src/app/ai_ta_backend"
+ENV PYTHONPATH="${PYTHONPATH}:/usr/src/app/uiuc-chat-backend"
 
 # Make port 8001 available to the world outside this container
 EXPOSE 8001
