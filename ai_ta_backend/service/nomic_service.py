@@ -347,7 +347,7 @@ class NomicService():
             if existing_map.data:
               self.sql.updateProjects(course_name, project_info)
             else:
-              self.sql.insertProjectInfo(project_info)
+              self.sql.insertProject(project_info)
 
           else:
             print(f"Did not append additional data to new map: {result}")
@@ -452,7 +452,7 @@ class NomicService():
             if existing_map.data:
               self.sql.updateProjects(course_name, project_info)
             else:
-              self.sql.insertProjectInfo(project_info)
+              self.sql.insertProject(project_info)
 
           else:
             print(f"Error in uploading batch for {course_name}: {result}")

@@ -44,10 +44,10 @@ from bs4 import BeautifulSoup
 from pydub import AudioSegment
 
 try:
-    from ai_ta_backend.rabbitmq.sql import SQLAlchemyIngestDB
+    from ai_ta_backend.rabbitmq.rmsql import SQLAlchemyIngestDB
     from ai_ta_backend.rabbitmq.embeddings import OpenAIAPIProcessor
 except ModuleNotFoundError:
-    from sql import SQLAlchemyIngestDB
+    from rmsql import SQLAlchemyIngestDB
     from embeddings import OpenAIAPIProcessor
 
 load_dotenv()

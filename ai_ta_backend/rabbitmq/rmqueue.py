@@ -5,9 +5,9 @@ import uuid
 import json
 
 try:
-    from ai_ta_backend.rabbitmq.sql import SQLAlchemyIngestDB
+    from ai_ta_backend.rabbitmq.rmsql import SQLAlchemyIngestDB
 except ModuleNotFoundError:
-    from sql import SQLAlchemyIngestDB
+    from rmsql import SQLAlchemyIngestDB
 
 
 # TODO: Move into the class?

@@ -6,7 +6,7 @@ import uuid
 import json
 import threading
 
-from sql import SQLAlchemyIngestDB
+from rmsql import SQLAlchemyIngestDB
 from ingest import Ingest
 from flask import Flask, request, jsonify
 
