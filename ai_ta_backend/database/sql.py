@@ -60,7 +60,6 @@ class SQLDatabase:
   def __init__(self) -> None:
       # Define supported database configurations and their required env vars
       DB_CONFIGS = {
-          'supabase': ['SUPABASE_USER', 'SUPABASE_PASSWORD', 'SUPABASE_URL'],
           'sqlite': ['SQLITE_DB_NAME'],
           'postgres': ['POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_HOST']
       }
@@ -76,10 +75,7 @@ class SQLDatabase:
           raise ValueError("No valid database configuration found in environment variables")
 
       # Build the appropriate connection string
-      if db_type == 'supabase':
-          encoded_password = quote_plus(os.getenv('SUPABASE_PASSWORD'))
-          db_uri = f"postgresql://{os.getenv('SUPABASE_USER')}:{encoded_password}@{os.getenv('SUPABASE_PG_URL')}"
-      elif db_type == 'sqlite':
+      if db_type == 'sqlite':
           db_uri = f"sqlite:///{os.getenv('SQLITE_DB_NAME')}"
       else:
           # postgres
@@ -104,13 +100,23 @@ class SQLDatabase:
 
   def getMaterialsForCourseAndS3Path(self, course_name: str, s3_path: str):
       query = (
-          select(models.Document.c["id", "s3_path", "contexts"])
+          select(models.Document)
           .where(models.Document.s3_path == s3_path)
           .where(models.Document.course_name == course_name)
       )
       result = self.session.execute(query).scalars().all()
       response = DatabaseResponse(data=result, count=len(result)).to_dict()
       return response
+
+  def getMatrialsForCourseAndUrl(self, course_name: str, url: str):
+        query = (
+            select(models.Document)
+            .where(models.Document.url == url)
+            .where(models.Document.course_name == course_name)
+        )
+        result = self.session.execute(query).scalars().all()
+        response = DatabaseResponse(data=result, count=len(result)).to_dict()
+        return response
 
   def getMaterialsForCourseAndKeyAndValue(self, course_name: str, key: str, value: str):
       query = (
@@ -251,6 +257,14 @@ class SQLDatabase:
           self.session.rollback()  # Rollback in case of error
           print(f"Insertion failed: {e}")
           return False  # Insertion failed
+
+  def getLLMConvo(self):
+      query = (
+          select(models.LlmConvoMonitor.convo)
+      )
+      result = self.session.execute(query).scalars().all()
+      response = DatabaseResponse(data=result, count=len(result)).to_dict()
+      return response
 
   def getAllFromLLMConvoMonitor(self, course_name: str):
       query = (
@@ -398,15 +412,6 @@ class SQLDatabase:
       return response
 
   def getAllConversationsForUserAndProject(self, user_email: str, project_name: str, curr_count: int = 0):
-      """TODO; Is this selecting JSON fields from messages field?
-
-      return self.supabase_client.table('conversations').select(
-          '*, messages(content_text, content_image_url, role, image_description, created_at).order(created_at, desc=True)',
-          count='exact').eq('user_email',
-                            user_email).eq('project_name',
-                                           project_name).order('updated_at',
-                                                               desc=True).limit(500).offset(curr_count).execute()
-      """
       query = (
           select(models.Conversations, models.Messages)
           .join(models.Messages, models.Messages.conversation_id == models.Conversations.id)
@@ -621,3 +626,4 @@ class SQLDatabase:
       result = self.session.execute(query).mappings().all()
       response = DatabaseResponse(data=result, count=len(result)).to_dict()
       return response
+

@@ -147,7 +147,7 @@ class Ingest:
                 else:
                     break
             if success_fail_dict['failure_ingest']:
-                print(f"INGEST FAILURE -- About to send to supabase. success_fail_dict: {success_fail_dict}")
+                print(f"INGEST FAILURE -- About to send to database. success_fail_dict: {success_fail_dict}")
 
             sentry_sdk.flush(timeout=20)
             return json.dumps(success_fail_dict)
@@ -172,7 +172,7 @@ class Ingest:
 
     def bulk_ingest(self, course_name: str, s3_paths: Union[str, List[str]],
                   **kwargs) -> Dict[str, None | str | Dict[str, str]]:
-        """Bulk ingest a list of s3 paths into the vectorstore, and also into the supabase database."""
+        """Bulk ingest a list of s3 paths into the vectorstore, and also into the database."""
         print(f"Top of bulk_ingest: ", kwargs)
 
         def _ingest_single(ingest_method: Callable, s3_path, *args, **kwargs):
@@ -424,24 +424,24 @@ class Ingest:
                 original_filename = incoming_filename
             logging.info(f"Filename after removing uuid: {original_filename}")
 
-            supabase_contents = self.sql_session.get_like_docs_by_s3_path(course_name, original_filename)
-            supabase_contents = supabase_contents['data']
+            contents = self.sql_session.get_like_docs_by_s3_path(course_name, original_filename)
+            contents = contents['data']
             logging.info(
-                f"No. of S3 path based records retrieved: {len(supabase_contents)}")  # multiple records can be retrieved: 3.pdf and 453.pdf
+                f"No. of S3 path based records retrieved: {len(contents)}")  # multiple records can be retrieved: 3.pdf and 453.pdf
         elif url:
             original_filename = url
-            supabase_contents = self.sql_session.get_like_docs_by_url(course_name, url)
-            supabase_contents = supabase_contents['data']
-            logging.info(f"No. of URL-based records retrieved: {len(supabase_contents)}")
+            contents = self.sql_session.get_like_docs_by_url(course_name, url)
+            contents = contents['data']
+            logging.info(f"No. of URL-based records retrieved: {len(contents)}")
         else:
             original_filename = None
-            supabase_contents = []
+            contents = []
 
-        supabase_whole_text = ""
+        db_whole_text = ""
         exact_doc_exists = False
-        if len(supabase_contents) > 0:  # a doc with same filename exists in Supabase
-            logging.info(f"Checking for Supabase contents: {supabase_contents}")
-            for record in supabase_contents:
+        if len(contents) > 0:  # a doc with same filename exists in Supabase
+            logging.info(f"Checking for Supabase contents: {contents}")
+            for record in contents:
                 logging.info(f"Record: {record}")
                 if incoming_s3_path:
                     curr_filename = record['s3_path'].split('/')[-1]
@@ -460,20 +460,20 @@ class Ingest:
                 print("Original filename: ", original_filename, "Current SQL filename: ", sql_filename)
 
                 if original_filename == sql_filename:  # compare og s3_path/url with incoming s3_path/url
-                    supabase_contexts = record
+                    contexts = record
 
                     exact_doc_exists = True
                     print("Exact doc exists in Supabase:", sql_filename)
                     break
 
             if exact_doc_exists:
-                for text in supabase_contexts['contexts']:
-                    supabase_whole_text += text['text']
+                for text in contexts['contexts']:
+                    db_whole_text += text['text']
                 current_whole_text = ""
                 for text in texts:
                     current_whole_text += text['input']
 
-                if supabase_whole_text == current_whole_text:
+                if db_whole_text == current_whole_text:
                     logging.info(f"Duplicate detected: {original_filename}.")
                     return True
                 else:
@@ -526,7 +526,7 @@ class Ingest:
                 try:
                     self.sql_session.delete_document_by_s3_path(course_name=course_name, s3_path=s3_path)
                 except Exception as e:
-                    print("Error in deleting file from supabase:", e)
+                    print("Error in deleting file from database:", e)
                     sentry_sdk.capture_exception(e)
 
             # Delete files by their URL identifier
@@ -552,7 +552,7 @@ class Ingest:
                 try:
                     self.sql_session.delete_document_by_url(course_name=course_name, url=source_url)
                 except Exception as e:
-                    print("Error in deleting file from supabase:", e)
+                    print("Error in deleting file from database:", e)
                     sentry_sdk.capture_exception(e)
 
             return "Success"

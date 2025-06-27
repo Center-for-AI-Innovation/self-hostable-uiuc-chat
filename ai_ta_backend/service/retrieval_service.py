@@ -178,7 +178,7 @@ class RetrievalService:
   ):
     """Get all course materials based on course name.
     Args:
-        course_name (as uploaded on supabase)
+        course_name (as uploaded on database)
     Returns:
         list of dictionaries with distinct s3 path, readable_filename and course_name, url, base_url.
     """
@@ -313,7 +313,7 @@ class RetrievalService:
       self.delete_from_qdrant(identifier_key, identifier_value, course_name)
 
       # Delete from Nomic and Supabase
-      self.delete_from_nomic_and_supabase(course_name, identifier_key, identifier_value)
+      self.delete_from_nomic_and_database(course_name, identifier_key, identifier_value)
 
       return "Success"
 
@@ -443,7 +443,7 @@ class RetrievalService:
     #   sentry_sdk.capture_exception(e)
     #   return err
 
-  def delete_from_nomic_and_supabase(self, course_name: str, identifier_key: str, identifier_value: str):
+  def delete_from_nomic_and_database(self, course_name: str, identifier_key: str, identifier_value: str):
     # try:
     #   print(f"Nomic delete. Course: {course_name} using {identifier_key}: {identifier_value}")
     #   response = self.sqlDb.getMaterialsForCourseAndKeyAndValue(course_name, identifier_key, identifier_value)
@@ -463,10 +463,10 @@ class RetrievalService:
     #   self.sentry.capture_exception(e)
 
     try:
-      print(f"Supabase Delete. course: {course_name} using {identifier_key}: {identifier_value}")
+      print(f"Database Delete. course: {course_name} using {identifier_key}: {identifier_value}")
       response = self.sqlDb.deleteMaterialsForCourseAndKeyAndValue(course_name, identifier_key, identifier_value)
     except Exception as e:
-      print(f"Supabase Error in delete. {identifier_key}: {identifier_value}", e)
+      print(f"Database Error in delete. {identifier_key}: {identifier_value}", e)
       self.sentry.capture_exception(e)
 
   def vector_search(self,

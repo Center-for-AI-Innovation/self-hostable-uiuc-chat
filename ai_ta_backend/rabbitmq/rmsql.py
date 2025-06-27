@@ -65,7 +65,6 @@ class SQLAlchemyIngestDB:
     def __init__(self) -> None:
         # Define supported database configurations and their required env vars
         DB_CONFIGS = {
-            'supabase': ['SUPABASE_USER', 'SUPABASE_PASSWORD', 'SUPABASE_URL'],
             'sqlite': ['SQLITE_DB_NAME'],
             'postgres': ['POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_HOST']
         }
@@ -81,10 +80,7 @@ class SQLAlchemyIngestDB:
             raise ValueError("No valid database configuration found in environment variables")
 
         # Build the appropriate connection string
-        if db_type == 'supabase':
-            encoded_password = quote_plus(os.getenv('SUPABASE_PASSWORD'))
-            db_uri = f"postgresql://{os.getenv('SUPABASE_USER')}:{encoded_password}@{os.getenv('SUPABASE_PG_URL')}"
-        elif db_type == 'sqlite':
+        if db_type == 'sqlite':
             db_uri = f"sqlite:///{os.getenv('SQLITE_DB_NAME')}"
         else:
             # postgres
