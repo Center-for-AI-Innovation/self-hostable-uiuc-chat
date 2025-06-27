@@ -303,7 +303,7 @@ class RetrievalService:
         raise ValueError("S3_BUCKET_NAME environment variable is not set")
 
       identifier_key, identifier_value = ("s3_path", s3_path) if s3_path else ("url", source_url)
-      print(f"Deleting {identifier_value} from S3, Qdrant, and Supabase using {identifier_key}")
+      print(f"Deleting {identifier_value} from S3, Qdrant, and Database using {identifier_key}")
 
       # Delete from S3
       if identifier_key == "s3_path":
@@ -312,7 +312,7 @@ class RetrievalService:
       # Delete from Qdrant
       self.delete_from_qdrant(identifier_key, identifier_value, course_name)
 
-      # Delete from Nomic and Supabase
+      # Delete from Nomic and Database
       self.delete_from_nomic_and_database(course_name, identifier_key, identifier_value)
 
       return "Success"

@@ -182,7 +182,7 @@ class NomicService():
 
           # Prepare update process
           total_doc_count = response.count
-          print(f"Total unlogged documents in Supabase: {total_doc_count}")
+          print(f"Total unlogged documents in Database: {total_doc_count}")
 
           project_name = re.sub(r'[^a-zA-Z0-9\s-]', '',
                                 f"{DOCUMENT_MAP_PREFIX}{course_name}".replace(" ", "-").replace("_", "-").lower())
@@ -285,7 +285,7 @@ class NomicService():
 
       # Validate conversation count
       response = self.sql.getCountFromLLMConvoMonitor(course_name, last_id=0)
-      print(f"Response from Supabase: {response.count}")
+      print(f"Response from Database: {response.count}")
 
       if not response.count or response.count < MIN_CONVERSATIONS:
         print(f"Cannot create map: {'No new convos present' if not response.count else 'Less than 20 conversations'}")
@@ -293,7 +293,7 @@ class NomicService():
 
       # Prepare map creation
       total_convo_count = response.count
-      print(f"Total conversations in Supabase: {total_convo_count}")
+      print(f"Total conversations in Database: {total_convo_count}")
 
       project_name = re.sub(r'[^a-zA-Z0-9\s-]', '',
                             (NOMIC_MAP_NAME_PREFIX + course_name).replace(" ", "-").replace("_", "-").lower())
@@ -399,7 +399,7 @@ class NomicService():
 
       # Prepare map creation
       total_doc_count = response.count
-      print(f"Total documents in Supabase: {total_doc_count}")
+      print(f"Total documents in Database: {total_doc_count}")
 
       project_name = re.sub(r'[^a-zA-Z0-9\s-]', '', project_name.replace(" ", "-").replace("_", "-").lower())
       first_id = response.data[0]['id'] - 1
