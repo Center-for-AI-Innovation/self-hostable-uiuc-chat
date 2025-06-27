@@ -86,8 +86,9 @@ services:
       retries: 3
 
   flask-app:
-    build: . # Directory with Dockerfile for Flask app
-    # image: kastanday/ai-ta-backend:gunicorn
+    build:
+      context: ./uiuc-chat-backend
+      dockerfile: Self-Hosted-Dockerfile
     restart: unless-stopped
     container_name: flask-app
     ports:
@@ -112,7 +113,9 @@ services:
       retries: 3
 
   ingest-worker:
-    build: . # Use the same build context as the Flask app
+    build:
+      context: ./uiuc-chat-backend
+      dockerfile: Self-Hosted-Dockerfile
     command: python ai_ta_backend/redis_queue/worker.py
     restart: unless-stopped
     container_name: ingest-worker
