@@ -408,10 +408,11 @@ class SQLDatabase:
                                                                desc=True).limit(500).offset(curr_count).execute()
       """
       query = (
-          select(models.Conversation.c["messages"])
-          .where(models.Conversation.user_email == user_email)
-          .where(models.Conversation.project_name == project_name)
-          .order_by(models.Conversation.updated_at.desc())
+          select(models.Conversations, models.Messages)
+          .join(models.Messages, models.Messages.conversation_id == models.Conversations.id)
+          .where(models.Conversations.user_email == user_email)
+          .where(models.Conversations.project_name == project_name)
+          .order_by(models.Conversations.updated_at.desc())
           .limit(500)
           .offset(curr_count)
       )
@@ -603,8 +604,8 @@ class SQLDatabase:
 
   def getMessagesFromConvoID(self, convo_id):
       query = (
-          select(models.Message)
-          .where(models.Message.conversation_id == convo_id)
+          select(models.Messages)
+          .where(models.Messages.conversation_id == convo_id)
           .limit(500)
       )
       result = self.session.execute(query).mappings().all()
