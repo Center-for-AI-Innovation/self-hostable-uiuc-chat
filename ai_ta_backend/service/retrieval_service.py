@@ -122,8 +122,8 @@ class RetrievalService:
 
       disabled_doc_groups_response, public_doc_groups_response, user_query_embedding = await asyncio.gather(*tasks)
 
-      disabled_doc_groups = [doc_group['name'] for doc_group in disabled_doc_groups_response.data]
-      public_doc_groups = [doc_group['doc_groups'] for doc_group in public_doc_groups_response.data]
+      disabled_doc_groups = [doc_group['name'] for doc_group in disabled_doc_groups_response["data"]]
+      public_doc_groups = [doc_group['doc_groups'] for doc_group in public_doc_groups_response["data"]]
 
       time_for_parallel_operations = time.monotonic() - start_time_overall
       start_time_vector_search = time.monotonic()
@@ -185,7 +185,7 @@ class RetrievalService:
 
     response = self.sqlDb.getAllMaterialsForCourse(course_name)
 
-    data = response.data
+    data = response["data"]
     unique_combinations = set()
     distinct_dicts = []
 
@@ -447,16 +447,16 @@ class RetrievalService:
     # try:
     #   print(f"Nomic delete. Course: {course_name} using {identifier_key}: {identifier_value}")
     #   response = self.sqlDb.getMaterialsForCourseAndKeyAndValue(course_name, identifier_key, identifier_value)
-    #   if not response.data:
+    #   if not response["data"]:
     #     raise Exception(f"No materials found for {course_name} using {identifier_key}: {identifier_value}")
-    #   data = response.data[0]  # single record fetched
+    #   data = response["data"][0]  # single record fetched
     #   nomic_ids_to_delete = [str(data['id']) + "_" + str(i) for i in range(1, len(data['contexts']) + 1)]
 
     # delete from Nomic
     # response = self.sqlDb.getProjectsMapForCourse(course_name)
-    # if not response.data:
+    # if not response["data"]:
     #   raise Exception(f"No document map found for this course: {course_name}")
-    # project_id = response.data[0]['doc_map_id']
+    # project_id = response["data"][0]['doc_map_id']
     # self.nomicService.delete_from_document_map(project_id, nomic_ids_to_delete)
     # except Exception as e:
     #   print(f"Nomic Error in deleting. {identifier_key}: {identifier_value}", e)
