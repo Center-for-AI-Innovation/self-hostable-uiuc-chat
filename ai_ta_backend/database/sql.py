@@ -1,17 +1,11 @@
 import os
 from typing import Dict, List, TypedDict, Union, TypeVar, Generic
 
-from sqlalchemy import create_engine, NullPool
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import insert
-from sqlalchemy import delete
+from sqlalchemy import create_engine, NullPool, func, insert, delete, select, desc
+from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import text
-from sqlalchemy import select, desc
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
-from sqlalchemy import select, desc
-from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy.sql import text
 
 try:
     import ai_ta_backend.rabbitmq.models as models
@@ -125,7 +119,7 @@ class SQLDatabase:
 
   def getMaterialsForCourseAndKeyAndValue(self, course_name: str, key: str, value: str):
       query = (
-          select(models.Document.c["id", "s3_path", "contexts"])
+          select(models.Document.id, models.Document.s3_path, models.Document.contexts)
           .where(getattr(models.Document, key) == value)
           .where(models.Document.course_name == course_name)
       )
@@ -157,7 +151,7 @@ class SQLDatabase:
 
   def getProjectsMapForCourse(self, course_name: str):
       query = (
-          select(models.Project.c["doc_map_id"])
+          select(models.Project.doc_map_id)
           .where(models.Project.course_name == course_name)
       )
       result = self.session.execute(query).scalars().all()
@@ -166,7 +160,7 @@ class SQLDatabase:
 
   def getDocumentsBetweenDates(self, course_name: str, from_date: str, to_date: str):
       query = (
-          select(models.Document.c["id"])
+          select(models.Document.id)
           .where(models.Document.course_name == course_name)
       )
       if from_date != '':
@@ -181,7 +175,7 @@ class SQLDatabase:
 
   def getDocumentsBetweenDatesLLM(self, course_name: str, from_date: str, to_date: str):
       query = (
-          select(models.LlmConvoMonitor.c["id"])
+          select(models.LlmConvoMonitor.id)
           .where(models.LlmConvoMonitor.course_name == course_name)
       )
       if from_date != '':
@@ -238,10 +232,13 @@ class SQLDatabase:
 
   def getDocsForIdsGte(self, course_name: str, first_id: int, fields: str = "*", limit: int = 100):
       if fields != "*":
-          query = select(models.Document.c[fields.split(",")])
+          query = text(f"""
+              SELECT {fields} FROM documents 
+              WHERE documents.course_name = {course_name} AND documents.id >= {first_id}
+              limit {limit} ORDER BY documents.id asc
+            """)
       else:
-          query = select(models.Document)
-      query = (query
+        query = (select(models.Document)
                .where(models.Document.course_name == course_name)
                .where(models.Document.id >= first_id)
                .order_by(models.Document.id.asc())
@@ -285,13 +282,13 @@ class SQLDatabase:
   def getCountFromLLMConvoMonitor(self, course_name: str, last_id: int):
       if last_id == 0:
           query = (
-              select(models.LlmConvoMonitor.c["id"])
+              select(models.LlmConvoMonitor.id)
               .where(models.LlmConvoMonitor.course_name == course_name)
               .order_by(models.LlmConvoMonitor.id.asc())
           )
       else:
           query = (
-              select(models.LlmConvoMonitor.c["id"])
+              select(models.LlmConvoMonitor.id)
               .where(models.LlmConvoMonitor.course_name == course_name)
               .where(models.LlmConvoMonitor.id > last_id)
               .order_by(models.LlmConvoMonitor.id.asc())
@@ -304,13 +301,13 @@ class SQLDatabase:
   def getCountFromDocuments(self, course_name: str, last_id: int):
       if last_id == 0:
           query = (
-              select(models.Document.c["id"])
+              select(models.Document.id)
               .where(models.Document.course_name == course_name)
               .order_by(models.Document.id.asc())
           )
       else:
           query = (
-              select(models.Document.c["id"])
+              select(models.Document.id)
               .where(models.Document.course_name == course_name)
               .where(models.Document.id > last_id)
               .order_by(models.Document.id.asc())
@@ -409,7 +406,8 @@ class SQLDatabase:
 
   def getPublicDocGroups(self, course_name: str):
       query = (
-          select(models.DocGroup.c["name", "course_name", "enabled", "private", "doc_count"])
+          select(models.DocGroup.name, models.DocGroup.course_name, models.DocGroup.enabled,
+                 models.DocGroup.private, models.DocGroup.doc_count)
           .where(models.DocGroup.course_name == course_name)
       )
       result = self.session.execute(query).mappings().all()
@@ -442,7 +440,7 @@ class SQLDatabase:
   def getConversationsCreatedAtByCourse(self, course_name: str, from_date: str = '', to_date: str = ''):
       try:
           query = (
-              select(models.LlmConvoMonitor.c["created_at"])
+              select(models.LlmConvoMonitor.created_at)
               .where(models.LlmConvoMonitor.course_name == course_name)
           )
           if from_date:
@@ -465,7 +463,7 @@ class SQLDatabase:
 
               try:
                   batch_query = (
-                      select(models.LlmConvoMonitor.c["created_at"])
+                      select(models.LlmConvoMonitor.created_at)
                       .where(models.LlmConvoMonitor.course_name == course_name)
                   )
                   if from_date:
@@ -496,7 +494,7 @@ class SQLDatabase:
   def getProjectStats(self, project_name: str) -> ProjectStats:
       try:
           query = (
-              select(models.ProjectStats.c["total_messages", "total_conversations", "unique_users"])
+              select(models.ProjectStats.total_messages, models.ProjectStats.total_conversations, models.ProjectStats.unique_users)
               .where(models.ProjectStats.project_name == project_name)
           )
           result = self.session.execute(query).mappings().all()
@@ -573,9 +571,16 @@ class SQLDatabase:
 
   def getAllProjects(self):
       query = (
-          select(models.Project.c["course_name", "doc_map_id", "convo_map_id",
-          "last_uploaded_doc_id", "last_uploaded_convo_id"])
+          select(models.Project.course_name,
+                 models.Project.doc_map_id,
+                 models.Project.convo_map_id,
+                 models.Project.last_uploaded_doc_id,
+                 models.Project.last_uploaded_convo_id
+                 )
       )
+      result = self.session.execute(query).mappings().all()
+      response = DatabaseResponse(data=result, count=len(result)).to_dict()
+      return response
 
   def getConvoMapDetails(self):
       return self.session.query(func.get_convo_maps()).all()
@@ -585,8 +590,10 @@ class SQLDatabase:
 
   def getProjectsWithConvoMaps(self):
       query = (
-          select(models.Project.c["course_name", "convo_map_id",
-          "last_uploaded_doc_id", "last_uploaded_convo_id"])
+          select(models.Project.course_name,
+                 models.Project.convo_map_id,
+                 models.Project.last_uploaded_doc_id,
+                 models.Project.last_uploaded_convo_id)
           .where(models.Project.convo_map_id is not None)
       )
       result = self.session.execute(query).mappings().all()
@@ -595,8 +602,11 @@ class SQLDatabase:
 
   def getProjectsWithDocMaps(self):
       query = (
-          select(models.Project.c["course_name", "doc_map_id",
-          "last_uploaded_doc_id", "document_map_index"])
+          select(models.Project.course_name,
+                 models.Project.doc_map_id,
+                 models.Project.last_uploaded_doc_id,
+                 models.Project.document_map_index
+                 )
           .where(models.Project.doc_map_id is not None)
       )
       result = self.session.execute(query).mappings().all()
@@ -604,10 +614,10 @@ class SQLDatabase:
       return response
 
   def getProjectMapName(self, course_name, field_name):
-      query = (
-          select(models.Project.c[field_name])
-          .where(models.Project.course_name == course_name)
-      )
+      query = text(f"""
+                    SELECT {field_name} FROM projects 
+                    WHERE projects.course_name = {course_name}
+                  """)
       result = self.session.execute(query).mappings().all()
       response = DatabaseResponse(data=result, count=len(result)).to_dict()
       return response
