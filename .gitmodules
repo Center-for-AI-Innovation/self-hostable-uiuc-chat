@@ -10,3 +10,4 @@
 [submodule "uiuc-chat-backend"]
 	path = uiuc-chat-backend
 	url = https://github.com/Center-for-AI-Innovation/ai-ta-backend.git
+	branch = rabbitmq

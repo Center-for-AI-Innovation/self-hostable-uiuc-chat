@@ -111,12 +111,61 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      
+  rabbitmq:
+    image: rabbitmq:3-management
+    networks:
+      - uiuc-chat-network
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"     # AMQP protocol port
+      - "15672:15672"   # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: uiuc-chat-dev
+      RABBITMQ_DEFAULT_PASS: password
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    networks:
+      - uiuc-chat-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_DB: uiuc-chat-dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
+  worker:
+    build:
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    networks:
+      - uiuc-chat-network
+    ports:
+      - "8001:8001"
+    depends_on:
+      - rabbitmq
+      - postgres
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: uiuc-chat-dev
+      RABBITMQ_PASSWORD: password
+      RABBITMQ_QUEUE: uiuc-chat
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5436
+      POSTGRES_DB: uiuc-chat-dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
 
   ingest-worker:
     build:
       context: ./uiuc-chat-backend
       dockerfile: Self-Hosted-Dockerfile
-    command: python ai_ta_backend/redis_queue/worker.py
+    command: python ai_ta_backend/rabbitmq_queue/worker.py
     restart: unless-stopped
     container_name: ingest-worker
     networks:
@@ -126,11 +175,11 @@ services:
       - redis
     env_file:
       - .env
-    healthcheck:
-      test: [ "CMD", "python", "-c", "from redis import Redis; from rq import Worker; r = Redis(host='redis', port=6379, password='${INGEST_REDIS_PASSWORD}'); exit(0 if Worker.count(r) > 0 else 1)" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    # healthcheck:
+    #   test: [ "CMD", "python", "-c", "from redis import Redis; from rq import Worker; r = Redis(host='redis', port=6379, password='${INGEST_REDIS_PASSWORD}'); exit(0 if Worker.count(r) > 0 else 1)" ]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
 
   crawlee:
     build: ./ic_crawlee
@@ -207,3 +256,4 @@ volumes:
   redis-data: {}
   qdrant-data: {}
   minio-data: {}
+  postgres_data: {}
