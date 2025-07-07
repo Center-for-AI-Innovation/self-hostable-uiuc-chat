@@ -140,15 +140,20 @@ services:
 
   worker:
     build:
-      dockerfile: Dockerfile
+      context: ./uiuc-chat-backend
+      dockerfile: Self-Hosted-Dockerfile
+    command: python ai_ta_backend/rabbitmq/worker.py
     restart: unless-stopped
+    container_name: worker
     networks:
       - uiuc-chat-network
     ports:
-      - "8001:8001"
+      - "8002:8001"
     depends_on:
       - rabbitmq
       - postgres
+    env_file:
+      - .env
     environment:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
@@ -165,7 +170,7 @@ services:
     build:
       context: ./uiuc-chat-backend
       dockerfile: Self-Hosted-Dockerfile
-    command: python ai_ta_backend/rabbitmq_queue/worker.py
+    command: python ai_ta_backend/rabbitmq/worker.py
     restart: unless-stopped
     container_name: ingest-worker
     networks:
