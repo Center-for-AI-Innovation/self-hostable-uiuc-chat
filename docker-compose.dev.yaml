@@ -67,23 +67,6 @@ services:
       timeout: 10s
       retries: 3
 
-  ingest-worker:
-    build: . # Use the same build context as the Flask app
-    command: python ai_ta_backend/rabbitmq/worker.py # TODO: build this container
-    restart: unless-stopped
-    container_name: ingest-worker
-    networks:
-      - uiuc-chat-network
-    depends_on:
-      - redis
-    env_file:
-      - .env
-    healthcheck:
-      test: [ "CMD", "python", "-c", "from redis import Redis; from rq import Worker; r = Redis(host='redis', port=6379, password='${INGEST_REDIS_PASSWORD}'); exit(0 if Worker.count(r) > 0 else 1)" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   crawlee:
     build: ./ic_crawlee
     container_name: ic_crawlee
@@ -100,7 +83,7 @@ services:
     depends_on:
       - redis
 
-  postgres:
+  postgresdb:
     image: postgis/postgis
     restart: unless-stopped
     networks:
@@ -128,13 +111,7 @@ services:
     command:
       - start-dev
       - --http-enabled=true
-      - --hostname=localhost
       - --hostname-strict=false
-      - --db=postgres
-      - --db-url=jdbc:postgresql://postgres:5432/postgres
-      - --db-username=${POSTGRES_USER}
-      - --db-password=${POSTGRES_PASSWORD}
-      - --db-schema=keycloak
       - --import-realm
     environment:
       - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN_USERNAME}
@@ -142,8 +119,8 @@ services:
       - KC_METRICS_ENABLED=true
       - KC_HEALTH_ENABLED=true
       - KC_DB=postgres
-      - KC_DB_URL_HOST=postgres
-      - KC_DB_URL_DATABASE=keycloak
+      - KC_DB_URL_HOST=postgresdb
+      - KC_DB_URL_DATABASE=postgres
       - KC_DB_USERNAME=postgres
       - KC_DB_PASSWORD=password
     volumes:
