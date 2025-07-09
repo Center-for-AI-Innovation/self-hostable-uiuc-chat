@@ -96,10 +96,11 @@ class SQLAlchemyIngestDB:
 
     # INGEST FLOW
 
-    def insert_document_in_progress(self, doc_progress_payload: dict):
-        insert_stmt = insert(models.DocumentsInProgress).values(doc_progress_payload)
-        self.session.execute(insert_stmt)
+    def insert_document_in_progress(self, doc_progress: models.DocumentsInProgress):
+        self.session.add(doc_progress)
         self.session.commit()
+        self.session.refresh(doc_progress)
+        return doc_progress
 
     def insert_failed_document(self, failed_doc_payload: dict):
         try:
@@ -114,8 +115,10 @@ class SQLAlchemyIngestDB:
 
     def delete_document_in_progress(self, beam_task_id: str):
         try:
-            delete_stmt = delete(models.DocumentsInProgress).where(
-                models.DocumentsInProgress.beam_task_id == beam_task_id)
+            logging.info("Deleting task id "+beam_task_id)
+            delete_stmt = (
+                delete(models.DocumentsInProgress)
+                .where(models.DocumentsInProgress.beam_task_id == beam_task_id))
             self.session.execute(delete_stmt)
             self.session.commit()
             return True

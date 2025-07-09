@@ -96,7 +96,7 @@ class Ingest:
         if self.aws_access_key_id and self.aws_secret_access_key:
             self.s3_client = boto3.client(
                 's3',
-                endpoint_url=os.getenv('MINIO_URL'),  # Automatically uses Minio if this is set, otherwise S3.
+                # endpoint_url=os.getenv('MINIO_URL'),  # Automatically uses Minio if this is set, otherwise S3.
                 aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
                 aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
             )
@@ -112,7 +112,7 @@ class Ingest:
 
         self.sql_session = SQLAlchemyIngestDB()
 
-    def main_ingest(self, **inputs: Dict[str | List[str], Any]):
+    def main_ingest(self, job_id: str, **inputs: Dict[str | List[str], Any]):
         """
         Main ingest function.
         """
@@ -124,6 +124,7 @@ class Ingest:
             url: List[str] | str | None = inputs.get('url', None)
             base_url: List[str] | str | None = inputs.get('base_url', None)
             readable_filename: List[str] | str = inputs.get('readable_filename', '')
+
             content: str | List[str] | None = inputs.get('content', None)  # defined if ingest type is webtext
             doc_groups: List[str] | str = inputs.get('groups', '')
 
@@ -140,14 +141,17 @@ class Ingest:
                                                         doc_groups)
                     time.sleep(13 * retry_num)  # max is 65
                 elif success_fail_dict['failure_ingest']:
-                    print(f"Ingest failure -- Retry attempt {retry_num}. File: {success_fail_dict}")
+                    logging.error(f"Ingest failure -- Retry attempt {retry_num}. File: {success_fail_dict}")
                     success_fail_dict = self.run_ingest(course_name, s3_paths, base_url, url, readable_filename, content,
                                                         doc_groups)
                     time.sleep(13 * retry_num)  # max is 65
                 else:
                     break
             if success_fail_dict['failure_ingest']:
-                print(f"INGEST FAILURE -- About to send to database. success_fail_dict: {success_fail_dict}")
+                logging.error(f"INGEST FAILURE -- About to send to database. success_fail_dict: {success_fail_dict}")
+
+            # Remove from documents in progress
+            self.sql_session.delete_document_in_progress(job_id)
 
             sentry_sdk.flush(timeout=20)
             return json.dumps(success_fail_dict)
@@ -560,7 +564,6 @@ class Ingest:
             err: str = f"ERROR IN delete_data: Traceback: {traceback.extract_tb(e.__traceback__)}❌❌ Error in {inspect.currentframe().f_code.co_name}:{e}"  # type: ignore
             sentry_sdk.capture_exception(e)
             return err
-
 
     def ingest_single_web_text(self, course_name: str, base_url: str, url: str, content: str, readable_filename: str,
                                **kwargs) -> Dict[str, None | str | Dict[str, str]]:

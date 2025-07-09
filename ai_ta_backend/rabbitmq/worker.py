@@ -12,7 +12,7 @@ from flask import Flask, request, jsonify
 
 
 app = Flask(__name__)
-sql_session = SQLAlchemyIngestDB()  # TODO: Move into the class?
+
 
 class Worker:
 
@@ -58,8 +58,8 @@ class Worker:
 
         ingester = Ingest()
         try:
-            ingester.main_ingest(**inputs)
-            sql_session.delete_document_in_progress(job_id)
+            ingester.main_ingest(job_id=job_id, **inputs)
+            #sql_session
         finally:
             # TODO: Catch errors into a retry loop or something else?
             channel.basic_ack(delivery_tag=method.delivery_tag)

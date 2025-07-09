@@ -628,7 +628,7 @@ def ingest() -> Response:
   response = jsonify(
     {
       "outcome": f'Queued Ingest task',
-      "ingest_task_id": result
+      "task_id": result
     }
   )
   response.headers.add('Access-Control-Allow-Origin', '*')

@@ -99,6 +99,8 @@ class DocGroup(Base):
             "doc_count": self.doc_count
         }
 
+def get_uuid():
+    return str(uuid4())
 
 class DocumentsInProgress(Base):
     __tablename__ = 'documents_in_progress'
@@ -112,7 +114,7 @@ class DocumentsInProgress(Base):
     base_url = Column(Text)
     doc_groups = Column(Text)
     error = Column(Text)
-    beam_task_id = Column(Text)
+    beam_task_id = Column(Text, default=get_uuid)
 
     # __table_args__ = (Index('documents_in_progress_pkey', 'id', postgresql_using='btree'),)
 
