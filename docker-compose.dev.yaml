@@ -4,8 +4,8 @@ services:
     restart: unless-stopped
     container_name: redis
     command: redis-server --requirepass ${INGEST_REDIS_PASSWORD}
-    # ports:
-    #   - 6379:6379
+    ports:
+       - 6379:6379
     networks:
       - uiuc-chat-network
     volumes:
@@ -97,6 +97,24 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-guest}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:-guest}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "5672" ]
+      interval: 3s
+      timeout: 10s
+      retries: 3
+    networks:
+      - uiuc-chat-network
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+
   keycloak:
 #    platform: linux/amd64  # M chip
     image: quay.io/keycloak/keycloak:26.1
@@ -143,3 +161,4 @@ volumes:
   qdrant-data: {}
   minio-data: {}
   postgres-data: {}
+  rabbitmq: {}
