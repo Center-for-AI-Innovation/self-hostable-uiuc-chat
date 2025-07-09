@@ -74,7 +74,6 @@ services:
     container_name: ingest-worker
     networks:
       - uiuc-chat-network
-      - supabase_default
     depends_on:
       - redis
     env_file:
@@ -101,6 +100,20 @@ services:
     depends_on:
       - redis
 
+  postgres:
+    image: postgis/postgis
+    restart: unless-stopped
+    networks:
+      - uiuc-chat-network
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
   keycloak:
 #    platform: linux/amd64  # M chip
     image: quay.io/keycloak/keycloak:26.1
@@ -112,14 +125,13 @@ services:
       - "8080:8080"
     networks:
       - uiuc-chat-network
-      - supabase_default
     command:
       - start-dev
       - --http-enabled=true
       - --hostname=localhost
       - --hostname-strict=false
       - --db=postgres
-      - --db-url=jdbc:postgresql://supabase-db:5432/postgres
+      - --db-url=jdbc:postgresql://postgres:5432/postgres
       - --db-username=${POSTGRES_USER}
       - --db-password=${POSTGRES_PASSWORD}
       - --db-schema=keycloak
@@ -129,16 +141,11 @@ services:
       - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
       - KC_METRICS_ENABLED=true
       - KC_HEALTH_ENABLED=true
-      # might need to add the following lines once we figure out the supabase issues:
-      # - KC_DB=postgres
-      # - KC_DB_SCHEMA=keycloak
-      # - KC_DB_URL_HOST=supabase-db
-      # - KC_DB_URL_PORT=5432
-      # - KC_DB_URL_DATABASE=postgres
-      # - KC_HEALTH_ENABLED=true
-      # - QUARKUS_DATASOURCE_JDBC_DRIVER=org.postgresql.Driver
-      # - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://supabase-db:5432/postgres
-      # - QUARKUS_TRANSACTION_MANAGER_ENABLE_RECOVERY=true
+      - KC_DB=postgres
+      - KC_DB_URL_HOST=postgres
+      - KC_DB_URL_DATABASE=keycloak
+      - KC_DB_USERNAME=postgres
+      - KC_DB_PASSWORD=password
     volumes:
       - ./keycloak-theme:/opt/keycloak/themes/keywind
       - ./keycloak/realms/realm-export.json:/opt/keycloak/data/import/realm-export.json
@@ -153,10 +160,9 @@ services:
 networks:
   uiuc-chat-network:
     driver: bridge
-  supabase_default:
-    external: true # Mark as external since it's managed by Supabase
 
 volumes:
   redis-data: {}
   qdrant-data: {}
   minio-data: {}
+  postgres-data: {}
