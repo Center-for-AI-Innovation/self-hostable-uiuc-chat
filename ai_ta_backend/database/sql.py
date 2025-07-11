@@ -77,8 +77,8 @@ class SQLDatabase:
 
       # Create engine and session
       print("About to connect to DB from IngestSQL.py, with URI:", db_uri)
-      engine = create_engine(db_uri, poolclass=NullPool)
-      Session = sessionmaker(bind=engine)
+      self.engine = create_engine(db_uri, poolclass=NullPool)
+      Session = sessionmaker(bind=self.engine)
       # TODO: Move to self.connect() & handle if the session is broken before executing statements
       self.session = Session()
       print("Successfully connected to DB from IngestSQL.py")
@@ -396,9 +396,9 @@ class SQLDatabase:
 
   def getDisabledDocGroups(self, course_name: str):
       query = (
-          select(models.DocGroups.name)
-          .where(models.DocGroups.course_name == course_name)
-          .where(models.DocGroups.enabled == False)
+          select(models.DocGroup.name)
+          .where(models.DocGroup.course_name == course_name)
+          .where(models.DocGroup.enabled == False)
       )
       result = self.session.execute(query).scalars().all()
       response = DatabaseResponse(data=result, count=len(result)).to_dict()
@@ -410,9 +410,10 @@ class SQLDatabase:
                  models.DocGroup.private, models.DocGroup.doc_count)
           .where(models.DocGroup.course_name == course_name)
       )
-      result = self.session.execute(query).mappings().all()
-      response = DatabaseResponse(data=result, count=len(result)).to_dict()
-      return response
+      with Session(self.engine) as session:
+          result = session.execute(query).mappings().all()
+          response = DatabaseResponse(data=result, count=len(result)).to_dict()
+          return response
 
   def getAllConversationsForUserAndProject(self, user_email: str, project_name: str, curr_count: int = 0):
       query = (
