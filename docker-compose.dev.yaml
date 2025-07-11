@@ -67,31 +67,45 @@ services:
       timeout: 10s
       retries: 3
 
-  crawlee:
-    build: ./ic_crawlee
-    container_name: ic_crawlee
-    networks:
-      - uiuc-chat-network
-    volumes:
-      - ./data:/data
-    ports:
-      - "3345:3000"
-    env_file:
-      - .env
-    environment:
-      - INGEST_URL=http://flask-app:8001/ingest
-    depends_on:
-      - redis
+#  crawlee:
+#    build: ./ic_crawlee
+#    container_name: ic_crawlee
+#    networks:
+#      - uiuc-chat-network
+#    volumes:
+#      - ./data:/data
+#    ports:
+#      - "3345:3000"
+#    env_file:
+#      - .env
+#    environment:
+#      - INGEST_URL=http://flask-app:8001/ingest
+#    depends_on:
+#      - redis
 
-  postgresdb:
-    image: postgis/postgis
+  postgres-illinois-chat:
+    image: postgres
     restart: unless-stopped
     networks:
       - uiuc-chat-network
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-illinois-chat:/var/lib/postgres/data
     ports:
       - "5432:5432"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
+  postgres-keycloak:
+    image: postgres
+    restart: unless-stopped
+    networks:
+      - uiuc-chat-network
+    volumes:
+      - postgres-keycloak:/var/lib/postgres/data
+    ports:
+      - "5433:5432"
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
@@ -129,18 +143,18 @@ services:
     command:
       - start-dev
       - --http-enabled=true
+      - --hostname=localhost
       - --hostname-strict=false
+      - --db=postgres
+      - --db-url=jdbc:postgresql://postgres-keycloak:5432/postgres
+      - --db-username=${POSTGRES_USER}
+      - --db-password=${POSTGRES_PASSWORD}
       - --import-realm
     environment:
       - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN_USERNAME}
       - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
       - KC_METRICS_ENABLED=true
       - KC_HEALTH_ENABLED=true
-      - KC_DB=postgres
-      - KC_DB_URL_HOST=postgresdb
-      - KC_DB_URL_DATABASE=postgres
-      - KC_DB_USERNAME=postgres
-      - KC_DB_PASSWORD=password
     volumes:
       - ./keycloak-theme:/opt/keycloak/themes/keywind
       - ./keycloak/realms/realm-export.json:/opt/keycloak/data/import/realm-export.json
@@ -160,5 +174,6 @@ volumes:
   redis-data: {}
   qdrant-data: {}
   minio-data: {}
-  postgres-data: {}
+  postgres-illinois-chat: {}
+  postgres-keycloak: {}
   rabbitmq: {}
