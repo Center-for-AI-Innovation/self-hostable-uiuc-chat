@@ -74,7 +74,7 @@ class ProjectService:
       # check if the project owner has pre-assigned API keys
       if project_owner_email:
         pre_assigned_response = self.sqlDb.getPreAssignedAPIKeys(project_owner_email)
-        if len(pre_assigned_response.data) > 0:
+        if pre_assigned_response and hasattr(pre_assigned_response, 'data') and pre_assigned_response.data:
           redis_key = project_name + "-llms"
           llm_val = {
               "defaultModel": None,
