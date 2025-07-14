@@ -17,7 +17,7 @@ services:
       retries: 3
 
   qdrant:
-    image: qdrant/qdrant:v1.12.6
+    image: qdrant/qdrant
     restart: unless-stopped
     container_name: qdrant
     # environment:
