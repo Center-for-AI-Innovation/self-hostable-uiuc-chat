@@ -30,7 +30,7 @@ services:
       - 6334
       - 6335
     volumes:
-      - ./qdrant_data:/qdrant/storage
+      - qdrant-data:/qdrant/storage
       - ./qdrant_config.yaml:/qdrant/config/production.yaml # Mount the config file directly as a volume
     networks:
       - uiuc-chat-network
