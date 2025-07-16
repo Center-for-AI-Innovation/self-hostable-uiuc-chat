@@ -24,7 +24,7 @@ class Queue:
         self.rabbitmq_username = os.getenv('RABBITMQ_USERNAME', 'uiuc-chat-dev')
         self.rabbitmq_password = os.getenv('RABBITMQ_PASSWORD', 'password')
         self.rabbitmq_queue = os.getenv('RABBITMQ_QUEUE', 'uiuc-chat')
-        self.rabbitmq_url = os.getenv('RABBITMQ_URL', 'uiuc-chat')
+        self.rabbitmq_url = os.getenv('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
         self.rabbitmq_ssl = os.getenv('RABBITMQ_SSL', False)
         self.connect()
 

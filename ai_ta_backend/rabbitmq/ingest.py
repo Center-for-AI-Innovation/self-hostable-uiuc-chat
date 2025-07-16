@@ -59,7 +59,7 @@ class Ingest:
     """
 
     def __init__(self):
-        self.openai_api_key = os.getenv('VLADS_OPENAI_KEY') #  TODO: os.getenv('OPENAI_API_KEY')
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
         self.qdrant_url = os.getenv('QDRANT_URL')
         self.qdrant_api_key = os.getenv('QDRANT_API_KEY')
         self.qdrant_collection_name = os.getenv('QDRANT_COLLECTION_NAME')

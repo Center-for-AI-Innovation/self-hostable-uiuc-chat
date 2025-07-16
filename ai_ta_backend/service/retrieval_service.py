@@ -45,11 +45,11 @@ class RetrievalService:
     self.sentry = sentry
     self.posthog = posthog
     self.thread_pool_executor = thread_pool_executor
-    openai.api_key = os.environ["VLADS_OPENAI_KEY"]
+    openai.api_key = os.environ["OPENAI_API_KEY"]
 
     self.embeddings = OpenAIEmbeddings(
         model='text-embedding-ada-002',
-        openai_api_key=os.environ["VLADS_OPENAI_KEY"],
+        openai_api_key=os.environ["OPENAI_API_KEY"],
         # openai_api_key=os.environ["AZURE_OPENAI_KEY"],
         # openai_api_base=os.environ["AZURE_OPENAI_ENDPOINT"],
         # openai_api_type=os.environ['OPENAI_API_TYPE'],
