@@ -17,8 +17,8 @@ app = Flask(__name__)
 class Worker:
 
     def __init__(self):
-        self.rabbitmq_url = os.getenv('RABBITMQ_URL', 'amqp://uiuc-chat-dev:password@localhost:5672')
-        self.rabbitmq_ssl = os.getenv('RABBITMQ_SSL', True)
+        self.rabbitmq_url = os.getenv('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+        self.rabbitmq_ssl = os.getenv('RABBITMQ_SSL', False)
         self.rabbitmq_queue = os.getenv('RABBITMQ_QUEUE', 'uiuc-chat')
         self.connect()
 
