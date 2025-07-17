@@ -17,7 +17,7 @@ services:
       retries: 3
 
   qdrant:
-    image: qdrant/qdrant:v1.9.7
+    image: qdrant/qdrant
     restart: unless-stopped
     container_name: qdrant
     # environment:
@@ -30,7 +30,7 @@ services:
       - 6334
       - 6335
     volumes:
-      - ./qdrant_data:/qdrant/storage
+      - qdrant-data:/qdrant/storage
       - ./qdrant_config.yaml:/qdrant/config/production.yaml # Mount the config file directly as a volume
     networks:
       - uiuc-chat-network
