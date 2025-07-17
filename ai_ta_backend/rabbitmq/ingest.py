@@ -16,6 +16,7 @@ from tempfile import NamedTemporaryFile
 from dotenv import load_dotenv
 
 import boto3
+from botocore.config import Config
 import openai
 import sentry_sdk
 from posthog import Posthog
@@ -63,6 +64,7 @@ class Ingest:
         self.qdrant_url = os.getenv('QDRANT_URL')
         self.qdrant_api_key = os.getenv('QDRANT_API_KEY')
         self.qdrant_collection_name = os.getenv('QDRANT_COLLECTION_NAME')
+        self.minio_url = os.getenv('MINIO_URL')
         self.aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
         self.aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
         self.s3_bucket_name = os.getenv('S3_BUCKET_NAME')
@@ -96,12 +98,13 @@ class Ingest:
         if self.aws_access_key_id and self.aws_secret_access_key:
             self.s3_client = boto3.client(
                 's3',
-                # endpoint_url=os.getenv('MINIO_URL'),  # Automatically uses Minio if this is set, otherwise S3.
-                aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+                endpoint_url=self.minio_url,
+                aws_access_key_id=self.aws_access_key_id,
+                aws_secret_access_key=self.aws_secret_access_key,
+                config=Config(s3={'addressing_style': 'path'}),
             )
         else:
-            print("AWS ACCESS KEY ID OR SECRET ACCESS KEY NOT FOUND!")
+            logging.error("AWS ACCESS KEY ID OR SECRET ACCESS KEY NOT FOUND!")
 
         if self.posthog_api_key:
             self.posthog = Posthog(sync_mode=False, project_api_key=self.posthog_api_key,

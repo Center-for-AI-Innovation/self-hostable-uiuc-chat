@@ -39,11 +39,6 @@ services:
       - rabbitmq
       - postgres
     environment:
-      RABBITMQ_HOST: rabbitmq
-      RABBITMQ_PORT: 5672
-      RABBITMQ_USERNAME: uiuc-chat-dev
-      RABBITMQ_PASSWORD: password
-      RABBITMQ_QUEUE: uiuc-chat
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5436
       POSTGRES_DB: uiuc-chat-dev
