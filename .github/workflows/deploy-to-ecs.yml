@@ -3,6 +3,12 @@ name: Redeploy to AWS ECS Fargate
 on:
   push:
     branches: [ illinois-chat ]
+    paths:
+      - 'ai_ta_backend/**'
+      - 'requirements.txt'
+      - 'Self-Hosted-Dockerfile'
+      - 'Dockerfile.ecs'
+      - '.github/workflows/deploy-to-ecs.yml'
   workflow_dispatch: # Allows manual triggering
 
 # Environment variables.  Edit to match the setup for this service.
@@ -67,7 +73,7 @@ jobs:
         image: ${{ steps.build-image.outputs.image }}
 
     - name: Deploy Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v2
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
         service: ${{ env.ECS_SERVICE }}
