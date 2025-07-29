@@ -75,6 +75,22 @@ def index() -> Response:
   return response
 
 
+@app.route('/health')
+def health() -> Response:
+  """Health check endpoint for ECS health checks and load balancer.
+  
+  Returns:
+      JSON: Health status response
+  """
+  response = jsonify({
+    "status": "healthy",
+    "service": "ai-ta-backend",
+    "timestamp": time.time()
+  })
+  response.headers.add('Access-Control-Allow-Origin', '*')
+  return response
+
+
 @app.route('/getTopContexts', methods=['POST'])
 def getTopContexts(service: RetrievalService) -> Response:
   """Get most relevant contexts for a given search query.
