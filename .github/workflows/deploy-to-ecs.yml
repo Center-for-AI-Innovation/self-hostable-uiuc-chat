@@ -5,13 +5,14 @@ on:
     branches: [ illinois-chat ]
   workflow_dispatch: # Allows manual triggering
 
+# Environment variables.  Edit to match the setup for this service.
 env:
-  AWS_REGION: us-east-2                  # Update to match your AWS region
-  ECR_REPOSITORY: uiuc-chat-backend         # Update to match your ECR repository name
-  ECS_SERVICE: backend-service-358yl957    # Update to match your ECS service name
-  ECS_CLUSTER: uiuc-chat-dev    # Update to match your ECS cluster name
-  ECS_TASK_DEFINITION: backend # Update to match your task definition name
-  CONTAINER_NAME: backend         # Update to match your container name
+  AWS_REGION: us-east-2
+  ECR_REPOSITORY: uiuc-chat-backend
+  ECS_SERVICE: backend-service-358yl957
+  ECS_CLUSTER: uiuc-chat-dev
+  ECS_TASK_DEFINITION: backend
+  CONTAINER_NAME: backend
 
 jobs:
   deploy:
@@ -52,18 +53,21 @@ jobs:
       run: |
         aws ecs describe-task-definition \
           --task-definition ${{ env.ECS_TASK_DEFINITION }} \
-          --query taskDefinition > task-definition.json
+          --query taskDefinition > task-definition-raw.json
+        
+        # Remove unsupported fields that cause compatibility issues
+        cat task-definition-raw.json | jq 'del(.registeredAt, .registeredBy, .taskDefinitionArn, .revision, .status, .requiresAttributes, .placementConstraints, .compatibilities, .enableFaultInjection)' > task-definition.json
 
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
-      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      uses: aws-actions/amazon-ecs-render-task-definition@v2
       with:
         task-definition: task-definition.json
         container-name: ${{ env.CONTAINER_NAME }}
         image: ${{ steps.build-image.outputs.image }}
 
     - name: Deploy Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v2
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
         service: ${{ env.ECS_SERVICE }}

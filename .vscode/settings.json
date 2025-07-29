@@ -31,5 +31,6 @@
     "UIUC",
     "vectorstore",
     "vectorstores"
-  ]
+  ],
+  "workbench.view.alwaysShowHeaderActions": true
 }
