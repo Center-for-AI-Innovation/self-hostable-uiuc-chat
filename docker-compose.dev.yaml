@@ -62,7 +62,7 @@ services:
     volumes:
       - minio-data:/data
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://minio:${DOCKER_INTERNAL_MINIO_API_PORT}/minio/health/live" ]
+      test: [ "CMD", "test", "-f", "/proc/1/exe", "&&", "readlink", "/proc/1/exe", "|", "grep", "-q", "/usr/bin/minio" ]
       interval: 30s
       timeout: 10s
       retries: 3
