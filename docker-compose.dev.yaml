@@ -165,9 +165,9 @@ services:
       retries: 3
 
   worker:
-    #build:
-    #  dockerfile: ai_ta_backend/rabbitmq/Dockerfile
-    image: maxzilla2/uiuc-chat-worker
+    build:
+      context: ./uiuc-chat-backend
+      dockerfile: Self-Hosted-Dockerfile
     restart: unless-stopped
     networks:
       - uiuc-chat-network
@@ -178,38 +178,10 @@ services:
       - postgres-illinois-chat
     environment:
       RABBITMQ_URL: 'amqp://guest:guest@rabbitmq:5672'
-      POSTGRES_ENDPOINT: postgres-illinois-chat
+      POSTGRES_HOST: postgres-illinois-chat
       POSTGRES_PORT: 5432
-      POSTGRES_DATABASE: postgres
-      POSTGRES_USERNAME: postgres
-      POSTGRES_PASSWORD: password
-      OPENAI_API_KEY: ""
-      QDRANT_URL: "http://qdrant:6333"
-      QDRANT_API_KEY: "your-strong-key-here"
-      QDRANT_COLLECTION_NAME: illinois_chat
-      MINIO_URL: http://minio:10000
-      AWS_ACCESS_KEY_ID: "minioadmin"
-      AWS_SECRET_ACCESS_KEY: "minioadmin"
-      S3_BUCKET_NAME: uiuc-chat
-
-  worker:
-    #build:
-    #  dockerfile: ai_ta_backend/rabbitmq/Dockerfile
-    image: ichat/uiuc-chat-worker
-    restart: unless-stopped
-    networks:
-      - uiuc-chat-network
-    ports:
-      - "8001:8001"
-    depends_on:
-      - rabbitmq
-      - postgres-illinois-chat
-    environment:
-      RABBITMQ_URL: 'amqp://guest:guest@rabbitmq:5672'
-      POSTGRES_ENDPOINT: postgres-illinois-chat
-      POSTGRES_PORT: 5432
-      POSTGRES_DATABASE: postgres
-      POSTGRES_USERNAME: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       QDRANT_URL: "http://qdrant:6333"
