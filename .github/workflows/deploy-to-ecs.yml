@@ -109,8 +109,8 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr-worker.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        # Build ingest worker container from rabbitmq directory and push it to ECR
-        docker build -f ai_ta_backend/rabbitmq/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$IMAGE_TAG .
+        # Build ingest worker container with rabbitmq directory as build context
+        docker build -f Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$IMAGE_TAG ai_ta_backend/rabbitmq/
         docker push $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$IMAGE_TAG
         
         # Also tag as latest
