@@ -27,6 +27,8 @@ from langchain.document_loaders import (
       GitLoader,
       PythonLoader,
       TextLoader,
+)
+from langchain_community.document_loaders import (
       UnstructuredExcelLoader,
       UnstructuredPowerPointLoader,
 )
@@ -1069,6 +1071,8 @@ class Ingest:
             with NamedTemporaryFile() as pdf_tmpfile:
                 # download from S3 into pdf_tmpfile
                 self.s3_client.download_fileobj(Bucket=self.s3_bucket_name, Key=s3_path, Fileobj=pdf_tmpfile)
+                pdf_tmpfile.flush()  # Ensure all data is written to disk
+                pdf_tmpfile.seek(0)  # Reset file pointer to beginning
 
                 with pdfplumber.open(pdf_tmpfile.name) as pdf:
                     # for page in :

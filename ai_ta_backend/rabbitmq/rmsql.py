@@ -87,12 +87,12 @@ class SQLAlchemyIngestDB:
             db_uri = f"postgresql://{os.getenv('POSTGRES_USERNAME')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_ENDPOINT')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DATABASE')}"
 
         # Create engine and session
-        print("About to connect to DB from IngestSQL.py, with URI:", db_uri)
+        logging.info("About to connect to DB from IngestSQL.py, with URI:", db_uri)
         engine = create_engine(db_uri, poolclass=NullPool)
         Session = sessionmaker(bind=engine)
         # TODO: Move to self.connect() & handle if the session is broken before executing statements
         self.session = Session()
-        print("Successfully connected to DB from IngestSQL.py")
+        logging.info("Successfully connected to DB from IngestSQL.py")
 
     # INGEST FLOW
 
@@ -124,7 +124,7 @@ class SQLAlchemyIngestDB:
             return True
         except SQLAlchemyError as e:
             self.session.rollback()
-            print(f"Deletion failed: {e}")
+            logging.error(f"Deletion failed: {e}")
             return False
 
     def insert_document(self, doc_payload: dict) -> bool:
@@ -135,7 +135,7 @@ class SQLAlchemyIngestDB:
             return True  # Insertion successful
         except SQLAlchemyError as e:
             self.session.rollback()  # Rollback in case of error
-            print(f"Insertion failed: {e}")
+            logging.error(f"Insertion failed: {e}")
             return False  # Insertion failed
 
     def add_document_to_group_url(self, contexts, groups):
