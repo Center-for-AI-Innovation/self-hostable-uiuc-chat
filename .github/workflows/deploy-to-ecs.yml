@@ -110,7 +110,7 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         # Build ingest worker container with rabbitmq directory as build context
-        docker build -f Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$IMAGE_TAG ai_ta_backend/rabbitmq/
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$IMAGE_TAG ai_ta_backend/rabbitmq/
         docker push $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$IMAGE_TAG
         
         # Also tag as latest
