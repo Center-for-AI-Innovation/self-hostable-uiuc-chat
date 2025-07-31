@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 python:3.10-slim as build
+FROM python:3.10-slim AS build
 
 # Install dependencies
 RUN apt update && \
@@ -23,5 +23,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 8001
 
-COPY ingest.py .
 CMD ["python", "worker.py"]
