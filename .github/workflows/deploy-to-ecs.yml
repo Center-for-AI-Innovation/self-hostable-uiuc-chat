@@ -14,15 +14,20 @@ on:
 # Environment variables.  Edit to match the setup for this service.
 env:
   AWS_REGION: us-east-2
+  ECS_CLUSTER: uiuc-chat-dev
   ECR_REPOSITORY: uiuc-chat-backend
   ECS_SERVICE: backend-service-358yl957
-  ECS_CLUSTER: uiuc-chat-dev
   ECS_TASK_DEFINITION: backend
   CONTAINER_NAME: backend
 
+  ECR_REPOSITORY_WORKER: uiuc-chat-worker
+  ECS_SERVICE_WORKER: ingest-worker-service-00snks4u
+  ECS_TASK_DEFINITION_WORKER: ingest-worker
+  CONTAINER_NAME_WORKER: worker
+
 jobs:
-  deploy:
-    name: Redeploy to Existing ECS Service
+  deploy-backend:
+    name: Deploy Backend Service
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -77,5 +82,64 @@ jobs:
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
         service: ${{ env.ECS_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
+
+  deploy-ingest-worker:
+    name: Deploy Ingest Worker Service
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr-worker
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build, tag, and push worker image to Amazon ECR
+      id: build-worker-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr-worker.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        # Build ingest worker container from rabbitmq directory and push it to ECR
+        docker build -f ai_ta_backend/rabbitmq/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$IMAGE_TAG
+        
+        # Also tag as latest
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:latest
+        
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    - name: Download current worker task definition
+      run: |
+        aws ecs describe-task-definition \
+          --task-definition ${{ env.ECS_TASK_DEFINITION_WORKER }} \
+          --query taskDefinition > worker-task-definition-raw.json
+        
+        # Remove unsupported fields that cause compatibility issues
+        cat worker-task-definition-raw.json | jq 'del(.registeredAt, .registeredBy, .taskDefinitionArn, .revision, .status, .requiresAttributes, .placementConstraints, .compatibilities, .enableFaultInjection)' > worker-task-definition.json
+
+    - name: Fill in the new image ID in the worker task definition
+      id: task-def-worker
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: worker-task-definition.json
+        container-name: ${{ env.CONTAINER_NAME_WORKER }}
+        image: ${{ steps.build-worker-image.outputs.image }}
+
+    - name: Deploy worker ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+      with:
+        task-definition: ${{ steps.task-def-worker.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE_WORKER }}
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
