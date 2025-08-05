@@ -199,6 +199,31 @@ class Project(Base):
         }
 
 
+class ProjectStats(Base):
+    __tablename__ = 'project_stats'
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    project_id = Column(BigInteger, ForeignKey('project.id')) # project_id = Column(BigInteger, ForeignKey('project.id'))
+    project_name = Column(Text)
+    total_messages= Column(BigInteger)
+    total_conversations= Column(BigInteger)
+    unique_users= Column(BigInteger)
+    created_at= Column(DateTime, default=func.now())
+    updated_at= Column(DateTime, default=func.now())
+    model_usage_counts= Column(JSON)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "project_id": self.project_id,
+            "project_name": self.project_name,
+            "total_messages": self.total_messages,
+            "total_conversations": self.total_conversations,
+            "unique_users": self.unique_users,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "model_usage_counts": self.model_usage_counts
+        }
+
 class N8nWorkflows(Base):
     __tablename__ = 'n8n_workflows'
     latest_workflow_id = Column(BigInteger, primary_key=True, autoincrement=True)
