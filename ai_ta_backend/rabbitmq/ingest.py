@@ -65,6 +65,7 @@ class Ingest:
     def __init__(self):
         self.openai_api_key = os.getenv('OPENAI_API_KEY')
         self.openai_api_base = os.getenv('EMBEDDING_API_BASE')
+        self.embedding_model = os.environ['EMBEDDING_MODEL']
         self.qdrant_url = os.getenv('QDRANT_URL')
         self.qdrant_api_key = os.getenv('QDRANT_API_KEY')
         self.qdrant_collection_name = os.getenv('QDRANT_COLLECTION_NAME')
@@ -94,7 +95,7 @@ class Ingest:
                 client=self.qdrant_client,
                 collection_name=self.qdrant_collection_name,
                 embeddings=OpenAIEmbeddings(openai_api_type='openai', openai_api_key=self.openai_api_key, 
-                                            openai_api_base=self.openai_api_base, model='nomic-ai/nomic-embed-text-v2-moe')
+                                            openai_api_base=self.openai_api_base, model=self.embedding_model)
             )
         else:
             logging.error("QDRANT API KEY OR URL NOT FOUND!")
@@ -311,7 +312,7 @@ class Ingest:
                 separators=["\n\n", "\n", ". ", " ", ""]
             )
             contexts: List[Document] = text_splitter.create_documents(texts=texts, metadatas=metadatas)
-            input_texts = [{'input': context.page_content, 'model': 'text-embedding-ada-002'} for context in contexts]
+            input_texts = [{'input': context.page_content, 'model': self.embedding_model} for context in contexts]
 
             # Check for duplicates
             is_duplicate = self.check_for_duplicates(input_texts, metadatas)
@@ -334,10 +335,12 @@ class Ingest:
                 context.metadata['doc_groups'] = kwargs.get('groups', [])
 
             # Generate embeddings from OpenAI
+            logging.info(f"Generating embeddings for {len(input_texts)} texts")
             embeddings_start_time = time.monotonic()
             oai = OpenAIAPIProcessor(
+                model=self.embedding_model,
                 input_prompts_list=input_texts,
-                request_url='https://api.openai.com/v1/embeddings',
+                request_url=self.openai_api_base,
                 api_key=self.openai_api_key,
                 max_requests_per_minute=10_000,
                 max_tokens_per_minute=10_000_000,
