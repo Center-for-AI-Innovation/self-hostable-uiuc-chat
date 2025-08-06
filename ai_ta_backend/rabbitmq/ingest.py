@@ -64,6 +64,7 @@ class Ingest:
 
     def __init__(self):
         self.openai_api_key = os.getenv('OPENAI_API_KEY')
+        self.openai_api_base = os.getenv('EMBEDDING_API_BASE')
         self.qdrant_url = os.getenv('QDRANT_URL')
         self.qdrant_api_key = os.getenv('QDRANT_API_KEY')
         self.qdrant_collection_name = os.getenv('QDRANT_COLLECTION_NAME')
@@ -92,7 +93,8 @@ class Ingest:
             self.vectorstore = Qdrant(
                 client=self.qdrant_client,
                 collection_name=self.qdrant_collection_name,
-                embeddings=OpenAIEmbeddings(openai_api_type='openai', openai_api_key=self.openai_api_key)
+                embeddings=OpenAIEmbeddings(openai_api_type='openai', openai_api_key=self.openai_api_key, 
+                                            openai_api_base=self.openai_api_base, model='nomic-ai/nomic-embed-text-v2-moe')
             )
         else:
             logging.error("QDRANT API KEY OR URL NOT FOUND!")
