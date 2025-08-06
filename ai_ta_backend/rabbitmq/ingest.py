@@ -140,8 +140,6 @@ class Ingest:
             print(
                 f"In top of /ingest route. course: {course_name}, s3paths: {s3_paths}, readable_filename: {readable_filename}, base_url: {base_url}, url: {url}, content: {content}, doc_groups: {doc_groups}"
             )
-            logging.debug("Entered bulk_ingest")
-            logging.debug(f"Embedding model: {self.embedding_model}, request_url: {self.openai_api_base}")
             success_fail_dict = self.run_ingest(course_name, s3_paths, base_url, url, readable_filename, content,
                                                 doc_groups)
             for retry_num in range(1, 3):

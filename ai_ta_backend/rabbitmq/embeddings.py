@@ -141,7 +141,7 @@ class OpenAIAPIProcessor:
     logging.basicConfig(level=self.logging_level)
     logging.debug(f"Logging initialized at level {self.logging_level}")
 
-    logging.debug(f"OpenAI API Processor initialized with model {self.model}, request_url {self.request_url}, api_key {self.api_key}, api_endpoint {self.request_url}")
+    logging.debug(f"OpenAI API Processor initialized with model {self.model}, request_url {self.request_url}, api_endpoint {self.request_url}")
 
     # infer API endpoint and construct request header
     api_endpoint = api_endpoint_from_url(self.request_url, self.model)
