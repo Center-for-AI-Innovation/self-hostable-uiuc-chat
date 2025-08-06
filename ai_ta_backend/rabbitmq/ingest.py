@@ -50,6 +50,7 @@ try:
     from ai_ta_backend.rabbitmq.rmsql import SQLAlchemyIngestDB
     from ai_ta_backend.rabbitmq.embeddings import OpenAIAPIProcessor
 except ModuleNotFoundError:
+    # When running as worker outside Flask app, import from local path
     from rmsql import SQLAlchemyIngestDB
     from embeddings import OpenAIAPIProcessor
 
@@ -920,7 +921,8 @@ class Ingest:
 
     def _ingest_single_image(self, s3_path: str, course_name: str, **kwargs) -> str:
         try:
-            with NamedTemporaryFile() as tmpfile:
+            readable_filename = kwargs.get('readable_filename', Path(s3_path).name[37:])
+            with NamedTemporaryFile(suffix="."+readable_filename.split(".")[-1]) as tmpfile:
                 # download from S3 into pdf_tmpfile
                 self.s3_client.download_fileobj(Bucket=self.s3_bucket_name, Key=s3_path, Fileobj=tmpfile)
                 """
@@ -938,8 +940,7 @@ class Ingest:
                 metadatas: List[Dict[str, Any]] = [{
                     'course_name': course_name,
                     's3_path': s3_path,
-                    'readable_filename': kwargs.get('readable_filename',
-                                                    Path(s3_path).name[37:]),
+                    'readable_filename': readable_filename,
                     'pagenumber': '',
                     'timestamp': '',
                     'url': kwargs.get('url', ''),
