@@ -141,7 +141,7 @@ class Ingest:
                 f"In top of /ingest route. course: {course_name}, s3paths: {s3_paths}, readable_filename: {readable_filename}, base_url: {base_url}, url: {url}, content: {content}, doc_groups: {doc_groups}"
             )
             logging.debug("Entered bulk_ingest")
-
+            logging.info(f"Embedding model: {self.embedding_model}, request_url: {self.openai_api_base}")
             success_fail_dict = self.run_ingest(course_name, s3_paths, base_url, url, readable_filename, content,
                                                 doc_groups)
             for retry_num in range(1, 3):
@@ -338,15 +338,15 @@ class Ingest:
             logging.info(f"Generating embeddings for {len(input_texts)} texts")
             embeddings_start_time = time.monotonic()
             oai = OpenAIAPIProcessor(
-                model=self.embedding_model,
                 input_prompts_list=input_texts,
                 request_url=self.openai_api_base,
                 api_key=self.openai_api_key,
                 max_requests_per_minute=10_000,
                 max_tokens_per_minute=10_000_000,
+                token_encoding_name='cl100k_base',
                 max_attempts=1_000,
                 logging_level=logging.INFO,
-                token_encoding_name='cl100k_base')
+                model=self.embedding_model)
             asyncio.run(oai.process_api_requests_from_file())
             print(f"⏰ embeddings runtime: {(time.monotonic() - embeddings_start_time):.2f} seconds")
             embeddings_dict: dict[str, List[float]] = {

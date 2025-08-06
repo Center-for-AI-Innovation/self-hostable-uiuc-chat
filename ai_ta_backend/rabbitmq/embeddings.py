@@ -141,6 +141,8 @@ class OpenAIAPIProcessor:
     logging.basicConfig(level=self.logging_level)
     logging.debug(f"Logging initialized at level {self.logging_level}")
 
+    logging.info(f"OpenAI API Processor initialized with model {self.model}, request_url {self.request_url}, api_key {self.api_key}, api_endpoint {self.request_url}")
+
     # infer API endpoint and construct request header
     api_endpoint = api_endpoint_from_url(self.request_url, self.model)
     request_header = {"Authorization": f"Bearer {self.api_key}"}
@@ -366,7 +368,11 @@ def api_endpoint_from_url(request_url: str, model: str):
     return 'embeddings'
   else:
     match = re.search('^https://[^/]+/v\\d+/(.+)$', request_url)
-    return match[1]  # type: ignore
+    if match:
+      return match[1]
+    else:
+      # Fallback for embeddings if URL doesn't match expected pattern
+      return 'embeddings'
 
 
 def append_to_jsonl(data, filename: str) -> None:
