@@ -50,6 +50,7 @@ try:
     from ai_ta_backend.rabbitmq.rmsql import SQLAlchemyIngestDB
     from ai_ta_backend.rabbitmq.embeddings import OpenAIAPIProcessor
 except ModuleNotFoundError:
+    # When running as worker outside Flask app, import from local path
     from rmsql import SQLAlchemyIngestDB
     from embeddings import OpenAIAPIProcessor
 
@@ -63,6 +64,8 @@ class Ingest:
 
     def __init__(self):
         self.openai_api_key = os.getenv('OPENAI_API_KEY')
+        self.openai_api_base = os.getenv('EMBEDDING_API_BASE')
+        self.embedding_model = os.environ['EMBEDDING_MODEL']
         self.qdrant_url = os.getenv('QDRANT_URL')
         self.qdrant_api_key = os.getenv('QDRANT_API_KEY')
         self.qdrant_collection_name = os.getenv('QDRANT_COLLECTION_NAME')
@@ -86,12 +89,13 @@ class Ingest:
                 logging.info(f"Creating collection {self.qdrant_collection_name}")
                 self.qdrant_client.create_collection(
                     collection_name=self.qdrant_collection_name,
-                    vectors_config={"size": 1536, "distance": "Cosine"}
+                    vectors_config={"size": 4096, "distance": "Cosine"}
                 )
             self.vectorstore = Qdrant(
                 client=self.qdrant_client,
                 collection_name=self.qdrant_collection_name,
-                embeddings=OpenAIEmbeddings(openai_api_type='openai', openai_api_key=self.openai_api_key)
+                embeddings=OpenAIEmbeddings(openai_api_type='openai', openai_api_key=self.openai_api_key, 
+                                            openai_api_base=self.openai_api_base, model=self.embedding_model)
             )
         else:
             logging.error("QDRANT API KEY OR URL NOT FOUND!")
@@ -136,8 +140,6 @@ class Ingest:
             print(
                 f"In top of /ingest route. course: {course_name}, s3paths: {s3_paths}, readable_filename: {readable_filename}, base_url: {base_url}, url: {url}, content: {content}, doc_groups: {doc_groups}"
             )
-            logging.debug("Entered bulk_ingest")
-
             success_fail_dict = self.run_ingest(course_name, s3_paths, base_url, url, readable_filename, content,
                                                 doc_groups)
             for retry_num in range(1, 3):
@@ -308,7 +310,7 @@ class Ingest:
                 separators=["\n\n", "\n", ". ", " ", ""]
             )
             contexts: List[Document] = text_splitter.create_documents(texts=texts, metadatas=metadatas)
-            input_texts = [{'input': context.page_content, 'model': 'text-embedding-ada-002'} for context in contexts]
+            input_texts = [{'input': context.page_content, 'model': self.embedding_model} for context in contexts]
 
             # Check for duplicates
             is_duplicate = self.check_for_duplicates(input_texts, metadatas)
@@ -331,16 +333,18 @@ class Ingest:
                 context.metadata['doc_groups'] = kwargs.get('groups', [])
 
             # Generate embeddings from OpenAI
+            logging.info(f"Generating embeddings for {len(input_texts)} texts")
             embeddings_start_time = time.monotonic()
             oai = OpenAIAPIProcessor(
                 input_prompts_list=input_texts,
-                request_url='https://api.openai.com/v1/embeddings',
+                request_url=self.openai_api_base,
                 api_key=self.openai_api_key,
                 max_requests_per_minute=10_000,
                 max_tokens_per_minute=10_000_000,
+                token_encoding_name='cl100k_base',
                 max_attempts=1_000,
                 logging_level=logging.INFO,
-                token_encoding_name='cl100k_base')
+                model=self.embedding_model)
             asyncio.run(oai.process_api_requests_from_file())
             print(f"⏰ embeddings runtime: {(time.monotonic() - embeddings_start_time):.2f} seconds")
             embeddings_dict: dict[str, List[float]] = {
@@ -920,7 +924,8 @@ class Ingest:
 
     def _ingest_single_image(self, s3_path: str, course_name: str, **kwargs) -> str:
         try:
-            with NamedTemporaryFile() as tmpfile:
+            readable_filename = kwargs.get('readable_filename', Path(s3_path).name[37:])
+            with NamedTemporaryFile(suffix="."+readable_filename.split(".")[-1]) as tmpfile:
                 # download from S3 into pdf_tmpfile
                 self.s3_client.download_fileobj(Bucket=self.s3_bucket_name, Key=s3_path, Fileobj=tmpfile)
                 """
@@ -938,8 +943,7 @@ class Ingest:
                 metadatas: List[Dict[str, Any]] = [{
                     'course_name': course_name,
                     's3_path': s3_path,
-                    'readable_filename': kwargs.get('readable_filename',
-                                                    Path(s3_path).name[37:]),
+                    'readable_filename': readable_filename,
                     'pagenumber': '',
                     'timestamp': '',
                     'url': kwargs.get('url', ''),

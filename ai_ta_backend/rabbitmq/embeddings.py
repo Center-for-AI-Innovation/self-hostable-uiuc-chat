@@ -118,7 +118,7 @@ import tiktoken  # for counting tokens
 class OpenAIAPIProcessor:
 
   def __init__(self, input_prompts_list, request_url, api_key, max_requests_per_minute, max_tokens_per_minute,
-               token_encoding_name, max_attempts, logging_level):
+               token_encoding_name, max_attempts, logging_level, model):
     self.request_url = request_url
     self.api_key = api_key
     self.max_requests_per_minute = max_requests_per_minute
@@ -129,6 +129,7 @@ class OpenAIAPIProcessor:
     self.input_prompts_list: List[dict] = input_prompts_list
     self.results = []
     self.cleaned_results: List[str] = []
+    self.model = model
 
   async def process_api_requests_from_file(self):
     """Processes API requests in parallel, throttling to stay under rate limits."""
@@ -140,8 +141,10 @@ class OpenAIAPIProcessor:
     logging.basicConfig(level=self.logging_level)
     logging.debug(f"Logging initialized at level {self.logging_level}")
 
+    logging.debug(f"OpenAI API Processor initialized with model {self.model}, request_url {self.request_url}, api_endpoint {self.request_url}")
+
     # infer API endpoint and construct request header
-    api_endpoint = api_endpoint_from_url(self.request_url)
+    api_endpoint = api_endpoint_from_url(self.request_url, self.model)
     request_header = {"Authorization": f"Bearer {self.api_key}"}
 
     # initialize trackers
@@ -177,6 +180,7 @@ class OpenAIAPIProcessor:
             # request_json = json.loads(next(requests))
             request_json = next(requests)
 
+            logging.info(f"Sending embedding request: {request_json}")
             next_request = APIRequest(task_id=next(task_id_generator),
                                       request_json=request_json,
                                       token_consumption=num_tokens_consumed_from_request(
@@ -358,13 +362,17 @@ class APIRequest:
       return data
 
 
-def api_endpoint_from_url(request_url: str):
+def api_endpoint_from_url(request_url: str, model: str):
   """Extract the API endpoint from the request URL."""
-  if 'text-embedding-ada-002' in request_url:
+  if model in request_url:
     return 'embeddings'
   else:
     match = re.search('^https://[^/]+/v\\d+/(.+)$', request_url)
-    return match[1]  # type: ignore
+    if match:
+      return match[1]
+    else:
+      # Fallback for embeddings if URL doesn't match expected pattern
+      return 'embeddings'
 
 
 def append_to_jsonl(data, filename: str) -> None:
