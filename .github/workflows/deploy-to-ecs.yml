@@ -44,13 +44,15 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Set image tag (adaptive short commit hash)
+    - name: Set image tag (adaptive short commit hash + branch)
       id: set-tag
       run: |
         SHORT_SHA=$(git rev-parse --short HEAD)
-        IMAGE_TAG="${SHORT_SHA}"
+        BRANCH_TAG=$(echo "${GITHUB_REF##*/}" | tr '/' '-')
+        IMAGE_TAG="${BRANCH_TAG}-${SHORT_SHA}"
         echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
         echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+        echo "branch_tag=${BRANCH_TAG}" >> $GITHUB_OUTPUT
         echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
     - name: Build, tag, and push image to Amazon ECR
@@ -60,8 +62,12 @@ jobs:
       run: |
         set -euo pipefail
         echo "Building image with tag: $IMAGE_TAG"
+        BRANCH_TAG=${{ steps.set-tag.outputs.branch_tag }}
         docker build -f Self-Hosted-Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        # Also tag with branch only (optional, for easy rollback by branch)
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:${BRANCH_TAG}
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:${BRANCH_TAG}
         # Maintain latest tag
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
@@ -109,13 +115,15 @@ jobs:
       id: login-ecr-worker
       uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Set worker image tag (adaptive short commit hash)
+    - name: Set worker image tag (adaptive short commit hash + branch)
       id: set-worker-tag
       run: |
         SHORT_SHA=$(git rev-parse --short HEAD)
-        WORKER_IMAGE_TAG="${SHORT_SHA}"
+        BRANCH_TAG=$(echo "${GITHUB_REF##*/}" | tr '/' '-')
+        WORKER_IMAGE_TAG="${BRANCH_TAG}-${SHORT_SHA}"
         echo "WORKER_IMAGE_TAG=${WORKER_IMAGE_TAG}" >> $GITHUB_ENV
         echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+        echo "branch_tag=${BRANCH_TAG}" >> $GITHUB_OUTPUT
         echo "image_tag=${WORKER_IMAGE_TAG}" >> $GITHUB_OUTPUT
 
     - name: Build, tag, and push worker image to Amazon ECR
@@ -125,8 +133,12 @@ jobs:
       run: |
         set -euo pipefail
         echo "Building worker image with tag: $WORKER_IMAGE_TAG"
+        BRANCH_TAG=${{ steps.set-worker-tag.outputs.branch_tag }}
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$WORKER_IMAGE_TAG ai_ta_backend/rabbitmq/
         docker push $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$WORKER_IMAGE_TAG
+        # Also tag with branch only (optional, for easy rollback by branch)
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$WORKER_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:${BRANCH_TAG}
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:${BRANCH_TAG}
         # Maintain latest tag
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$WORKER_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:latest
