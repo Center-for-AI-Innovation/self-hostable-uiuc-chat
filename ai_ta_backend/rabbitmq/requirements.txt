@@ -3,7 +3,7 @@ openai<1.0
 pandas
 tiktoken==0.5.1
 boto3==1.28.79
-qdrant-client==1.7.3
+qdrant-client==1.9.1
 langchain==0.0.331
 posthog==3.1.0
 pysrt==1.1.2
