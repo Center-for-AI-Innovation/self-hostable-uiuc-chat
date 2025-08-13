@@ -5,8 +5,8 @@ import re
 from ollama import Client
 
 OLLAMA_SERVER_URL = os.getenv("OLLAMA_SERVER_URL")
-OLLAMA_CLIENT = Client(host=OLLAMA_SERVER_URL)
-LLM = 'llama3.1:70b'
+OLLAMA_CLIENT = Client(host=OLLAMA_SERVER_URL, api_key=os.environ['NCSA_HOSTED_API_KEY'])
+LLM = 'qwen3:32b'
 
 
 def generate_schema_from_project_description(project_name: str, project_description: str | None) -> dict:

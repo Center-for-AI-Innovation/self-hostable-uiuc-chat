@@ -209,7 +209,7 @@ class RetrievalService:
 
     from ai_ta_backend.utils.email.send_transactional_email import send_email
 
-    client = OllamaClient(os.environ['OLLAMA_SERVER_URL'])
+    client = OllamaClient(os.environ['OLLAMA_SERVER_URL'], api_key=os.environ['NCSA_HOSTED_API_KEY'])
 
     messages = self.sqlDb.getMessagesFromConvoID(conversation_id).data
 

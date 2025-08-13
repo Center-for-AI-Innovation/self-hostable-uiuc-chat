@@ -64,7 +64,8 @@ class Ingest:
 
     def __init__(self):
         self.openai_api_key = os.getenv('OPENAI_API_KEY')
-        self.openai_api_base = os.getenv('EMBEDDING_API_BASE') + "/embeddings" if os.getenv('EMBEDDING_API_BASE') else None
+        self.openai_api_base = os.environ['EMBEDDING_API_BASE'] + "/embeddings" if os.environ['EMBEDDING_API_BASE'] else None
+        self.ncsa_hosted_api_key = os.getenv('NCSA_HOSTED_API_KEY')
         self.embedding_model = os.environ['EMBEDDING_MODEL']
         self.qdrant_url = os.getenv('QDRANT_URL')
         self.qdrant_api_key = os.getenv('QDRANT_API_KEY')
@@ -94,7 +95,7 @@ class Ingest:
             self.vectorstore = Qdrant(
                 client=self.qdrant_client,
                 collection_name=self.qdrant_collection_name,
-                embeddings=OpenAIEmbeddings(openai_api_type='openai', openai_api_key=self.openai_api_key, 
+                embeddings=OpenAIEmbeddings(openai_api_type='openai', openai_api_key=self.ncsa_hosted_api_key, 
                                             openai_api_base=self.openai_api_base, model=self.embedding_model)
             )
         else:
@@ -343,7 +344,7 @@ class Ingest:
             oai = OpenAIAPIProcessor(
                 input_prompts_list=input_texts,
                 request_url=self.openai_api_base,
-                api_key=self.openai_api_key,
+                api_key=self.ncsa_hosted_api_key,
                 max_requests_per_minute=10_000,
                 max_tokens_per_minute=10_000_000,
                 token_encoding_name='cl100k_base',
