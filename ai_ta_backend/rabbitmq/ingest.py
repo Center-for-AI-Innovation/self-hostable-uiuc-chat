@@ -110,7 +110,12 @@ class Ingest:
                 config=Config(s3={'addressing_style': 'path'}),
             )
         else:
-            logging.error("AWS ACCESS KEY ID OR SECRET ACCESS KEY NOT FOUND!")
+            logging.info("AWS ACCESS KEY ID OR SECRET ACCESS KEY NOT FOUND, TRYING WITHOUT CREDENTIALS")
+            self.s3_client = boto3.client(
+                's3',
+                endpoint_url=self.minio_url,
+                config=Config(s3={'addressing_style': 'path'})
+            )
 
         if self.posthog_api_key:
             self.posthog = Posthog(sync_mode=False, project_api_key=self.posthog_api_key,
