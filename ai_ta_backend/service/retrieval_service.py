@@ -31,6 +31,14 @@ from ai_ta_backend.service.posthog_service import PosthogService
 from ai_ta_backend.service.sentry_service import SentryService
 
 
+# Qwen query instruction for Illinois Chat retrieval.
+# Docs are embedded without instruction during ingest; only queries get this prefix.
+DEFAULT_QWEN_QUERY_INSTRUCTION = (
+    "Given a user search query, retrieve the most relevant passages from the Illinois Chat knowledge "
+    "base stored in Qdrant to answer the query accurately. Prioritize authoritative course materials, "
+    "syllabi, FAQs, official documentation, web pages, and other relevant sources. Ignore boilerplate/navigation text."
+)
+
 class RetrievalService:
   """
     Contains all methods for business logic of the retrieval service.
@@ -52,6 +60,7 @@ class RetrievalService:
         model=self.embedding_model,
         openai_api_key=os.environ["OPENAI_API_KEY"],
         openai_api_base=os.environ["EMBEDDING_API_BASE"],
+        tiktoken_model_name="cl100k_base",
         # openai_api_key=os.environ["AZURE_OPENAI_KEY"],
         # openai_api_base=os.environ["AZURE_OPENAI_ENDPOINT"],
         # openai_api_type=os.environ['OPENAI_API_TYPE'],
@@ -59,6 +68,9 @@ class RetrievalService:
     )
 
     self.nomic_embeddings = OllamaEmbeddings(base_url=os.environ['OLLAMA_SERVER_URL'], model='nomic-embed-text:v1.5')
+
+    # Allow override via env; fallback to sane default for Illinois Chat retrieval.
+    self.qwen_query_instruction = os.getenv('QWEN_QUERY_INSTRUCTION', DEFAULT_QWEN_QUERY_INSTRUCTION)
 
     # self.llm = AzureChatOpenAI(
     #     temperature=0,
@@ -119,7 +131,7 @@ class RetrievalService:
         tasks = [
             loop.run_in_executor(executor, self.sqlDb.getDisabledDocGroups, course_name),
             loop.run_in_executor(executor, self.sqlDb.getPublicDocGroups, course_name),
-            loop.run_in_executor(executor, self._embed_query_and_measure_latency, search_query, embedding_client)
+            loop.run_in_executor(executor, self._embed_query_and_measure_latency, search_query, embedding_client, self.qwen_query_instruction)
         ]
 
       disabled_doc_groups_response, public_doc_groups_response, user_query_embedding = await asyncio.gather(*tasks)
@@ -211,7 +223,8 @@ class RetrievalService:
 
     client = OllamaClient(os.environ['OLLAMA_SERVER_URL'], api_key=os.environ['NCSA_HOSTED_API_KEY'])
 
-    messages = self.sqlDb.getMessagesFromConvoID(conversation_id).data
+    response = self.sqlDb.getMessagesFromConvoID(conversation_id)
+    messages = response["data"] if isinstance(response, dict) else response.data
 
     llm_monitor_model = 'llama-guard3:8b'
 
@@ -266,7 +279,7 @@ class RetrievalService:
       # Assign tags to unsafe messages and send email when necessary
       if 'unsafe' in response_content.lower() and alert_categories:
         llm_monitor_tags["status"] = "unsafe"
-        llm_monitor_tags["triggered_categories"] = triggered_categories
+        llm_monitor_tags["triggered_categories"] = ", ".join(triggered_categories)
 
         # Prepare alert email only if there are non-excluded categories
         if alert_categories:
@@ -542,9 +555,20 @@ class RetrievalService:
           f"Runtime for capture search succeeded event: {time_for_capture_search_succeeded_event:.2f} seconds")
     return found_docs
 
-  def _embed_query_and_measure_latency(self, search_query, embedding_client):
+  def _embed_query_and_measure_latency(self, search_query, embedding_client, query_instruction: str | None = None):
     openai_start_time = time.monotonic()
-    user_query_embedding = embedding_client.embed_query(search_query)
+    text_to_embed = search_query
+
+    # If using a Qwen embedding model via OpenAI-compatible API, prefix the instruction for queries only.
+    try:
+      model_name = getattr(embedding_client, 'model', self.embedding_model)
+    except Exception:
+      model_name = self.embedding_model
+
+    if query_instruction and isinstance(embedding_client, OpenAIEmbeddings) and 'qwen' in str(model_name).lower():
+      text_to_embed = f"Instruct: {query_instruction}\nQuery:{search_query}"
+
+    user_query_embedding = embedding_client.embed_query(text_to_embed)
     self.openai_embedding_latency = time.monotonic() - openai_start_time
     return user_query_embedding
 
