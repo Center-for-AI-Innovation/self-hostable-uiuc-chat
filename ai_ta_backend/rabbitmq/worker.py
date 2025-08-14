@@ -81,8 +81,10 @@ class Worker:
 
 @app.route('/api/healthcheck', methods=['GET'])
 def return_health():
-    message = {'status': 'OK'}
-    return jsonify(message)
+    if threading.active_count() == 0:
+        return "Worker thread is not running", 500
+    else:
+        return "OK", 200
 
 
 if __name__ == '__main__':
