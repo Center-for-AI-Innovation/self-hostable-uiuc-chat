@@ -28,8 +28,8 @@ class Worker:
         self.rabbitmq_url = os.getenv('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
         self.rabbitmq_ssl = os.getenv('RABBITMQ_SSL', False)
         self.rabbitmq_queue = os.getenv('RABBITMQ_QUEUE', 'uiuc-chat')
-        self.channel = None
-        self.connection = None
+        self.connection: pika.BlockingConnection | None = None
+        self.channel: pika.adapters.blocking_connection.BlockingChannel | None = None
         self.connect()
 
     # Intended usage is "with Queue() as queue:"
@@ -66,10 +66,12 @@ class Worker:
         self.channel = None
         self.connection = None
 
-    def is_connected(self):
+    def is_connected(self) -> bool:
         return (
-                hasattr(self, 'connection') and self.connection.is_open and
-                hasattr(self, 'channel') and self.channel.is_open
+                self.connection is not None
+                and self.connection.is_open
+                and self.channel is not None
+                and self.channel.is_open
         )
 
     def process_job(self, channel, method, properties, body):
