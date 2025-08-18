@@ -12,8 +12,6 @@ class AWSStorage:
     self.s3_client = boto3.client(
         's3',
         # endpoint_url=os.environ.get('MINIO_API_URL'),  # for Self hosted MinIO bucket
-        aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
     )
 
   def upload_file(self, file_path: str, bucket_name: str, object_name: str):
