@@ -45,7 +45,7 @@ class VectorDatabase():
 
     self.vectorstore = Qdrant(client=self.qdrant_client,
                               collection_name=os.environ['QDRANT_COLLECTION_NAME'],
-                              embeddings=OpenAIEmbeddings(openai_api_key=os.environ['VLADS_OPENAI_KEY']))
+                              embeddings=OpenAIEmbeddings(openai_api_key=os.environ['OPENAI_API_KEY']))
 
   def vector_search(self, search_query, course_name, doc_groups: List[str], user_query_embedding, top_n,
                     disabled_doc_groups: List[str], public_doc_groups: List[dict]):
