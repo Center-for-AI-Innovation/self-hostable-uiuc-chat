@@ -53,12 +53,12 @@ class RetrievalService:
     self.sentry = sentry
     self.posthog = posthog
     self.thread_pool_executor = thread_pool_executor
-    openai.api_key = os.environ["OPENAI_API_KEY"]
+    openai.api_key = os.environ["NCSA_HOSTED_API_KEY"]
     self.embedding_model = os.environ['EMBEDDING_MODEL']
 
     self.embeddings = OpenAIEmbeddings(
         model=self.embedding_model,
-        openai_api_key=os.environ["OPENAI_API_KEY"],
+        openai_api_key=os.environ["NCSA_HOSTED_API_KEY"],
         openai_api_base=os.environ["EMBEDDING_API_BASE"],
         tiktoken_model_name="cl100k_base",
         # openai_api_key=os.environ["AZURE_OPENAI_KEY"],
