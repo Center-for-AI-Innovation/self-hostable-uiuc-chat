@@ -82,6 +82,13 @@ class Ingest:
         self.s3_client = None
         self.sql_session = None
 
+        # Qdrant ingestion tuning
+        # Batch size for upserts during ingestion per guidance from Qdrant team
+        self.qdrant_upsert_batch_size = int(os.getenv('QDRANT_UPSERT_BATCH_SIZE', '100'))
+        # Temporarily raise indexing threshold during ingestion, then revert
+        self.qdrant_indexing_threshold_ingest = int(os.getenv('QDRANT_INDEXING_THRESHOLD_INGEST', '100000000'))
+        self.qdrant_indexing_threshold_online = int(os.getenv('QDRANT_INDEXING_THRESHOLD_ONLINE', '1000'))
+
     def initialize_resources(self):
         # Initialize Qdrant client and create collection if necessary
         if self.qdrant_api_key and self.qdrant_url:
@@ -357,24 +364,59 @@ class Ingest:
                 item[0]['input']: item[1]['data'][0]['embedding'] for item in oai.results
             }
 
-            # Bulk upload to Qdrant
-            vectors: list[PointStruct] = []
-            for context in contexts:
-                upload_metadata = {**context.metadata, "page_content": context.page_content}
-                vectors.append(
-                    PointStruct(id=str(uuid.uuid4()),
-                                vector=embeddings_dict[context.page_content],
-                                payload=upload_metadata)
-                )
+            # Batched upload to Qdrant with temporary indexing threshold adjustments
+            collection_name = os.environ['QDRANT_COLLECTION_NAME']  # type: ignore
+            # Raise indexing threshold to postpone indexing during bulk upserts
             try:
-                self.qdrant_client.upsert(
-                    collection_name=os.environ['QDRANT_COLLECTION_NAME'],  # type: ignore
-                    points=vectors,  # type: ignore
+                self.qdrant_client.update_collection(
+                    collection_name=collection_name,
+                    optimizer_config=models.OptimizersConfigDiff(indexing_threshold=self.qdrant_indexing_threshold_ingest),
                 )
             except Exception as e:
-                # it's fine if this gets timeout error. it will still post: https://github.com/qdrant/qdrant/issues/3654
-                logging.warning("Update/upsert timeouts are fine, but errors might not be: ", e)
-                pass
+                logging.warning("Could not raise Qdrant indexing threshold before ingestion: %s", e)
+
+            try:
+                batch: list[PointStruct] = []
+                for context in contexts:
+                    upload_metadata = {**context.metadata, "page_content": context.page_content}
+                    batch.append(
+                        PointStruct(
+                            id=str(uuid.uuid4()),
+                            vector=embeddings_dict[context.page_content],
+                            payload=upload_metadata,
+                        )
+                    )
+                    if len(batch) >= self.qdrant_upsert_batch_size:
+                        try:
+                            self.qdrant_client.upsert(
+                                collection_name=collection_name,
+                                points=batch,  # type: ignore
+                                wait=False,
+                            )
+                        except Exception as e:
+                            # Timeouts can be acceptable while server processes the request in background
+                            logging.warning("Batch upsert encountered an error (continuing): %s", e)
+                        finally:
+                            batch = []
+
+                if len(batch) > 0:
+                    try:
+                        self.qdrant_client.upsert(
+                            collection_name=collection_name,
+                            points=batch,  # type: ignore
+                            wait=False,
+                        )
+                    except Exception as e:
+                        logging.warning("Final batch upsert encountered an error (continuing): %s", e)
+            finally:
+                # Revert indexing threshold back to online value
+                try:
+                    self.qdrant_client.update_collection(
+                        collection_name=collection_name,
+                        optimizer_config=models.OptimizersConfigDiff(indexing_threshold=self.qdrant_indexing_threshold_online),
+                    )
+                except Exception as e:
+                    logging.warning("Could not revert Qdrant indexing threshold after ingestion: %s", e)
 
             # Supabase SQL insertion
             contexts_for_supa = [{
