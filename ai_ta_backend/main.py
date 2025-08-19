@@ -22,6 +22,7 @@ from flask_injector import FlaskInjector, RequestScope
 from injector import Binder, SingletonScope
 
 from ai_ta_backend.database.aws import AWSStorage
+from ai_ta_backend.database.graph import GraphDatabase
 from ai_ta_backend.database.sql import SQLDatabase
 from ai_ta_backend.database.vector import VectorDatabase
 from ai_ta_backend.executors.flask_executor import (
@@ -144,6 +145,7 @@ def getTopContexts(service: RetrievalService) -> Response:
   course_name: str = data.get('course_name', '')
   doc_groups: List[str] = data.get('doc_groups', [])
   top_n: int = data.get('top_n', 100)
+  conversation_id: str = data.get('conversation_id', '')
 
   if search_query == '' or course_name == '':
     # proper web error "400 Bad request"
@@ -153,7 +155,7 @@ def getTopContexts(service: RetrievalService) -> Response:
         f"Missing one or more required parameters: 'search_query' and 'course_name' must be provided. Search query: `{search_query}`, Course name: `{course_name}`"
     )
 
-  found_documents = asyncio.run(service.getTopContexts(search_query, course_name, doc_groups, top_n))
+  found_documents = asyncio.run(service.getTopContexts(search_query, course_name, doc_groups, top_n, conversation_id))
   response = jsonify(found_documents)
   response.headers.add('Access-Control-Allow-Origin', '*')
   print(f"⏰ Runtime of getTopContexts in main.py: {(time.monotonic() - start_time):.2f} seconds")
@@ -235,6 +237,72 @@ def delete(service: RetrievalService, flaskExecutor: ExecutorInterface):
   response = jsonify({"outcome": 'success'})
   response.headers.add('Access-Control-Allow-Origin', '*')
   return response
+
+@app.route('/process-chat-file', methods=['POST'])
+def process_chat_file_sync(service: RetrievalService):
+    """
+    Process files uploaded in chat conversations synchronously.
+    """
+    
+    try:
+        data = request.get_json()
+        print(f"📋 Request data: {data}")
+        
+        # Extract required parameters
+        conversation_id = data.get('conversation_id')
+        s3_path = data.get('s3_path')
+        course_name = data.get('course_name', 'chat')
+        readable_filename = data.get('readable_filename', '')
+        user_id = data.get('user_id', '')
+        
+        if not conversation_id or not s3_path:
+            error_response = {
+                "success": False,
+                "status": "error",
+                "error": "Missing required parameters: conversation_id and s3_path"
+            }
+            
+            return jsonify(error_response), 400
+        
+        # Process file synchronously (wait for completion)
+        result = service.process_chat_file_sync(
+            conversation_id=conversation_id,
+            s3_path=s3_path,
+            course_name=course_name,
+            readable_filename=readable_filename,
+            user_id=user_id,
+            is_chat_upload=True
+        )
+        
+        if result['success']:
+            response_data = {
+                'success': True,
+                'chunks_created': result['chunks_created'],
+                'status': 'completed',
+                'message': 'File processed and ready for chat',
+            }
+            response = jsonify(response_data)
+        else:
+            response_data = {
+                'success': False,
+                'chunks_created': result.get('chunks_created', 0),
+                'status': 'failed',
+                'error': result.get('error', 'Unknown error occurred')
+            }
+            response = jsonify(response_data)
+            response.status_code = 500
+        
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+        
+    except Exception as e:
+        error_response = {
+            'success': False,
+            'chunks_created': 0,
+            'status': 'failed',
+            'error': f'Server error: {str(e)}'
+        }
+        return jsonify(error_response), 500
 
 
 @app.route('/getNomicMap', methods=['GET'])
@@ -838,6 +906,34 @@ def updateProjectDocuments(flaskExecutor: ExecutorInterface) -> Response:
   response.headers.add('Access-Control-Allow-Origin', '*')
   return response
 
+@app.route('/getClinicalKGContexts', methods=['GET'])
+def clinicalKGContexts(graph_db: GraphDatabase) -> Response:
+  user_query = request.args.get('user_query', default='', type=str)
+
+  if user_query == '':
+    abort(400, description="Missing required parameter: 'user_query' must be provided.")
+
+  try:
+    results = graph_db.getClinicalKGContexts(user_query)
+    response = jsonify(results)
+  except Exception as e:
+    response = Response(status=500)
+    response.data = f"An unexpected error occurred: {e}".encode()
+
+  response.headers.add('Access-Control-Allow-Origin', '*')
+  return response
+
+@app.route('/getPrimeKGContexts', methods=['GET'])
+def getPrimeKGContexts(graph_db: GraphDatabase) -> Response:
+  user_query = request.args.get('user_query', default='', type=str)
+
+  if user_query == '':
+    abort(400, description="Missing required parameter: 'user_query' must be provided.")
+
+  results = graph_db.getPrimeKGContexts(user_query)
+  response = jsonify(results)
+  response.headers.add('Access-Control-Allow-Origin', '*')
+  return response
 
 def configure(binder: Binder) -> None:
   binder.bind(ThreadPoolExecutorInterface, to=ThreadPoolExecutorAdapter(max_workers=10), scope=SingletonScope)
@@ -852,6 +948,7 @@ def configure(binder: Binder) -> None:
   binder.bind(SQLDatabase, to=SQLDatabase, scope=SingletonScope)
   binder.bind(AWSStorage, to=AWSStorage, scope=SingletonScope)
   binder.bind(ExecutorInterface, to=FlaskExecutorAdapter(executor), scope=SingletonScope)
+  binder.bind(GraphDatabase, to=GraphDatabase, scope=SingletonScope)
 
 
 FlaskInjector(app=app, modules=[configure])
