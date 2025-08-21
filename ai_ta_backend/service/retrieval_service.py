@@ -141,7 +141,7 @@ class RetrievalService:
       disabled_doc_groups_response, public_doc_groups_response, user_query_embedding = await asyncio.gather(*tasks)
 
       disabled_doc_groups = [doc_group['name'] for doc_group in disabled_doc_groups_response["data"]]
-      public_doc_groups = [doc_group['name'] for doc_group in public_doc_groups_response["data"]]
+      public_doc_groups = public_doc_groups_response["data"]
 
       time_for_parallel_operations = time.monotonic() - start_time_overall
       start_time_vector_search = time.monotonic()
