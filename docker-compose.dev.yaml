@@ -180,6 +180,37 @@ services:
       timeout: 10s
       retries: 3
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    networks:
+      - uiuc-chat-network
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ollama-models-init:
+    image: curlimages/curl:latest
+    container_name: ollama-models-init
+    networks:
+      - uiuc-chat-network
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ./scripts/init-ollama-models.sh:/init-models.sh:ro
+    entrypoint: ["/bin/sh", "/init-models.sh"]
+    restart: "no"
+
   worker:
     platform: linux/arm64/v8
     build:
@@ -193,6 +224,7 @@ services:
     depends_on:
       - rabbitmq
       - postgres-illinois-chat
+      - ollama
     environment:
       RABBITMQ_URL: 'amqp://guest:guest@rabbitmq:5672'
       POSTGRES_HOST: postgres-illinois-chat
@@ -208,6 +240,7 @@ services:
       AWS_ACCESS_KEY_ID: "minioadmin"
       AWS_SECRET_ACCESS_KEY: "minioadmin"
       S3_BUCKET_NAME: uiuc-chat
+      OLLAMA_BASE_URL: "http://ollama:11434"
 
 # declare the network resource
 # this will allow you to use service discovery and address a container by its name from within the network
@@ -222,3 +255,4 @@ volumes:
   postgres-illinois-chat: {}
   postgres-keycloak: {}
   rabbitmq: {}
+  ollama-data: {}
