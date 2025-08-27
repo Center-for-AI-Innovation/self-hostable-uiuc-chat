@@ -69,6 +69,19 @@ See docs on https://docs.uiuc.chat
 
 ## 📣 Development
 
+## Run the frontend and backend with hot reload:
+
+Backend:
+```bash
+cd uiuc-chat-backend
+infisical run --env=dev -- flask --app ai_ta_backend.main:app --debug run --port 8000
+```
+Frontend:
+```bash
+cd uiuc-chat-frontend
+npm run dev
+```
+
 ## Fastest way to rebuild the images during dev
 
 ```bash

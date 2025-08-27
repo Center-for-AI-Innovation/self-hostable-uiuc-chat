@@ -1,0 +1,355 @@
+# Default values for uiuc-chat
+# This is a YAML-formatted file.
+
+# Global configuration
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# Environment (dev/prod)
+environment: "prod"
+
+# Frontend configuration
+frontend:
+  enabled: true
+  image:
+    repository: uiuc-chat-frontend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 3000
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: chat.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  env:
+    NEXT_PUBLIC_KEYCLOAK_URL: "http://keycloak:8080"
+    NEXT_PUBLIC_KEYCLOAK_REALM: "uiuc-chat"
+    NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: "uiuc-chat-client"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Backend Flask API configuration
+backend:
+  enabled: true
+  image:
+    repository: uiuc-chat-backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 8001
+  env:
+    FLASK_ENV: "production"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+# Worker service configuration
+worker:
+  enabled: true
+  image:
+    repository: uiuc-chat-backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  env:
+    RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
+    POSTGRES_HOST: "postgresql"
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: "postgres"
+    POSTGRES_USER: "postgres"
+    QDRANT_URL: "http://qdrant:6333"
+    QDRANT_COLLECTION_NAME: "illinois_chat"
+    MINIO_URL: "http://minio:9000"
+    S3_BUCKET_NAME: "uiuc-chat"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+# Ingest worker configuration
+ingestWorker:
+  enabled: true
+  image:
+    repository: uiuc-chat-backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Crawlee service configuration
+crawlee:
+  enabled: true
+  image:
+    repository: ic-crawlee
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 3000
+  env:
+    INGEST_URL: "http://backend:8001/ingest"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Qdrant vector database configuration
+qdrant:
+  enabled: true
+  image:
+    repository: qdrant/qdrant
+    tag: "v1.12.6"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 6333
+    grpcPort: 6334
+  persistence:
+    enabled: true
+    size: 10Gi
+    accessMode: ReadWriteOnce
+  env:
+    QDRANT_API_KEY: ""
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+# MinIO object storage configuration
+minio:
+  enabled: true
+  image:
+    repository: minio/minio
+    tag: "RELEASE.2024-06-13T22-53-53Z"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    apiPort: 9000
+    consolePort: 9001
+  persistence:
+    enabled: true
+    size: 20Gi
+    accessMode: ReadWriteOnce
+  env:
+    MINIO_ROOT_USER: "minioadmin"
+    MINIO_ROOT_PASSWORD: "minioadmin"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+# Keycloak authentication configuration
+keycloak:
+  enabled: true
+  image:
+    repository: quay.io/keycloak/keycloak
+    tag: "26.1"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 8080
+  env:
+    KEYCLOAK_ADMIN: "admin"
+    KEYCLOAK_ADMIN_PASSWORD: "admin"
+    KC_METRICS_ENABLED: "true"
+    KC_HEALTH_ENABLED: "true"
+  dbConfig:
+    host: "postgresql"
+    port: "5432"
+    database: "postgres"
+    schema: "keycloak"
+    username: "postgres"
+    password: "password"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+# Ollama (for development environment)
+ollama:
+  enabled: false  # Only enabled in dev
+  image:
+    repository: ollama/ollama
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 11434
+  persistence:
+    enabled: true
+    size: 50Gi
+    accessMode: ReadWriteOnce
+  env:
+    OLLAMA_HOST: "0.0.0.0:11434"
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 8Gi
+    requests:
+      cpu: 1000m
+      memory: 4Gi
+
+# PostgreSQL configuration (using Bitnami chart)
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "password"
+    username: "postgres"
+    password: "password"
+    database: "postgres"
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+
+# Redis configuration (using Bitnami chart)
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "password"
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+
+# RabbitMQ configuration (using Bitnami chart)
+rabbitmq:
+  enabled: true
+  auth:
+    username: "guest"
+    password: "guest"
+  persistence:
+    enabled: true
+    size: 8Gi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Secrets configuration
+secrets:
+  # External secrets - these should be provided via external secret management
+  externalSecrets:
+    enabled: false
+  # Internal secrets - created by the chart
+  create: true
+  postgresql:
+    password: "password"
+  redis:
+    password: "password"
+  rabbitmq:
+    password: "guest"
+  keycloak:
+    adminPassword: "admin"
+  minio:
+    rootUser: "minioadmin"
+    rootPassword: "minioadmin"
+  api:
+    openaiKey: ""
+    qdrantKey: ""
+
+# Network policies
+networkPolicies:
+  enabled: false
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+
+# Security context
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Autoscaling
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80

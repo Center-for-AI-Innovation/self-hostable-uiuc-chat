@@ -1,0 +1,225 @@
+# Production environment values for uiuc-chat
+# This extends the base values.yaml
+
+# Environment identifier
+environment: "prod"
+
+# Frontend configuration
+frontend:
+  enabled: true
+  replicaCount: 2
+  image:
+    tag: "latest"
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    hosts:
+      - host: chat.yourdomain.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: uiuc-chat-tls
+        hosts:
+          - chat.yourdomain.com
+
+# Backend configuration
+backend:
+  enabled: true
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+
+# Worker service configuration
+worker:
+  enabled: true
+  replicaCount: 3
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+
+# Ingest worker for production workloads
+ingestWorker:
+  enabled: true
+  replicaCount: 2
+
+# Crawlee for production web crawling
+crawlee:
+  enabled: true
+  replicaCount: 1
+
+# Ollama disabled in production (use external LLM APIs)
+ollama:
+  enabled: false
+
+# Qdrant configuration for production
+qdrant:
+  enabled: true
+  replicaCount: 1
+  image:
+    tag: "v1.12.6"
+  persistence:
+    enabled: true
+    size: 100Gi
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+    requests:
+      cpu: 2000m
+      memory: 4Gi
+
+# MinIO configuration for production
+minio:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 500Gi
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+
+# PostgreSQL for production (using Bitnami chart)
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "CHANGE-ME-IN-PRODUCTION"
+    username: "postgres"
+    password: "CHANGE-ME-IN-PRODUCTION"
+    database: "postgres"
+  primary:
+    persistence:
+      enabled: true
+      size: 100Gi
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+
+# Redis for production
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "CHANGE-ME-IN-PRODUCTION"
+  master:
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+
+# RabbitMQ for production
+rabbitmq:
+  enabled: true
+  auth:
+    username: "uiuc-chat"
+    password: "CHANGE-ME-IN-PRODUCTION"
+  persistence:
+    enabled: true
+    size: 20Gi
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+# Keycloak configuration for production
+keycloak:
+  enabled: true
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+
+# Production secrets - these should be provided via external secret management
+secrets:
+  create: false  # Use external secret management in production
+  externalSecrets:
+    enabled: true
+
+# Network policies for security
+networkPolicies:
+  enabled: true
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Security context
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Node selector for production workloads
+nodeSelector:
+  node-type: "app"
+
+# Tolerations for production
+tolerations:
+  - key: "app"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
+
+# Affinity rules for high availability
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - uiuc-chat
+          topologyKey: kubernetes.io/hostname
+
+# Enable autoscaling in production
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80

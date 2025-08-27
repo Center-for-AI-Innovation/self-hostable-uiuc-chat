@@ -1,0 +1,147 @@
+# Development environment values for uiuc-chat
+# This extends the base values.yaml
+
+# Environment identifier
+environment: "dev"
+
+# Frontend configuration
+frontend:
+  enabled: false  # Disabled in dev (run locally for hot reload)
+
+# Backend configuration
+backend:
+  enabled: false  # Disabled in dev (run locally for debugging)
+
+# Worker service configuration
+worker:
+  enabled: true
+  env:
+    RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
+    POSTGRES_HOST: "postgresql"
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: "postgres"
+    POSTGRES_USER: "postgres"
+    QDRANT_URL: "http://qdrant:6333"
+    QDRANT_COLLECTION_NAME: "illinois_chat"
+    MINIO_URL: "http://minio:9000"
+    S3_BUCKET_NAME: "uiuc-chat"
+    OLLAMA_BASE_URL: "http://ollama:11434"
+
+# Enable Ollama for local LLM development
+ollama:
+  enabled: true
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 16Gi
+    requests:
+      cpu: 2000m
+      memory: 8Gi
+
+# Qdrant configuration for development
+qdrant:
+  enabled: true
+  image:
+    tag: "v1.9.0"  # Use dev compose version
+  persistence:
+    size: 5Gi  # Smaller for dev
+
+# MinIO configuration for development
+minio:
+  enabled: true
+  persistence:
+    size: 10Gi  # Smaller for dev
+
+# Development PostgreSQL setup - two separate databases
+postgresql:
+  enabled: false  # We'll use external setup to match dev compose
+
+# External PostgreSQL for Illinois Chat
+externalPostgresIllinoisChat:
+  enabled: true
+  image: postgres:latest
+  port: 5432
+  database: postgres
+  username: postgres
+  password: password
+
+# External PostgreSQL for Keycloak
+externalPostgresKeycloak:
+  enabled: true
+  image: postgres:latest
+  port: 5433
+  database: postgres
+  username: postgres
+  password: password
+
+# Keycloak configuration for development
+keycloak:
+  enabled: true
+  dbConfig:
+    host: "postgres-keycloak"
+    port: "5433"
+    database: "postgres"
+    username: "postgres"
+    password: "password"
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    password: "password"
+
+# RabbitMQ configuration
+rabbitmq:
+  enabled: true
+  auth:
+    username: "guest"
+    password: "guest"
+
+# Crawlee is optional in dev
+crawlee:
+  enabled: false
+
+# Ingest worker is optional in dev
+ingestWorker:
+  enabled: false
+
+# Development secrets
+secrets:
+  create: true
+  postgresql:
+    password: "password"
+  redis:
+    password: "password"
+  rabbitmq:
+    password: "guest"
+  keycloak:
+    adminPassword: "admin"
+  minio:
+    rootUser: "minioadmin"
+    rootPassword: "minioadmin"
+  api:
+    openaiKey: ""  # Set externally
+    qdrantKey: "your-strong-key-here"
+
+# Resource limits for development (lower than prod)
+backend:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+worker:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Enable autoscaling in dev for testing
+autoscaling:
+  enabled: false
