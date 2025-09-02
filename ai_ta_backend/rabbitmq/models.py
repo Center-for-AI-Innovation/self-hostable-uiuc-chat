@@ -276,7 +276,6 @@ class Conversations(Base):
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     project_name = Column(Text)
-    messages = Column(JSON)
     folder_id = Column(UUID(as_uuid=True))
 
     __table_args__ = (
