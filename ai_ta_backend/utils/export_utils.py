@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 
 import xlsxwriter
 from datetime import datetime
+from collections import defaultdict
 
 
 def _initialize_base_name(course_name):
@@ -47,6 +48,25 @@ def _initialize_excel(excel_file_path):
   return workbook, worksheet, wrap_format
 
 
+def _group_conversations(rows):
+    grouped = {}
+    for row in rows:
+        conv = row["Conversations"]
+        msg = row.get("Messages")
+
+        conv_id = str(conv["id"])  # UUID → string
+        if conv_id not in grouped:
+            grouped[conv_id] = {
+                "Conversations": conv,
+                "Messages": []
+            }
+        if msg:
+            grouped[conv_id]["Messages"].append(msg)
+
+    # return as a list instead of dict keyed by id
+    return list(grouped.values())
+
+
 def _process_conversation(s3, convo, course_name, file_paths, worksheet, row_num, error_log, wrap_format):
   try:
     convo_id = convo['convo_id']
@@ -76,12 +96,11 @@ def _process_conversation(s3, convo, course_name, file_paths, worksheet, row_num
 def _process_conversation_for_user_convo_export(s3, convo, project_name, markdown_dir, media_dir, error_log):
   try:
     c = convo["Conversations"]
-    m = convo["Messages"]
+    messages = convo["Messages"]
     convo_id = str(c.get("id")) if c else None
     name = c.get("name")
     user_email = c.get("user_email")
     timestamp = c.get("created_at")
-    messages = [m] if m is not None else []
 
     _create_markdown_for_user_convo_export(
       s3, convo_id, messages, markdown_dir, media_dir, user_email, error_log, timestamp, name, project_name
@@ -130,11 +149,7 @@ def _create_markdown_for_user_convo_export(s3, convo_id, messages, markdown_dir,
       md_file.write(f"Date Time: {timestamp}\n\n")
 
       for message in messages:
-        text = message['content_text']
-        img_urls = message['content_image_url']
         img_desc = message['image_description']
-        print(f"text: {text}")
-        print(f"img_urls: {img_urls}")
         role = "User" if message['role'] == 'user' else "Assistant" if message['role'] == 'assistant' else "System"
 
         # content = _process_message_content(s3, message['content'], convo_id, media_dir, error_log)

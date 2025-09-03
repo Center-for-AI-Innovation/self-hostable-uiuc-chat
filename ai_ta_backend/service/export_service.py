@@ -17,14 +17,14 @@ from ai_ta_backend.executors.process_pool_executor import ProcessPoolExecutorAda
 from ai_ta_backend.service.sentry_service import SentryService
 from ai_ta_backend.utils.email.send_transactional_email import send_email
 from ai_ta_backend.utils.export_utils import (
-    _cleanup,
-    _create_zip,
-    _create_zip_for_user_convo_export,
-    _initialize_base_name,
-    _initialize_excel,
-    _initialize_file_paths,
-    _process_conversation,
-    _process_conversation_for_user_convo_export,
+  _cleanup,
+  _create_zip,
+  _create_zip_for_user_convo_export,
+  _initialize_base_name,
+  _initialize_excel,
+  _initialize_file_paths,
+  _process_conversation,
+  _process_conversation_for_user_convo_export, _group_conversations,
 )
 
 
@@ -372,7 +372,6 @@ class ExportService:
     try:
       # get all conversations for the user and project
       response = self.sql.getAllConversationsForUserAndProject(user_email, project_name)
-      print("response: ", response)
       count = response.get("count", 0)
       print(f"Received request to export: {count} conversations")
 
@@ -404,7 +403,8 @@ class ExportService:
             print("No data found in the response.")
             return {"response": "No data found for the given user and project."}
 
-          for convo in response.get("data"):
+          conversation_and_messages = _group_conversations(response["data"])
+          for convo in conversation_and_messages:
             _process_conversation_for_user_convo_export(self.s3, convo, project_name, markdown_dir, media_dir,
                                                         error_log)
 
@@ -441,23 +441,20 @@ def export_convo_history_user_bg(conversations, count, user_email, s3_path, proj
     os.makedirs(media_dir, exist_ok=True)
 
     try:
-      # row_num = 1
       curr_count = 0
       error_log = []
       while curr_count < count:
         try:
           response = sql.getAllConversationsForUserAndProject(user_email, project_name, curr_count)
           curr_count += len(response["data"])
-
-          for convo in response["data"]:
+          conversation_and_messages = _group_conversations(response["data"])
+          for convo in conversation_and_messages:
             _process_conversation_for_user_convo_export(s3, convo, project_name, markdown_dir, media_dir, error_log)
-            # row_num += len(convo)
 
         except Exception as e:
           error_log.append(f"Error fetching conversations: {str(e)}")
           print(f"Error fetching conversations: {str(e)}")
           return {"response": "Error fetching conversations!"}
-          break
 
       # create zip file
       zip_file_path = _create_zip_for_user_convo_export(markdown_dir, media_dir, error_log)
