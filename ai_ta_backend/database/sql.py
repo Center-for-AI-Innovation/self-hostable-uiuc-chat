@@ -22,6 +22,23 @@ Base = declarative_base()
 T = TypeVar('T', bound=DeclarativeMeta)
 
 
+def orm_to_dict(obj):
+    """Convert a SQLAlchemy ORM instance to a plain dict of its columns."""
+    if obj is None:
+        return None
+    if hasattr(obj, "__table__"):  # it's a SQLAlchemy model instance
+        return {col.name: getattr(obj, col.name) for col in obj.__table__.columns}
+    return obj
+
+def flatten_row(row: dict):
+    """Flatten a single mapping row (e.g. {'Conversations': <Convo>, 'Messages': <Msg>})."""
+    return {key: orm_to_dict(value) for key, value in row.items()}
+
+def flatten_rows(rows: list[dict]):
+    """Flatten a list of mapping rows into JSON-serializable dicts."""
+    return [flatten_row(r) for r in rows]
+
+
 class DatabaseResponse(Generic[T]):
     def __init__(self, data: List[T], count: int):
         self.data = data
@@ -29,10 +46,9 @@ class DatabaseResponse(Generic[T]):
 
     def to_dict(self):
         return {
-            "data": self.data,  # Convert each row to dict
+            "data": flatten_rows(self.data),
             "count": self.count
         }
-
 
 class ProjectStats(TypedDict):
     total_messages: int

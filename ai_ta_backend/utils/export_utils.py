@@ -4,6 +4,7 @@ import zipfile
 from urllib.parse import urlparse
 
 import xlsxwriter
+from datetime import datetime
 
 
 def _initialize_base_name(course_name):
@@ -74,20 +75,21 @@ def _process_conversation(s3, convo, course_name, file_paths, worksheet, row_num
 
 def _process_conversation_for_user_convo_export(s3, convo, project_name, markdown_dir, media_dir, error_log):
   try:
-    print("processing convo: ", convo)
-    convo_id = convo['id']
-    name = convo['name']
-    user_email = convo['user_email']
-    timestamp = convo['created_at']
-    messages = convo['messages']
+    c = convo["Conversations"]
+    m = convo["Messages"]
+    convo_id = str(c.get("id")) if c else None
+    name = c.get("name")
+    user_email = c.get("user_email")
+    timestamp = c.get("created_at")
+    messages = [m] if m is not None else []
 
-    _create_markdown_for_user_convo_export(s3, convo_id, messages, markdown_dir, media_dir, user_email, error_log,
-                                           timestamp, name, project_name)
+    _create_markdown_for_user_convo_export(
+      s3, convo_id, messages, markdown_dir, media_dir, user_email, error_log, timestamp, name, project_name
+    )
 
-    print(f"Processed conversation ID {convo_id}")
   except Exception as e:
-    print(f"Error processing conversation ID {convo.id}: {str(e)}")
-    error_log.append(f"Error processing conversation ID {convo.id}: {str(e)}")
+    error_log.append(f"Error processing conversation {convo}: {e}")
+    raise
 
 
 def _create_markdown(s3, convo_id, messages, markdown_dir, media_dir, user_email, error_log, timestamp, convo_name):
@@ -116,6 +118,8 @@ def _create_markdown_for_user_convo_export(s3, convo_id, messages, markdown_dir,
                                            timestamp, name, project_name):
   try:
     print(f"Creating markdown file for conversation ID {convo_id}")
+    if isinstance(timestamp, datetime):
+      return timestamp.isoformat()
     markdown_filename = f"{name}-{timestamp.split('T')}.md"
     markdown_file_path = os.path.join(markdown_dir, markdown_filename)
 

@@ -408,13 +408,6 @@ class ExportService:
             _process_conversation_for_user_convo_export(self.s3, convo, project_name, markdown_dir, media_dir,
                                                         error_log)
 
-            # row_num += 1
-
-            # except Exception as e:
-            #   error_log.append(f"Error fetching conversations: {str(e)}")
-            #   print(f"Error fetching conversations: {str(e)}")
-            #   return {"response": "Error fetching conversations!"}
-            #   break
           # Create zip file
           zip_file_path = _create_zip_for_user_convo_export(markdown_dir, media_dir, error_log)
 
