@@ -1,13 +1,15 @@
 import logging
 import os
 from contextlib import contextmanager
-from typing import Dict, List, TypedDict, Union, TypeVar, Generic
+from typing import List, TypedDict, TypeVar, Generic
 
-from sqlalchemy import create_engine, NullPool, func, insert, delete, select, desc
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy import create_engine, NullPool, func, insert, delete, select, desc, literal, ARRAY
+from sqlalchemy.orm import sessionmaker, Session, aliased
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy.sql import text
+from sqlalchemy.dialects.postgresql import JSONB
+
 from ..utils.datetime_utils import to_utc_datetime
 
 try:
@@ -507,22 +509,79 @@ class SQLDatabase:
             return response
 
 
+    # def getAllConversationsForUserAndProject(self, user_email: str, project_name: str, curr_count: int = 0):
+    #     query = (
+    #         select(models.Conversations, models.Messages)
+    #         .join(models.Messages, models.Messages.conversation_id == models.Conversations.id)
+    #         .where(models.Conversations.user_email == user_email)
+    #         .where(models.Conversations.project_name == project_name)
+    #         .order_by(models.Conversations.updated_at.desc())
+    #         .limit(500)
+    #         .offset(curr_count)
+    #     )
+    #     with self.get_session() as session:
+    #         result = session.execute(query).mappings().all()
+    #         response = DatabaseResponse(data=result, count=len(result)).to_dict()
+    #
+    #     return response
+
+
     def getAllConversationsForUserAndProject(self, user_email: str, project_name: str, curr_count: int = 0):
-        query = (
-            select(models.Conversations, models.Messages)
-            .join(models.Messages, models.Messages.conversation_id == models.Conversations.id)
-            .where(models.Conversations.user_email == user_email)
-            .where(models.Conversations.project_name == project_name)
+        C, M = models.Conversations, models.Messages
+        conv_page = (
+            select(models.Conversations)
+            .where(C.user_email == user_email, C.project_name == project_name)
             .order_by(models.Conversations.updated_at.desc())
             .limit(500)
             .offset(curr_count)
+            .subquery()
         )
+        CP = aliased(C, conv_page)  # alias to refer to columns
+
+        msg_obj = func.jsonb_build_object(
+            'id', M.id,
+            'conversation_id', M.conversation_id,
+            'role', M.role,
+            'created_at', M.created_at,
+            'updated_at', M.updated_at,
+            'contexts', M.contexts,
+            'tools', M.tools,
+            'latest_system_message', M.latest_system_message,
+            'final_prompt_engineered_message', M.final_prompt_engineered_message,
+            'response_time_sec', M.response_time_sec,
+            'content_text', M.content_text,
+            'content_image_url', M.content_image_url,
+            'image_description', M.image_description,
+        )
+
+        messages_agg = func.coalesce(
+            func.jsonb_agg(msg_obj.op("ORDER BY")(M.created_at)).filter(M.id.isnot(None)),
+            func.cast('[]', JSONB)
+        ).label("messages")
+
+        stmt = (
+            select(
+                CP.id.label("id"),
+                CP.name.label("name"),
+                CP.model, CP.prompt, CP.temperature,
+                CP.user_email, CP.project_name,
+                CP.created_at, CP.updated_at, CP.folder_id,
+                messages_agg
+            )
+            .select_from(conv_page)
+            .join(M, M.conversation_id == CP.id, isouter=True)
+            .group_by(
+                CP.id, CP.name, CP.model, CP.prompt, CP.temperature,
+                CP.user_email, CP.project_name, CP.created_at, CP.updated_at, CP.folder_id
+            )
+            .order_by(desc(CP.updated_at))
+        )
+
         with self.get_session() as session:
-            result = session.execute(query).mappings().all()
+            result = session.execute(stmt).mappings().all()
             response = DatabaseResponse(data=result, count=len(result)).to_dict()
 
         return response
-
 
     def getPreAssignedAPIKeys(self, email: str):
         query = (

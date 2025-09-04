@@ -20,11 +20,10 @@ from ai_ta_backend.utils.export_utils import (
   _cleanup,
   _create_zip,
   _create_zip_for_user_convo_export,
-  _initialize_base_name,
   _initialize_excel,
   _initialize_file_paths,
   _process_conversation,
-  _process_conversation_for_user_convo_export, _group_conversations,
+  _process_conversation_for_user_convo_export,
 )
 
 
@@ -403,8 +402,7 @@ class ExportService:
             print("No data found in the response.")
             return {"response": "No data found for the given user and project."}
 
-          conversation_and_messages = _group_conversations(response["data"])
-          for convo in conversation_and_messages:
+          for convo in response['data']:
             _process_conversation_for_user_convo_export(self.s3, convo, project_name, markdown_dir, media_dir,
                                                         error_log)
 
@@ -447,8 +445,7 @@ def export_convo_history_user_bg(conversations, count, user_email, s3_path, proj
         try:
           response = sql.getAllConversationsForUserAndProject(user_email, project_name, curr_count)
           curr_count += len(response["data"])
-          conversation_and_messages = _group_conversations(response["data"])
-          for convo in conversation_and_messages:
+          for convo in response["data"]:
             _process_conversation_for_user_convo_export(s3, convo, project_name, markdown_dir, media_dir, error_log)
 
         except Exception as e:

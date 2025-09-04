@@ -48,25 +48,6 @@ def _initialize_excel(excel_file_path):
   return workbook, worksheet, wrap_format
 
 
-def _group_conversations(rows):
-    grouped = {}
-    for row in rows:
-        conv = row["Conversations"]
-        msg = row.get("Messages")
-
-        conv_id = str(conv["id"])  # UUID → string
-        if conv_id not in grouped:
-            grouped[conv_id] = {
-                "Conversations": conv,
-                "Messages": []
-            }
-        if msg:
-            grouped[conv_id]["Messages"].append(msg)
-
-    # return as a list instead of dict keyed by id
-    return list(grouped.values())
-
-
 def _process_conversation(s3, convo, course_name, file_paths, worksheet, row_num, error_log, wrap_format):
   try:
     convo_id = convo['convo_id']
@@ -95,12 +76,11 @@ def _process_conversation(s3, convo, course_name, file_paths, worksheet, row_num
 
 def _process_conversation_for_user_convo_export(s3, convo, project_name, markdown_dir, media_dir, error_log):
   try:
-    c = convo["Conversations"]
-    messages = convo["Messages"]
-    convo_id = str(c.get("id")) if c else None
-    name = c.get("name")
-    user_email = c.get("user_email")
-    timestamp = c.get("created_at")
+    messages = convo["messages"]
+    convo_id = str(convo.get("id")) if convo else None
+    name = convo.get("name")
+    user_email = convo.get("user_email")
+    timestamp = convo.get("created_at")
 
     _create_markdown_for_user_convo_export(
       s3, convo_id, messages, markdown_dir, media_dir, user_email, error_log, timestamp, name, project_name

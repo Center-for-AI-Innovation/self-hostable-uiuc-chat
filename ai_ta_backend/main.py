@@ -419,7 +419,10 @@ def export_convo_history_user(service: ExportService):
     response = jsonify({'response': 'Error fetching conversations'})
     response.status_code = 500
     response.headers.add('Access-Control-Allow-Origin', '*')
-
+  elif export_status['response'] == "Error creating markdown directory!":
+    response = jsonify({'response': 'Error creating markdown directory!'})
+    response.status_code = 500
+    response.headers.add('Access-Control-Allow-Origin', '*')
   else:
     print("export_status['response'][2]: ", export_status['response'][2])
     print("export_status['response'][1]: ", export_status['response'][1])
