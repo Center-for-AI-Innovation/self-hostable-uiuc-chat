@@ -509,23 +509,6 @@ class SQLDatabase:
             return response
 
 
-    # def getAllConversationsForUserAndProject(self, user_email: str, project_name: str, curr_count: int = 0):
-    #     query = (
-    #         select(models.Conversations, models.Messages)
-    #         .join(models.Messages, models.Messages.conversation_id == models.Conversations.id)
-    #         .where(models.Conversations.user_email == user_email)
-    #         .where(models.Conversations.project_name == project_name)
-    #         .order_by(models.Conversations.updated_at.desc())
-    #         .limit(500)
-    #         .offset(curr_count)
-    #     )
-    #     with self.get_session() as session:
-    #         result = session.execute(query).mappings().all()
-    #         response = DatabaseResponse(data=result, count=len(result)).to_dict()
-    #
-    #     return response
-
-
     def getAllConversationsForUserAndProject(self, user_email: str, project_name: str, curr_count: int = 0):
         C, M = models.Conversations, models.Messages
         conv_page = (
@@ -559,7 +542,7 @@ class SQLDatabase:
             func.cast('[]', JSONB)
         ).label("messages")
 
-        stmt = (
+        query = (
             select(
                 CP.id.label("id"),
                 CP.name.label("name"),
@@ -578,7 +561,7 @@ class SQLDatabase:
         )
 
         with self.get_session() as session:
-            result = session.execute(stmt).mappings().all()
+            result = session.execute(query).mappings().all()
             response = DatabaseResponse(data=result, count=len(result)).to_dict()
 
         return response
