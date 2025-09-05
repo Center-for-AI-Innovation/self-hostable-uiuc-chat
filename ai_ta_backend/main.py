@@ -716,28 +716,31 @@ def ingest() -> Response:
 
   # TODO: Authentication?
 
-  result = active_queue.addJobToIngestQueue(data)
-  logging.info("Result from addJobToIngestQueue:  %s", result)
+  job_id = active_queue.addJobToIngestQueue(data)
+  logging.info("Result from addJobToIngestQueue:  %s", job_id)
 
   response = jsonify(
     {
       "outcome": f'Queued Ingest task',
-      "task_id": result
+      "task_id": job_id
     }
   )
   response.headers.add('Access-Control-Allow-Origin', '*')
   return response
 
 @app.route('/canvas_ingest', methods=['POST'])
-def canvas_ingest(request) -> Response:
-  course_name: request.data.get('course_name', '')
-  canvas_url: request.data.get('canvas_url', None)
-  files: bool = request.data.get('files', True)
-  pages: bool = request.data.get('pages', True)
-  modules: bool = request.data.get('modules', True)
-  syllabus: bool = request.data.get('syllabus', True)
-  assignments: bool = request.data.get('assignments', True)
-  discussions: bool = request.data.get('discussions', True)
+def canvas_ingest() -> Response:
+  data = request.get_json()
+  logging.info("Canvas ingest data: %s", data)
+
+  course_name: str = data.get('course_name', '')
+  canvas_url: str = data.get('canvas_url', None)
+  files: bool = data.get('files', True)
+  pages: bool = data.get('pages', True)
+  modules: bool = data.get('modules', True)
+  syllabus: bool = data.get('syllabus', True)
+  assignments: bool = data.get('assignments', True)
+  discussions: bool = data.get('discussions', True)
   options = {
     'files': str(files).lower() == 'true',
     'pages': str(pages).lower() == 'true',
@@ -751,30 +754,18 @@ def canvas_ingest(request) -> Response:
   print("Canvas URL: ", canvas_url)
   print("Download Options: ", options)
 
-  try:
-    # canvas.illinois.edu/courses/COURSE_CODE
-    match = re.search(r'canvas\.illinois\.edu/courses/([^/]+)', canvas_url)
-    canvas_course_id = match.group(1) if match else None
-
-    ingester = IngestCanvas()
-    ingester.ingest_course_content(canvas_course_id=canvas_course_id,
+  # canvas.illinois.edu/courses/COURSE_CODE
+  match = re.search(r'canvas\.illinois\.edu/courses/([^/]+)', canvas_url)
+  canvas_course_id = match.group(1) if match else None
+  ingester = IngestCanvas()
+  job_ids = ingester.ingest_course_content(canvas_course_id=canvas_course_id,
                                    course_name=course_name,
                                    content_ingest_dict=options)
-  except:
-    print("Error ingesting course content from Canvas.")
-    abort(500, description="Error ingesting course content from Canvas.")
-
-  active_queue = Queue()
-  data = request.get_json()
-  logging.info("Canvas ingest data: %s", data)
-
-  result = active_queue.addJobToIngestQueue(data, queue_name='uiuc-chat-canvas')
-  logging.info("Result from addJobToIngestQueue:  %s", result)
 
   response = jsonify(
     {
       "outcome": f'Queued Canvas Ingest task',
-      "ingest_task_id": result
+      "ingest_task_ids": job_ids
     }
   )
   response.headers.add('Access-Control-Allow-Origin', '*')
