@@ -36,6 +36,14 @@ spec:
           env:
             - name: INGEST_URL
               value: {{ .Values.crawlee.env.INGEST_URL | quote }}
+            {{- if .Values.crawlee.env.SUPABASE_URL }}
+            - name: SUPABASE_URL
+              value: {{ .Values.crawlee.env.SUPABASE_URL | quote }}
+            {{- end }}
+            {{- if .Values.crawlee.env.SUPABASE_SECRET }}
+            - name: SUPABASE_SECRET
+              value: {{ .Values.crawlee.env.SUPABASE_SECRET | quote }}
+            {{- end }}
             - name: REDIS_HOST
               value: {{ include "uiuc-chat.redis.host" . }}
             - name: REDIS_PORT

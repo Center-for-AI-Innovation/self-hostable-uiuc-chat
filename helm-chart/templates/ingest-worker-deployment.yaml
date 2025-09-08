@@ -40,6 +40,19 @@ spec:
                 secretKeyRef:
                   name: {{ include "uiuc-chat.fullname" . }}-secrets
                   key: redis-password
+            - name: POSTGRES_HOST
+              value: {{ include "uiuc-chat.postgresql.host" . }}
+            - name: POSTGRES_PORT
+              value: {{ include "uiuc-chat.postgresql.port" . | quote }}
+            - name: POSTGRES_DB
+              value: {{ include "uiuc-chat.postgresql.database" . }}
+            - name: POSTGRES_USER
+              value: {{ include "uiuc-chat.postgresql.username" . }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uiuc-chat.fullname" . }}-secrets
+                  key: postgres-password
             - name: QDRANT_URL
               value: "http://{{ include "uiuc-chat.fullname" . }}-qdrant:6333"
             {{- if .Values.secrets.api.qdrantKey }}
