@@ -13,6 +13,7 @@ class AWSStorage:
         's3',
         # aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
         # aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+        # endpoint_url=os.environ.get('MINIO_URL'),  # for Self hosted MinIO bucket
     )
 
   def upload_file(self, file_path: str, bucket_name: str, object_name: str):
