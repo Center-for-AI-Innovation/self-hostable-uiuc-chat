@@ -8,8 +8,6 @@ environment: "prod"
 frontend:
   enabled: true
   replicaCount: 2
-  image:
-    tag: "latest"
   service:
     type: ClusterIP
   ingress:
@@ -18,7 +16,6 @@ frontend:
     annotations:
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
       nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     hosts:
       - host: chat.yourdomain.com
         paths:
@@ -41,7 +38,7 @@ backend:
       cpu: 1000m
       memory: 1Gi
 
-# Worker service configuration
+# Worker service
 worker:
   enabled: true
   replicaCount: 3
@@ -67,38 +64,9 @@ crawlee:
 ollama:
   enabled: false
 
-# Qdrant configuration for production
-qdrant:
-  enabled: true
-  replicaCount: 1
-  image:
-    tag: "v1.12.6"
-  persistence:
-    enabled: true
-    size: 100Gi
-  resources:
-    limits:
-      cpu: 4000m
-      memory: 8Gi
-    requests:
-      cpu: 2000m
-      memory: 4Gi
+# === DEPENDENCY CHART CONFIGURATIONS FOR PROD ===
 
-# MinIO configuration for production
-minio:
-  enabled: true
-  persistence:
-    enabled: true
-    size: 500Gi
-  resources:
-    limits:
-      cpu: 2000m
-      memory: 4Gi
-    requests:
-      cpu: 1000m
-      memory: 2Gi
-
-# PostgreSQL for production (using Bitnami chart)
+# PostgreSQL for production
 postgresql:
   enabled: true
   auth:
@@ -153,35 +121,45 @@ rabbitmq:
       cpu: 500m
       memory: 1Gi
 
-# Keycloak configuration for production
+# MinIO for production
+minio:
+  enabled: true
+  auth:
+    rootUser: "CHANGE-ME-IN-PRODUCTION"
+    rootPassword: "CHANGE-ME-IN-PRODUCTION"
+  persistence:
+    enabled: true
+    size: 500Gi
+
+# Keycloak for production
 keycloak:
   enabled: true
-  replicaCount: 2
-  resources:
-    limits:
-      cpu: 2000m
-      memory: 4Gi
-    requests:
-      cpu: 1000m
-      memory: 2Gi
+  auth:
+    adminUser: "admin"
+    adminPassword: "CHANGE-ME-IN-PRODUCTION"
+  postgresql:
+    enabled: false  # Use shared PostgreSQL
+  externalDatabase:
+    host: "uiuc-chat-postgresql"
+    port: 5432
+    database: "postgres"
+    user: "postgres"
+    password: "CHANGE-ME-IN-PRODUCTION"
 
-# Production secrets - these should be provided via external secret management
+# Production secrets - use external secret management
 secrets:
   create: false  # Use external secret management in production
-  externalSecrets:
-    enabled: true
 
 # Network policies for security
 networkPolicies:
   enabled: true
 
-# Pod security context
+# Security contexts
 podSecurityContext:
   fsGroup: 1000
   runAsNonRoot: true
   runAsUser: 1000
 
-# Security context
 securityContext:
   allowPrivilegeEscalation: false
   capabilities:
@@ -194,13 +172,6 @@ securityContext:
 # Node selector for production workloads
 nodeSelector:
   node-type: "app"
-
-# Tolerations for production
-tolerations:
-  - key: "app"
-    operator: "Equal"
-    value: "true"
-    effect: "NoSchedule"
 
 # Affinity rules for high availability
 affinity:

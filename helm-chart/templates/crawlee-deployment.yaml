@@ -1,0 +1,76 @@
+{{- if .Values.crawlee.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "uiuc-chat.fullname" . }}-crawlee
+  labels:
+    {{- include "uiuc-chat.labels" . | nindent 4 }}
+    app.kubernetes.io/component: crawlee
+spec:
+  replicas: {{ .Values.crawlee.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "uiuc-chat.crawlee.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "uiuc-chat.crawlee.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "uiuc-chat.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: crawlee
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "uiuc-chat.image" .Values.crawlee.image }}
+          imagePullPolicy: {{ .Values.crawlee.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: INGEST_URL
+              value: {{ .Values.crawlee.env.INGEST_URL | quote }}
+            - name: REDIS_HOST
+              value: {{ include "uiuc-chat.redis.host" . }}
+            - name: REDIS_PORT
+              value: {{ include "uiuc-chat.redis.port" . | quote }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uiuc-chat.fullname" . }}-secrets
+                  key: redis-password
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.crawlee.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+
+

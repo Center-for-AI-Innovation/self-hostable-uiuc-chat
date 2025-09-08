@@ -4,28 +4,20 @@
 # Environment identifier
 environment: "dev"
 
-# Frontend configuration
+# Frontend configuration - typically run locally in dev
 frontend:
-  enabled: false  # Disabled in dev (run locally for hot reload)
+  enabled: false  # Run locally for hot reload
 
-# Backend configuration
+# Backend configuration - typically run locally in dev  
 backend:
-  enabled: false  # Disabled in dev (run locally for debugging)
+  enabled: false  # Run locally for debugging
 
-# Worker service configuration
+# Worker service - can run in cluster
 worker:
   enabled: true
   env:
-    RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
-    POSTGRES_HOST: "postgresql"
-    POSTGRES_PORT: "5432"
-    POSTGRES_DB: "postgres"
-    POSTGRES_USER: "postgres"
-    QDRANT_URL: "http://qdrant:6333"
-    QDRANT_COLLECTION_NAME: "illinois_chat"
-    MINIO_URL: "http://minio:9000"
-    S3_BUCKET_NAME: "uiuc-chat"
-    OLLAMA_BASE_URL: "http://ollama:11434"
+    QDRANT_COLLECTION_NAME: "illinois_chat_dev"
+    S3_BUCKET_NAME: "uiuc-chat-dev"
 
 # Enable Ollama for local LLM development
 ollama:
@@ -38,110 +30,81 @@ ollama:
       cpu: 2000m
       memory: 8Gi
 
-# Qdrant configuration for development
-qdrant:
-  enabled: true
-  image:
-    tag: "v1.9.0"  # Use dev compose version
-  persistence:
-    size: 5Gi  # Smaller for dev
+# Crawlee and ingest worker - optional in dev
+crawlee:
+  enabled: false
 
-# MinIO configuration for development
-minio:
-  enabled: true
-  persistence:
-    size: 10Gi  # Smaller for dev
+ingestWorker:
+  enabled: false
 
-# Development PostgreSQL setup - two separate databases
+# === DEPENDENCY CHART CONFIGURATIONS FOR DEV ===
+
+# PostgreSQL (single instance in dev)
 postgresql:
-  enabled: false  # We'll use external setup to match dev compose
-
-# External PostgreSQL for Illinois Chat
-externalPostgresIllinoisChat:
   enabled: true
-  image: postgres:latest
-  port: 5432
-  database: postgres
-  username: postgres
-  password: password
-
-# External PostgreSQL for Keycloak
-externalPostgresKeycloak:
-  enabled: true
-  image: postgres:latest
-  port: 5433
-  database: postgres
-  username: postgres
-  password: password
-
-# Keycloak configuration for development
-keycloak:
-  enabled: true
-  dbConfig:
-    host: "postgres-keycloak"
-    port: "5433"
-    database: "postgres"
+  auth:
+    postgresPassword: "password"
     username: "postgres"
     password: "password"
+    database: "postgres"
+  primary:
+    persistence:
+      enabled: true
+      size: 5Gi  # Smaller for dev
 
-# Redis configuration
+# Redis
 redis:
   enabled: true
   auth:
+    enabled: true
     password: "password"
+  master:
+    persistence:
+      enabled: true
+      size: 2Gi  # Smaller for dev
 
-# RabbitMQ configuration
+# RabbitMQ
 rabbitmq:
   enabled: true
   auth:
     username: "guest"
     password: "guest"
+  persistence:
+    enabled: true
+    size: 2Gi  # Smaller for dev
 
-# Crawlee is optional in dev
-crawlee:
-  enabled: false
+# MinIO
+minio:
+  enabled: true
+  auth:
+    rootUser: "minioadmin"
+    rootPassword: "minioadmin"
+  persistence:
+    enabled: true
+    size: 10Gi  # Smaller for dev
 
-# Ingest worker is optional in dev
-ingestWorker:
-  enabled: false
+# Keycloak - using shared PostgreSQL
+keycloak:
+  enabled: true
+  auth:
+    adminUser: "admin"
+    adminPassword: "admin"
+  postgresql:
+    enabled: false  # Use shared PostgreSQL
+  externalDatabase:
+    host: "uiuc-chat-postgresql"
+    port: 5432
+    database: "postgres"
+    user: "postgres"
+    password: "password"
 
 # Development secrets
 secrets:
   create: true
-  postgresql:
-    password: "password"
-  redis:
-    password: "password"
-  rabbitmq:
-    password: "guest"
-  keycloak:
-    adminPassword: "admin"
-  minio:
-    rootUser: "minioadmin"
-    rootPassword: "minioadmin"
   api:
-    openaiKey: ""  # Set externally
-    qdrantKey: "your-strong-key-here"
+    openaiKey: ""  # Set externally or leave empty for dev
+    qdrantKey: "dev-key"
 
-# Resource limits for development (lower than prod)
-backend:
-  resources:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 250m
-      memory: 256Mi
-
-worker:
-  resources:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 250m
-      memory: 256Mi
-
-# Enable autoscaling in dev for testing
+# Lower resource limits for development
 autoscaling:
   enabled: false

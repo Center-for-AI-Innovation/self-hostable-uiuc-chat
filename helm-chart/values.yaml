@@ -32,7 +32,7 @@ frontend:
             pathType: Prefix
     tls: []
   env:
-    NEXT_PUBLIC_KEYCLOAK_URL: "http://keycloak:8080"
+    NEXT_PUBLIC_KEYCLOAK_URL: "http://uiuc-chat-keycloak:8080"
     NEXT_PUBLIC_KEYCLOAK_REALM: "uiuc-chat"
     NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: "uiuc-chat-client"
   resources:
@@ -54,8 +54,6 @@ backend:
   service:
     type: ClusterIP
     port: 8001
-  env:
-    FLASK_ENV: "production"
   resources:
     limits:
       cpu: 1000m
@@ -73,14 +71,7 @@ worker:
     pullPolicy: IfNotPresent
   replicaCount: 1
   env:
-    RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
-    POSTGRES_HOST: "postgresql"
-    POSTGRES_PORT: "5432"
-    POSTGRES_DB: "postgres"
-    POSTGRES_USER: "postgres"
-    QDRANT_URL: "http://qdrant:6333"
     QDRANT_COLLECTION_NAME: "illinois_chat"
-    MINIO_URL: "http://minio:9000"
     S3_BUCKET_NAME: "uiuc-chat"
   resources:
     limits:
@@ -117,8 +108,6 @@ crawlee:
   service:
     type: ClusterIP
     port: 3000
-  env:
-    INGEST_URL: "http://backend:8001/ingest"
   resources:
     limits:
       cpu: 500m
@@ -127,91 +116,7 @@ crawlee:
       cpu: 250m
       memory: 256Mi
 
-# Qdrant vector database configuration
-qdrant:
-  enabled: true
-  image:
-    repository: qdrant/qdrant
-    tag: "v1.12.6"
-    pullPolicy: IfNotPresent
-  replicaCount: 1
-  service:
-    type: ClusterIP
-    port: 6333
-    grpcPort: 6334
-  persistence:
-    enabled: true
-    size: 10Gi
-    accessMode: ReadWriteOnce
-  env:
-    QDRANT_API_KEY: ""
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 2Gi
-    requests:
-      cpu: 500m
-      memory: 1Gi
-
-# MinIO object storage configuration
-minio:
-  enabled: true
-  image:
-    repository: minio/minio
-    tag: "RELEASE.2024-06-13T22-53-53Z"
-    pullPolicy: IfNotPresent
-  replicaCount: 1
-  service:
-    type: ClusterIP
-    apiPort: 9000
-    consolePort: 9001
-  persistence:
-    enabled: true
-    size: 20Gi
-    accessMode: ReadWriteOnce
-  env:
-    MINIO_ROOT_USER: "minioadmin"
-    MINIO_ROOT_PASSWORD: "minioadmin"
-  resources:
-    limits:
-      cpu: 500m
-      memory: 1Gi
-    requests:
-      cpu: 250m
-      memory: 512Mi
-
-# Keycloak authentication configuration
-keycloak:
-  enabled: true
-  image:
-    repository: quay.io/keycloak/keycloak
-    tag: "26.1"
-    pullPolicy: IfNotPresent
-  replicaCount: 1
-  service:
-    type: ClusterIP
-    port: 8080
-  env:
-    KEYCLOAK_ADMIN: "admin"
-    KEYCLOAK_ADMIN_PASSWORD: "admin"
-    KC_METRICS_ENABLED: "true"
-    KC_HEALTH_ENABLED: "true"
-  dbConfig:
-    host: "postgresql"
-    port: "5432"
-    database: "postgres"
-    schema: "keycloak"
-    username: "postgres"
-    password: "password"
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 1Gi
-    requests:
-      cpu: 500m
-      memory: 512Mi
-
-# Ollama (for development environment)
+# Ollama (for development environment only)
 ollama:
   enabled: false  # Only enabled in dev
   image:
@@ -236,6 +141,8 @@ ollama:
       cpu: 1000m
       memory: 4Gi
 
+# === DEPENDENCY CHART CONFIGURATIONS ===
+
 # PostgreSQL configuration (using Bitnami chart)
 postgresql:
   enabled: true
@@ -248,13 +155,6 @@ postgresql:
     persistence:
       enabled: true
       size: 8Gi
-    resources:
-      limits:
-        cpu: 1000m
-        memory: 1Gi
-      requests:
-        cpu: 500m
-        memory: 512Mi
 
 # Redis configuration (using Bitnami chart)
 redis:
@@ -266,13 +166,6 @@ redis:
     persistence:
       enabled: true
       size: 8Gi
-    resources:
-      limits:
-        cpu: 500m
-        memory: 512Mi
-      requests:
-        cpu: 250m
-        memory: 256Mi
 
 # RabbitMQ configuration (using Bitnami chart)
 rabbitmq:
@@ -283,35 +176,41 @@ rabbitmq:
   persistence:
     enabled: true
     size: 8Gi
-  resources:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 250m
-      memory: 256Mi
 
-# Secrets configuration
-secrets:
-  # External secrets - these should be provided via external secret management
-  externalSecrets:
-    enabled: false
-  # Internal secrets - created by the chart
-  create: true
-  postgresql:
-    password: "password"
-  redis:
-    password: "password"
-  rabbitmq:
-    password: "guest"
-  keycloak:
-    adminPassword: "admin"
-  minio:
+# MinIO configuration (using MinIO chart)
+minio:
+  enabled: true
+  auth:
     rootUser: "minioadmin"
     rootPassword: "minioadmin"
+  persistence:
+    enabled: true
+    size: 20Gi
+
+# Keycloak configuration (using Codecentric chart)
+keycloak:
+  enabled: true
+  auth:
+    adminUser: "admin"
+    adminPassword: "admin"
+  postgresql:
+    enabled: false  # Use shared PostgreSQL instance
+  externalDatabase:
+    host: "uiuc-chat-postgresql"
+    port: 5432
+    database: "postgres"
+    user: "postgres"
+    password: "password"
+
+# === APPLICATION SECRETS ===
+secrets:
+  # Internal secrets - created by the chart
+  create: true
   api:
     openaiKey: ""
     qdrantKey: ""
+
+# === KUBERNETES CONFIGURATIONS ===
 
 # Network policies
 networkPolicies:

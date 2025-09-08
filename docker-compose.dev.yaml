@@ -211,6 +211,29 @@ services:
     entrypoint: ["/bin/sh", "/init-models.sh"]
     restart: "no"
 
+  qwen3-embedding:
+    image: registry.cn-beijing.aliyuncs.com/qwen/qwen3-embedding:8b-v1.0.0
+    container_name: qwen3-embedding-8b
+    restart: unless-stopped
+    networks:
+      - uiuc-chat-network
+    ports:
+      - "8009:8000"
+    expose:
+      - "8000"
+    environment:
+      - MODEL_NAME=Qwen3-Embedding-8B
+      - MAX_MODEL_LEN=32768
+      - GPU_MEMORY_UTILIZATION=0.90
+      - TENSOR_PARALLEL_SIZE=1
+    volumes:
+      - qwen3-embedding-data:/app/models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   worker:
     platform: linux/arm64/v8
     build:
@@ -225,6 +248,7 @@ services:
       - rabbitmq
       - postgres-illinois-chat
       - ollama
+      - qwen3-embedding
     environment:
       RABBITMQ_URL: 'amqp://guest:guest@rabbitmq:5672'
       POSTGRES_HOST: postgres-illinois-chat
@@ -241,6 +265,10 @@ services:
       AWS_SECRET_ACCESS_KEY: "minioadmin"
       S3_BUCKET_NAME: uiuc-chat
       OLLAMA_BASE_URL: "http://ollama:11434"
+      OLLAMA_SERVER_URL: "http://ollama:11434"
+      QWEN3_EMBEDDING_URL: "http://qwen3-embedding:8000"
+      QWEN3_EMBEDDING_DIMENSIONS: "4096"
+      EMBEDDING_MODEL_OVERRIDE: ${EMBEDDING_MODEL_OVERRIDE:-}
 
 # declare the network resource
 # this will allow you to use service discovery and address a container by its name from within the network
@@ -256,3 +284,4 @@ volumes:
   postgres-keycloak: {}
   rabbitmq: {}
   ollama-data: {}
+  qwen3-embedding-data: {}

@@ -1,0 +1,61 @@
+{{- if .Values.qdrant.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "uiuc-chat.fullname" . }}-qdrant-config
+  labels:
+    {{- include "uiuc-chat.labels" . | nindent 4 }}
+    app.kubernetes.io/component: qdrant
+data:
+  production.yaml: |
+    service:
+      http_port: 6333
+      grpc_port: 6334
+    storage:
+      storage_path: /qdrant/storage
+    telemetry_disabled: true
+    {{- if .Values.secrets.api.qdrantKey }}
+    service:
+      api_key: "{{ .Values.secrets.api.qdrantKey }}"
+    {{- end }}
+{{- end }}
+
+{{- if or .Values.frontend.enabled .Values.backend.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "uiuc-chat.fullname" . }}-app-config
+  labels:
+    {{- include "uiuc-chat.labels" . | nindent 4 }}
+data:
+  # Application configuration
+  ENVIRONMENT: {{ .Values.environment | quote }}
+  
+  # Service URLs
+  POSTGRES_HOST: {{ include "uiuc-chat.postgresql.host" . | quote }}
+  POSTGRES_PORT: {{ include "uiuc-chat.postgresql.port" . | quote }}
+  POSTGRES_DB: {{ include "uiuc-chat.postgresql.database" . | quote }}
+  POSTGRES_USER: {{ include "uiuc-chat.postgresql.username" . | quote }}
+  
+  REDIS_HOST: {{ include "uiuc-chat.redis.host" . | quote }}
+  REDIS_PORT: {{ include "uiuc-chat.redis.port" . | quote }}
+  
+  RABBITMQ_HOST: {{ include "uiuc-chat.rabbitmq.host" . | quote }}
+  RABBITMQ_PORT: {{ include "uiuc-chat.rabbitmq.port" . | quote }}
+  
+  QDRANT_URL: "http://{{ include "uiuc-chat.fullname" . }}-qdrant:6333"
+  MINIO_URL: "http://{{ include "uiuc-chat.fullname" . }}-minio:9000"
+  KEYCLOAK_URL: "http://{{ include "uiuc-chat.fullname" . }}-keycloak:8080"
+  
+  {{- if and .Values.ollama.enabled (eq .Values.environment "dev") }}
+  OLLAMA_BASE_URL: "http://{{ include "uiuc-chat.fullname" . }}-ollama:11434"
+  {{- end }}
+  
+  # Application specific
+  QDRANT_COLLECTION_NAME: {{ .Values.worker.env.QDRANT_COLLECTION_NAME | quote }}
+  S3_BUCKET_NAME: {{ .Values.worker.env.S3_BUCKET_NAME | quote }}
+{{- end }}
+
+

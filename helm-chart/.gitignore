@@ -1,0 +1,19 @@
+# Helm chart dependencies (downloaded .tgz files)
+charts/*.tgz
+
+# Helm dependency lock file should be committed for reproducible builds
+# Chart.lock
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db

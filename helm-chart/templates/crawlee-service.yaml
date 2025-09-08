@@ -1,0 +1,20 @@
+{{- if .Values.crawlee.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "uiuc-chat.fullname" . }}-crawlee
+  labels:
+    {{- include "uiuc-chat.labels" . | nindent 4 }}
+    app.kubernetes.io/component: crawlee
+spec:
+  type: {{ .Values.crawlee.service.type }}
+  ports:
+    - port: {{ .Values.crawlee.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "uiuc-chat.crawlee.selectorLabels" . | nindent 4 }}
+{{- end }}
+
+

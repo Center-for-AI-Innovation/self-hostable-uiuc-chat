@@ -1,0 +1,86 @@
+{{- if .Values.ingestWorker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "uiuc-chat.fullname" . }}-ingest-worker
+  labels:
+    {{- include "uiuc-chat.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ingest-worker
+spec:
+  replicas: {{ .Values.ingestWorker.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "uiuc-chat.ingestWorker.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "uiuc-chat.ingestWorker.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "uiuc-chat.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: ingest-worker
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "uiuc-chat.image" .Values.ingestWorker.image }}
+          imagePullPolicy: {{ .Values.ingestWorker.image.pullPolicy }}
+          command: ["python", "ai_ta_backend/rabbitmq/worker.py"]
+          env:
+            - name: REDIS_HOST
+              value: {{ include "uiuc-chat.redis.host" . }}
+            - name: REDIS_PORT
+              value: {{ include "uiuc-chat.redis.port" . | quote }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uiuc-chat.fullname" . }}-secrets
+                  key: redis-password
+            - name: QDRANT_URL
+              value: "http://{{ include "uiuc-chat.fullname" . }}-qdrant:6333"
+            {{- if .Values.secrets.api.qdrantKey }}
+            - name: QDRANT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uiuc-chat.fullname" . }}-secrets
+                  key: qdrant-api-key
+            {{- end }}
+            - name: MINIO_URL
+              value: "http://{{ include "uiuc-chat.fullname" . }}-minio:9000"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uiuc-chat.fullname" . }}-secrets
+                  key: minio-root-user
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uiuc-chat.fullname" . }}-secrets
+                  key: minio-root-password
+            {{- if .Values.secrets.api.openaiKey }}
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uiuc-chat.fullname" . }}-secrets
+                  key: openai-api-key
+            {{- end }}
+          resources:
+            {{- toYaml .Values.ingestWorker.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+

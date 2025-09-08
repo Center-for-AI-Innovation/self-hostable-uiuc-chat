@@ -1,0 +1,21 @@
+
+
+{{- if and .Values.ollama.enabled .Values.ollama.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "uiuc-chat.fullname" . }}-ollama-pvc
+  labels:
+    {{- include "uiuc-chat.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ollama
+spec:
+  accessModes:
+    - {{ .Values.ollama.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.ollama.persistence.size }}
+  {{- if .Values.global.storageClass }}
+  storageClassName: {{ .Values.global.storageClass }}
+  {{- end }}
+{{- end }}

@@ -34,5 +34,6 @@
     "UIUC",
     "vectorstore",
     "vectorstores"
-  ]
+  ],
+  "cursorpyright.analysis.typeCheckingMode": "basic"
 }
