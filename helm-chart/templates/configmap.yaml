@@ -1,25 +1,3 @@
-{{- if .Values.qdrant.enabled }}
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ include "uiuc-chat.fullname" . }}-qdrant-config
-  labels:
-    {{- include "uiuc-chat.labels" . | nindent 4 }}
-    app.kubernetes.io/component: qdrant
-data:
-  production.yaml: |
-    service:
-      http_port: 6333
-      grpc_port: 6334
-    storage:
-      storage_path: /qdrant/storage
-    telemetry_disabled: true
-    {{- if .Values.secrets.api.qdrantKey }}
-    service:
-      api_key: "{{ .Values.secrets.api.qdrantKey }}"
-    {{- end }}
-{{- end }}
 
 {{- if or .Values.frontend.enabled .Values.backend.enabled }}
 ---

@@ -32,6 +32,10 @@ dependencies:
     repository: "https://charts.min.io/"
     condition: minio.enabled
   - name: keycloak
-    version: "~22.0.0"
+    version: "~18.10.0"
     repository: "https://codecentric.github.io/helm-charts"
     condition: keycloak.enabled
+  - name: qdrant
+    version: "~1.15.0"
+    repository: "https://qdrant.github.io/qdrant-helm"
+    condition: qdrant.enabled

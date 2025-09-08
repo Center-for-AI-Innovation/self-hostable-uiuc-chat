@@ -54,6 +54,8 @@ backend:
   service:
     type: ClusterIP
     port: 8001
+  env:
+    FLASK_ENV: "production"
   resources:
     limits:
       cpu: 1000m
@@ -108,6 +110,8 @@ crawlee:
   service:
     type: ClusterIP
     port: 3000
+  env:
+    INGEST_URL: "http://uiuc-chat-backend:8001/ingest"
   resources:
     limits:
       cpu: 500m
@@ -115,6 +119,40 @@ crawlee:
     requests:
       cpu: 250m
       memory: 256Mi
+
+# Qdrant vector database configuration (using official Qdrant Helm chart)
+qdrant:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: docker.io/qdrant/qdrant
+    tag: "v1.7.4"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    ports:
+      - name: http
+        port: 6333
+        targetPort: 6333
+        protocol: TCP
+        checksEnabled: true
+      - name: grpc
+        port: 6334
+        targetPort: 6334
+        protocol: TCP
+        checksEnabled: false
+  persistence:
+    enabled: true
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
 
 # Ollama (for development environment only)
 ollama:
