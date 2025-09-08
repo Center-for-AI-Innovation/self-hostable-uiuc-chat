@@ -231,8 +231,8 @@ def delete(service: RetrievalService, flaskExecutor: ExecutorInterface):
   start_time = time.monotonic()
   # background execution of tasks!!
   flaskExecutor.submit(service.delete_data, course_name, s3_path, source_url)
-  print(f"From {course_name}, deleted file: {s3_path}")
-  print(f"⏰ Runtime of FULL delete func: {(time.monotonic() - start_time):.2f} seconds")
+  logging.info(f"From {course_name}, deleted file: {s3_path}")
+  logging.debug(f"⏰ Runtime of FULL delete func: {(time.monotonic() - start_time):.2f} seconds")
   # we need instant return. Delets are "best effort" assume always successful... sigh :(
   response = jsonify({"outcome": 'success'})
   response.headers.add('Access-Control-Allow-Origin', '*')
