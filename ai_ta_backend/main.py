@@ -758,6 +758,7 @@ def canvas_ingest() -> Response:
   match = re.search(r'canvas\.illinois\.edu/courses/([^/]+)', canvas_url)
   canvas_course_id = match.group(1) if match else None
   ingester = IngestCanvas()
+  accept_status = ingester.auto_accept_enrollments(canvas_course_id)
   job_ids = ingester.ingest_course_content(canvas_course_id=canvas_course_id,
                                    course_name=course_name,
                                    content_ingest_dict=options)
