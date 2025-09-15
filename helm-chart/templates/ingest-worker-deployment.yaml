@@ -31,6 +31,10 @@ spec:
           imagePullPolicy: {{ .Values.ingestWorker.image.pullPolicy }}
           command: ["python", "ai_ta_backend/rabbitmq/worker.py"]
           env:
+            - name: RABBITMQ_URL
+              value: "amqp://{{ .Values.rabbitmq.auth.username }}:{{ .Values.rabbitmq.auth.password }}@{{ include "uiuc-chat.rabbitmq.host" . }}:{{ include "uiuc-chat.rabbitmq.port" . }}"
+            - name: RABBITMQ_QUEUE
+              value: "uiuc-chat"
             - name: REDIS_HOST
               value: {{ include "uiuc-chat.redis.host" . }}
             - name: REDIS_PORT

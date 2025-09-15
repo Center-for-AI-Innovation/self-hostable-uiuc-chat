@@ -112,6 +112,11 @@ crawlee:
     port: 3000
   env:
     INGEST_URL: "http://uiuc-chat-backend:8001/ingest"
+  probes:
+    liveness:
+      enabled: true
+    readiness:
+      enabled: true
   resources:
     limits:
       cpu: 500m

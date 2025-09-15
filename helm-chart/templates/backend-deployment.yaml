@@ -38,6 +38,11 @@ spec:
           env:
             - name: FLASK_ENV
               value: {{ .Values.backend.env.FLASK_ENV | quote }}
+            # Prevent crashes in test when Ollama is disabled
+            - name: OLLAMA_SERVER_URL
+              value: {{ default "http://localhost:11434" .Values.backend.env.OLLAMA_SERVER_URL | quote }}
+            - name: NCSA_HOSTED_API_KEY
+              value: {{ default "test" .Values.backend.env.NCSA_HOSTED_API_KEY | quote }}
             - name: POSTGRES_HOST
               value: {{ include "uiuc-chat.postgresql.host" . }}
             - name: POSTGRES_PORT
@@ -51,6 +56,13 @@ spec:
                 secretKeyRef:
                   name: {{ include "uiuc-chat.fullname" . }}-secrets
                   key: postgres-password
+            # Additional envs expected by rmqueue/rmsql
+            - name: POSTGRES_USERNAME
+              value: {{ include "uiuc-chat.postgresql.username" . }}
+            - name: POSTGRES_ENDPOINT
+              value: {{ include "uiuc-chat.postgresql.host" . }}
+            - name: POSTGRES_DATABASE
+              value: {{ include "uiuc-chat.postgresql.database" . }}
             - name: REDIS_HOST
               value: {{ include "uiuc-chat.redis.host" . }}
             - name: REDIS_PORT
