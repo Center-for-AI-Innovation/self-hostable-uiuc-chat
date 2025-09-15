@@ -103,7 +103,7 @@ class Ingest:
                 client=self.qdrant_client,
                 collection_name=self.qdrant_collection_name,
                 embeddings=OpenAIEmbeddings(openai_api_type='openai', openai_api_key=self.ncsa_hosted_api_key, 
-                                            openai_api_base=self.openai_api_base, model=self.embedding_model)
+                                            openai_api_base=self.openai_api_base, model=self.embedding_model, tiktoken_enabled=False)
             )
         else:
             logging.error("QDRANT API KEY OR URL NOT FOUND!")
