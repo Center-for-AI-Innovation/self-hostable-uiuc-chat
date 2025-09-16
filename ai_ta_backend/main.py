@@ -758,6 +758,13 @@ def canvas_ingest() -> Response:
   match = re.search(r'canvas\.illinois\.edu/courses/([^/]+)', canvas_url)
   canvas_course_id = match.group(1) if match else None
 
+  canvas_id = os.getenv("CANVAS_ACCESS_TOKEN", default="")
+  if len(canvas_id) == 0:
+      response = jsonify(message=f"CANVAS_ACCESS_TOKEN is not configured.")
+      response.status_code = 500
+      response.headers.add('Access-Control-Allow-Origin', '*')
+      return response
+
   try:
       ingester = IngestCanvas()
       accept_status = ingester.auto_accept_enrollments(canvas_course_id)
