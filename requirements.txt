@@ -24,6 +24,7 @@ psycopg2-binary==2.9.7
 yt-dlp==2024.7.16
 
 # Utils
+transformers==4.45.2
 tiktoken==0.9.0
 python-dotenv==1.0.1
 pydantic==2.10.6
