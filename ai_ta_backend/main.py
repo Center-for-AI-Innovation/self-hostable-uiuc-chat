@@ -757,20 +757,27 @@ def canvas_ingest() -> Response:
   # canvas.illinois.edu/courses/COURSE_CODE
   match = re.search(r'canvas\.illinois\.edu/courses/([^/]+)', canvas_url)
   canvas_course_id = match.group(1) if match else None
-  ingester = IngestCanvas()
-  accept_status = ingester.auto_accept_enrollments(canvas_course_id)
-  job_ids = ingester.ingest_course_content(canvas_course_id=canvas_course_id,
-                                   course_name=course_name,
-                                   content_ingest_dict=options)
 
-  response = jsonify(
-    {
-      "outcome": f'Queued Canvas Ingest task',
-      "ingest_task_ids": job_ids
-    }
-  )
-  response.headers.add('Access-Control-Allow-Origin', '*')
-  return response
+  try:
+      ingester = IngestCanvas()
+      accept_status = ingester.auto_accept_enrollments(canvas_course_id)
+      job_ids = ingester.ingest_course_content(canvas_course_id=canvas_course_id,
+                                       course_name=course_name,
+                                       content_ingest_dict=options)
+
+      response = jsonify(
+        {
+          "outcome": f'Queued Canvas Ingest task',
+          "ingest_task_ids": job_ids
+        }
+      )
+      response.headers.add('Access-Control-Allow-Origin', '*')
+      return response
+  except Exception as e:
+      response = jsonify(error=str(e), message=f"Internal Server Error {e}")
+      response.status_code = 500
+      response.headers.add('Access-Control-Allow-Origin', '*')
+      return response
 
 @app.route('/createProject', methods=['POST'])
 def createProject(service: ProjectService, flaskExecutor: ExecutorInterface) -> Response:

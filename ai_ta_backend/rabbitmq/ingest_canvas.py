@@ -162,50 +162,44 @@ class IngestCanvas:
 
     def download_course_content(self, canvas_course_id: int, dest_folder: str, content_ingest_dict: dict) -> str:
         """Downloads all Canvas course materials through the course ID and stores in local directory."""
-        try:
-            self.initialize_resources()
+        self.initialize_resources()
+        api_path = f"{self.canvas_url}/api/v1/courses/{canvas_course_id}"
 
-            api_path = f"{self.canvas_url}/api/v1/courses/{canvas_course_id}"
+        # Iterate over the content_ingest_dict
+        for key, value in content_ingest_dict.items():
+            if value is True:
+                if key == 'files':
+                    self.download_files(dest_folder, api_path)
+                elif key == 'pages':
+                    self.download_pages(dest_folder, api_path)
+                elif key == 'modules':
+                    self.download_modules(dest_folder, api_path)
+                elif key == 'syllabus':
+                    self.download_syllabus(dest_folder, api_path)
+                elif key == 'assignments':
+                    self.download_assignments(dest_folder, api_path)
+                elif key == 'discussions':
+                    self.download_discussions(dest_folder, api_path)
 
-            # Iterate over the content_ingest_dict
-            for key, value in content_ingest_dict.items():
-                if value is True:
-                    if key == 'files':
-                        self.download_files(dest_folder, api_path)
-                    elif key == 'pages':
-                        self.download_pages(dest_folder, api_path)
-                    elif key == 'modules':
-                        self.download_modules(dest_folder, api_path)
-                    elif key == 'syllabus':
-                        self.download_syllabus(dest_folder, api_path)
-                    elif key == 'assignments':
-                        self.download_assignments(dest_folder, api_path)
-                    elif key == 'discussions':
-                        self.download_discussions(dest_folder, api_path)
+        extracted_urls_from_html = self.extract_urls_from_html(dest_folder)
 
-            extracted_urls_from_html = self.extract_urls_from_html(dest_folder)
+        # links - canvas files, external urls, embedded videos
+        file_links = extracted_urls_from_html.get('file_links', [])
+        if file_links:
+            file_download_status = self.download_files_from_urls(file_links, canvas_course_id, dest_folder)
+            print("File download status: ", file_download_status)
 
-            # links - canvas files, external urls, embedded videos
-            file_links = extracted_urls_from_html.get('file_links', [])
-            if file_links:
-                file_download_status = self.download_files_from_urls(file_links, canvas_course_id, dest_folder)
-                print("File download status: ", file_download_status)
+        video_links = extracted_urls_from_html.get('video_links', [])
+        if video_links:
+            video_download_status = self.download_videos_from_urls(video_links, canvas_course_id, dest_folder)
+            print("Video download status: ", video_download_status)
 
-            video_links = extracted_urls_from_html.get('video_links', [])
-            if video_links:
-                video_download_status = self.download_videos_from_urls(video_links, canvas_course_id, dest_folder)
-                print("Video download status: ", video_download_status)
-
-            data_api_endpoints = extracted_urls_from_html.get('data_api_endpoints', [])
-            if data_api_endpoints:
-                data_api_endpoints_status = self.download_content_from_api_endpoints(data_api_endpoints,
-                                                                                     canvas_course_id,
-                                                                                     dest_folder)
-                print("Data API Endpoints download status: ", data_api_endpoints_status)
-            return "Success"
-        except Exception as e:
-            sentry_sdk.capture_exception(e)
-            return "Failed! Error: " + str(e)
+        data_api_endpoints = extracted_urls_from_html.get('data_api_endpoints', [])
+        if data_api_endpoints:
+            data_api_endpoints_status = self.download_content_from_api_endpoints(data_api_endpoints,
+                                                                                 canvas_course_id,
+                                                                                 dest_folder)
+            print("Data API Endpoints download status: ", data_api_endpoints_status)
 
     def ingest_course_content(self,
                               canvas_course_id: int,
