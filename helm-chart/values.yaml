@@ -33,7 +33,7 @@ frontend:
     tls: []
   env:
     NEXT_PUBLIC_KEYCLOAK_URL: "http://uiuc-chat-keycloak:8080"
-    NEXT_PUBLIC_KEYCLOAK_REALM: "uiuc-chat"
+    NEXT_PUBLIC_KEYCLOAK_REALM: "illinois_chat_realm"
     NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: "uiuc-chat-client"
   resources:
     limits:
@@ -230,7 +230,7 @@ minio:
     enabled: true
     size: 20Gi
 
-# Keycloak configuration (using Codecentric chart)
+# Keycloak configuration (using Bitnami chart)
 keycloak:
   enabled: true
   auth:
@@ -244,6 +244,25 @@ keycloak:
     database: "postgres"
     user: "postgres"
     password: "password"
+  # Realm import configuration
+  extraVolumes: |
+    - name: realm-config
+      configMap:
+        name: uiuc-chat-keycloak-realm
+    - name: theme-config
+      configMap:
+        name: uiuc-chat-keycloak-theme
+  extraVolumeMounts: |
+    - name: realm-config
+      mountPath: /opt/bitnami/keycloak/data/import
+      readOnly: true
+    - name: theme-config
+      mountPath: /opt/bitnami/keycloak/themes/keywind
+      readOnly: true
+  # Enable realm import
+  extraEnvVars: |
+    - name: KEYCLOAK_IMPORT
+      value: "/opt/bitnami/keycloak/data/import/realm-export.json"
 
 # === APPLICATION SECRETS ===
 secrets:

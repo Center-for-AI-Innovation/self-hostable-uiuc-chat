@@ -1,11 +1,6 @@
 # Development environment values for uiuc-chat
 # This extends the base values.yaml
 
-# Global configuration
-global:
-  security:
-    allowInsecureImages: true
-
 # Environment identifier
 environment: "dev"
 
@@ -48,8 +43,9 @@ ingestWorker:
 postgresql:
   enabled: true
   image:
-    repository: "postgres"
-    tag: "16-alpine"  # Using official PostgreSQL image
+    registry: docker.io
+    repository: postgres
+    tag: "15"
   auth:
     postgresPassword: "password"
     username: "postgres"
@@ -63,6 +59,10 @@ postgresql:
 # Redis
 redis:
   enabled: true
+  image:
+    registry: docker.io
+    repository: redis
+    tag: "7"
   auth:
     enabled: true
     password: "password"
@@ -93,7 +93,7 @@ minio:
   replicas: 1  # Single replica for dev
   mode: standalone  # Use standalone mode for dev
 
-# Keycloak - using shared PostgreSQL (Codecentric chart)
+# Keycloak - using shared PostgreSQL
 keycloak:
   enabled: true
   auth:
@@ -107,24 +107,6 @@ keycloak:
     database: "postgres"
     user: "postgres"
     password: "password"
-  # Database and admin user configuration
-  extraEnv: |
-    - name: DB_VENDOR
-      value: "postgres"
-    - name: DB_ADDR
-      value: "uiuc-chat-test-postgresql"
-    - name: DB_PORT
-      value: "5432"
-    - name: DB_DATABASE
-      value: "postgres"
-    - name: DB_USER
-      value: "postgres"
-    - name: DB_PASSWORD
-      value: "password"
-    - name: KEYCLOAK_USER
-      value: "admin"
-    - name: KEYCLOAK_PASSWORD
-      value: "admin"
 
 # Development secrets
 secrets:

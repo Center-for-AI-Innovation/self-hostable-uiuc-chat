@@ -229,6 +229,31 @@ keycloak:
     database: "postgres"
     user: "postgres"
     password: "password"
+  # Realm import configuration
+  extraVolumes: |
+    - name: realm-config
+      configMap:
+        name: uiuc-chat-keycloak-realm
+    - name: theme-config
+      configMap:
+        name: uiuc-chat-keycloak-theme
+  extraVolumeMounts: |
+    - name: realm-config
+      mountPath: /opt/keycloak/data/import
+      readOnly: true
+    - name: theme-config
+      mountPath: /opt/keycloak/themes/keywind
+      readOnly: true
+  # Custom theme configuration
+  extraEnv: |
+    - name: KC_SPI_THEME_STATIC_MAX_AGE
+      value: "2592000"
+    - name: KC_SPI_THEME_CACHE_THEMES
+      value: "true"
+    - name: KC_SPI_THEME_CACHE_TEMPLATES
+      value: "true"
+    - name: KEYCLOAK_IMPORT
+      value: "/opt/keycloak/data/import/realm-export.json"
   resources:
     limits:
       cpu: 500m

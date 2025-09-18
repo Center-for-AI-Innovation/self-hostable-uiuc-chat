@@ -68,16 +68,44 @@ port-forward: ## Set up port forwarding for local access
 	@echo "Setting up port forwarding..."
 	@echo "Frontend: http://localhost:3000"
 	@echo "Backend: http://localhost:8001"
+	@echo "PostgreSQL: localhost:5432"
+	@echo "Redis: localhost:6379"
+	@echo "RabbitMQ: localhost:5672"
 	@echo "MinIO Console: http://localhost:9001"
 	@echo "Keycloak: http://localhost:8080"
 	@echo "Qdrant: http://localhost:6333"
+	@echo "Ollama: http://localhost:11434"
 	@echo ""
 	kubectl port-forward service/$(RELEASE_NAME)-frontend 3000:3000 --namespace $(NAMESPACE) &
 	kubectl port-forward service/$(RELEASE_NAME)-backend 8001:8001 --namespace $(NAMESPACE) &
+	kubectl port-forward service/$(RELEASE_NAME)-postgresql 5432:5432 --namespace $(NAMESPACE) &
+	kubectl port-forward service/$(RELEASE_NAME)-redis-master 6379:6379 --namespace $(NAMESPACE) &
+	kubectl port-forward service/$(RELEASE_NAME)-rabbitmq 5672:5672 --namespace $(NAMESPACE) &
 	kubectl port-forward service/$(RELEASE_NAME)-minio 9001:9001 --namespace $(NAMESPACE) &
-	kubectl port-forward service/$(RELEASE_NAME)-keycloak 8080:8080 --namespace $(NAMESPACE) &
+	kubectl port-forward service/$(RELEASE_NAME)-keycloak-http 8080:80 --namespace $(NAMESPACE) &
 	kubectl port-forward service/$(RELEASE_NAME)-qdrant 6333:6333 --namespace $(NAMESPACE) &
+	kubectl port-forward service/$(RELEASE_NAME)-ollama 11434:11434 --namespace $(NAMESPACE) &
 	@echo "Port forwarding started. Press Ctrl+C to stop all forwards."
+	@wait
+
+port-forward-infra: ## Set up port forwarding for infrastructure services only
+	@echo "Setting up infrastructure port forwarding..."
+	@echo "PostgreSQL: localhost:5432"
+	@echo "Redis: localhost:6379"
+	@echo "RabbitMQ: localhost:5672"
+	@echo "MinIO Console: http://localhost:9001"
+	@echo "Keycloak: http://localhost:8080"
+	@echo "Qdrant: http://localhost:6333"
+	@echo "Ollama: http://localhost:11434"
+	@echo ""
+	kubectl port-forward service/$(RELEASE_NAME)-postgresql 5432:5432 --namespace $(NAMESPACE) &
+	kubectl port-forward service/$(RELEASE_NAME)-redis-master 6379:6379 --namespace $(NAMESPACE) &
+	kubectl port-forward service/$(RELEASE_NAME)-rabbitmq 5672:5672 --namespace $(NAMESPACE) &
+	kubectl port-forward service/$(RELEASE_NAME)-minio 9001:9001 --namespace $(NAMESPACE) &
+	kubectl port-forward service/$(RELEASE_NAME)-keycloak-http 8080:80 --namespace $(NAMESPACE) &
+	kubectl port-forward service/$(RELEASE_NAME)-qdrant 6333:6333 --namespace $(NAMESPACE) &
+	kubectl port-forward service/$(RELEASE_NAME)-ollama 11434:11434 --namespace $(NAMESPACE) &
+	@echo "Infrastructure port forwarding started. Press Ctrl+C to stop all forwards."
 	@wait
 
 dev-infra-only: ## Deploy only infrastructure services for local development

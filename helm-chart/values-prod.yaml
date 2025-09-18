@@ -69,6 +69,8 @@ ollama:
 # PostgreSQL for production
 postgresql:
   enabled: true
+  image:
+    tag: "15.5.0-debian-11-r0"
   auth:
     postgresPassword: "CHANGE-ME-IN-PRODUCTION"
     username: "postgres"
@@ -89,6 +91,8 @@ postgresql:
 # Redis for production
 redis:
   enabled: true
+  image:
+    tag: "7.0.4-debian-11-r11"
   auth:
     enabled: true
     password: "CHANGE-ME-IN-PRODUCTION"
@@ -124,6 +128,8 @@ rabbitmq:
 # MinIO for production
 minio:
   enabled: true
+  replicas: 1
+  mode: standalone
   auth:
     rootUser: "CHANGE-ME-IN-PRODUCTION"
     rootPassword: "CHANGE-ME-IN-PRODUCTION"
@@ -169,23 +175,11 @@ securityContext:
   runAsNonRoot: true
   runAsUser: 1000
 
-# Node selector for production workloads
-nodeSelector:
-  node-type: "app"
+# Node selector for production workloads (disabled for minikube)
+nodeSelector: {}
 
-# Affinity rules for high availability
-affinity:
-  podAntiAffinity:
-    preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        podAffinityTerm:
-          labelSelector:
-            matchExpressions:
-              - key: app.kubernetes.io/name
-                operator: In
-                values:
-                  - uiuc-chat
-          topologyKey: kubernetes.io/hostname
+# Affinity rules for high availability (disabled for minikube)
+affinity: {}
 
 # Enable autoscaling in production
 autoscaling:
