@@ -27,7 +27,7 @@ spec:
         - -c
         - |
           echo "Waiting for Keycloak to be ready..."
-          until curl -f http://{{ include "uiuc-chat.fullname" . }}-keycl-http:80/auth/realms/master; do
+          until curl -f http://{{ include "uiuc-chat.fullname" . }}-keycloak-http:80/auth/realms/master; do
             echo "Keycloak not ready yet, waiting..."
             sleep 10
           done
@@ -37,7 +37,7 @@ spec:
           # Wait for admin user to be created (can take some time with external database)
           for i in {1..30}; do
             echo "Attempt $i: Trying to configure admin credentials..."
-            /opt/jboss/keycloak/bin/kcadm.sh config credentials --server http://{{ include "uiuc-chat.fullname" . }}-keycl-http:80/auth --realm master --user admin --password admin
+            /opt/jboss/keycloak/bin/kcadm.sh config credentials --server http://{{ include "uiuc-chat.fullname" . }}-keycloak-http:80/auth --realm master --user admin --password admin
             if [ $? -eq 0 ]; then
               echo "Admin credentials configured successfully!"
               break

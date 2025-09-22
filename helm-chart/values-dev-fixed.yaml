@@ -7,6 +7,10 @@ environment: "dev"
 # Frontend configuration - typically run locally in dev
 frontend:
   enabled: false  # Run locally for hot reload
+  env:
+    NEXT_PUBLIC_KEYCLOAK_URL: "http://uiuc-chat-dev-keycloak:8080/"
+    NEXT_PUBLIC_KEYCLOAK_REALM: "illinois_chat_realm"
+    NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: "uiuc-chat-client"
 
 # Backend configuration - typically run locally in dev  
 backend:

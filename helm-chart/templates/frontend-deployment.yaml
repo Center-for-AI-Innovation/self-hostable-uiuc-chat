@@ -37,7 +37,7 @@ spec:
               protocol: TCP
           env:
             - name: NEXT_PUBLIC_KEYCLOAK_URL
-              value: {{ .Values.frontend.env.NEXT_PUBLIC_KEYCLOAK_URL | quote }}
+              value: {{ default (printf "http://%s:%s/" (include "uiuc-chat.keycloak.host" .) (include "uiuc-chat.keycloak.port" .)) .Values.frontend.env.NEXT_PUBLIC_KEYCLOAK_URL | quote }}
             - name: NEXT_PUBLIC_KEYCLOAK_REALM
               value: {{ .Values.frontend.env.NEXT_PUBLIC_KEYCLOAK_REALM | quote }}
             - name: NEXT_PUBLIC_KEYCLOAK_CLIENT_ID

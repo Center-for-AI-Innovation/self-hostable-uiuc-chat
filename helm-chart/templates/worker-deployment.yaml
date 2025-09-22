@@ -15,6 +15,9 @@ spec:
     metadata:
       labels:
         {{- include "uiuc-chat.worker.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
     spec:
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
@@ -30,60 +33,41 @@ spec:
           image: {{ include "uiuc-chat.image" .Values.worker.image }}
           imagePullPolicy: {{ .Values.worker.image.pullPolicy }}
           command: ["python", "ai_ta_backend/rabbitmq/worker.py"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "uiuc-chat.fullname" . }}-app-config
+            - secretRef:
+                name: {{ include "uiuc-chat.fullname" . }}-secrets
           env:
-            - name: RABBITMQ_URL
-              value: "amqp://{{ .Values.rabbitmq.auth.username }}:{{ .Values.rabbitmq.auth.password }}@{{ include "uiuc-chat.rabbitmq.host" . }}:{{ include "uiuc-chat.rabbitmq.port" . }}"
-            - name: POSTGRES_HOST
-              value: {{ include "uiuc-chat.postgresql.host" . }}
-            - name: POSTGRES_PORT
-              value: {{ include "uiuc-chat.postgresql.port" . | quote }}
-            - name: POSTGRES_DB
-              value: {{ include "uiuc-chat.postgresql.database" . }}
-            - name: POSTGRES_USER
-              value: {{ include "uiuc-chat.postgresql.username" . }}
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "uiuc-chat.fullname" . }}-secrets
-                  key: postgres-password
-            - name: QDRANT_URL
-              value: "http://{{ include "uiuc-chat.fullname" . }}-qdrant:6333"
             - name: QDRANT_COLLECTION_NAME
               value: {{ .Values.worker.env.QDRANT_COLLECTION_NAME | quote }}
-            {{- if .Values.secrets.api.qdrantKey }}
-            - name: QDRANT_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "uiuc-chat.fullname" . }}-secrets
-                  key: qdrant-api-key
-            {{- end }}
-            - name: MINIO_URL
-              value: "http://{{ include "uiuc-chat.fullname" . }}-minio:9000"
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "uiuc-chat.fullname" . }}-secrets
-                  key: minio-root-user
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "uiuc-chat.fullname" . }}-secrets
-                  key: minio-root-password
             - name: S3_BUCKET_NAME
               value: {{ .Values.worker.env.S3_BUCKET_NAME | quote }}
-            {{- if .Values.secrets.api.openaiKey }}
-            - name: OPENAI_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "uiuc-chat.fullname" . }}-secrets
-                  key: openai-api-key
-            {{- end }}
             {{- if and .Values.ollama.enabled (eq .Values.environment "dev") }}
             - name: OLLAMA_BASE_URL
               value: "http://{{ include "uiuc-chat.fullname" . }}-ollama:11434"
             {{- end }}
+            {{- if .Values.huggingfaceCache.enabled }}
+            - name: TRANSFORMERS_CACHE
+              value: {{ printf "%s/transformers" .Values.huggingfaceCache.mountPath | quote }}
+            - name: HF_HOME
+              value: {{ .Values.huggingfaceCache.mountPath | quote }}
+            {{- end }}
           resources:
             {{- toYaml .Values.worker.resources | nindent 12 }}
+          {{- if .Values.huggingfaceCache.enabled }}
+          volumeMounts:
+            - name: huggingface-cache
+              mountPath: {{ .Values.huggingfaceCache.mountPath | quote }}
+          {{- end }}
+      {{- if .Values.huggingfaceCache.enabled }}
+      volumes:
+        - name: huggingface-cache
+          emptyDir:
+            {{- if .Values.huggingfaceCache.sizeLimit }}
+            sizeLimit: {{ .Values.huggingfaceCache.sizeLimit | quote }}
+            {{- end }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

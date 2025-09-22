@@ -9,13 +9,17 @@ global:
 # Environment identifier
 environment: "dev"
 
-# Frontend configuration - typically run locally in dev
+# Frontend configuration - enable in-cluster for end-to-end testing in dev
 frontend:
-  enabled: false  # Run locally for hot reload
+  enabled: true
+  env:
+    NEXT_PUBLIC_KEYCLOAK_URL: "http://uiuc-chat-keycloak:8080/"
+    NEXT_PUBLIC_KEYCLOAK_REALM: "illinois_chat_realm"
+    NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: "uiuc-chat-client"
 
-# Backend configuration - typically run locally in dev  
+# Backend configuration - enable in-cluster for end-to-end testing in dev  
 backend:
-  enabled: false  # Run locally for debugging
+  enabled: true
 
 # Worker service - can run in cluster
 worker:
@@ -112,7 +116,7 @@ keycloak:
     - name: DB_VENDOR
       value: "postgres"
     - name: DB_ADDR
-      value: "uiuc-chat-test-postgresql"
+      value: "uiuc-chat-postgresql"
     - name: DB_PORT
       value: "5432"
     - name: DB_DATABASE

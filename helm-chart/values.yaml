@@ -6,6 +6,8 @@ global:
   imageRegistry: ""
   imagePullSecrets: []
   storageClass: ""
+  # Public ingress host for browser-facing URLs
+  host: ""
 
 # Environment (dev/prod)
 environment: "prod"
@@ -32,7 +34,8 @@ frontend:
             pathType: Prefix
     tls: []
   env:
-    NEXT_PUBLIC_KEYCLOAK_URL: "http://uiuc-chat-keycloak:8080"
+    # In production with ingress, set to https://<global.host>/auth
+    NEXT_PUBLIC_KEYCLOAK_URL: "http://uiuc-chat-keycloak:8080/"
     NEXT_PUBLIC_KEYCLOAK_REALM: "illinois_chat_realm"
     NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: "uiuc-chat-client"
   resources:
@@ -56,6 +59,20 @@ backend:
     port: 8001
   env:
     FLASK_ENV: "production"
+    POSTGRES_HOST: "uiuc-chat-postgresql"
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: "postgres"
+    POSTGRES_USER: "postgres"
+    POSTGRES_PASSWORD: "password"
+    REDIS_URL: "redis://:password@uiuc-chat-redis-master:6379/0"
+    RABBITMQ_URL: "amqp://guest:guest@uiuc-chat-rabbitmq:5672/"
+    QDRANT_URL: "http://uiuc-chat-qdrant:6333"
+    MINIO_ENDPOINT: "http://uiuc-chat-minio:9000"
+    MINIO_ACCESS_KEY: "minioadmin"
+    MINIO_SECRET_KEY: "minioadmin"
+    S3_ENDPOINT: "http://uiuc-chat-minio:9000"
+    S3_BUCKET_NAME: "uiuc-chat"
+    S3_USE_SSL: "false"
   resources:
     limits:
       cpu: 1000m
@@ -112,6 +129,8 @@ crawlee:
     port: 3000
   env:
     INGEST_URL: "http://uiuc-chat-backend:8001/ingest"
+    SUPABASE_URL: "http://localhost:54321"  # TODO: replace with real Supabase URL
+    SUPABASE_ANON_KEY: "dev-anon-key"       # TODO: replace with real anon key
   probes:
     liveness:
       enabled: true
@@ -229,6 +248,13 @@ minio:
   persistence:
     enabled: true
     size: 20Gi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
 
 # Keycloak configuration (using Bitnami chart)
 keycloak:
@@ -244,25 +270,12 @@ keycloak:
     database: "postgres"
     user: "postgres"
     password: "password"
-  # Realm import configuration
-  extraVolumes: |
-    - name: realm-config
-      configMap:
-        name: uiuc-chat-keycloak-realm
-    - name: theme-config
-      configMap:
-        name: uiuc-chat-keycloak-theme
-  extraVolumeMounts: |
-    - name: realm-config
-      mountPath: /opt/bitnami/keycloak/data/import
-      readOnly: true
-    - name: theme-config
-      mountPath: /opt/bitnami/keycloak/themes/keywind
-      readOnly: true
-  # Enable realm import
-  extraEnvVars: |
-    - name: KEYCLOAK_IMPORT
-      value: "/opt/bitnami/keycloak/data/import/realm-export.json"
+  # Codecentric-compatible admin env vars
+  extraEnv: |
+    - name: KEYCLOAK_USER
+      value: "admin"
+    - name: KEYCLOAK_PASSWORD
+      value: "admin"
 
 # === APPLICATION SECRETS ===
 secrets:
@@ -271,6 +284,13 @@ secrets:
   api:
     openaiKey: ""
     qdrantKey: ""
+
+# Public path configuration used for ingress and frontend URLs
+paths:
+  root: "/"
+  api: "/api"
+  auth: "/auth"
+  minioConsole: "/minio"
 
 # === KUBERNETES CONFIGURATIONS ===
 
@@ -291,6 +311,12 @@ securityContext:
   readOnlyRootFilesystem: false
   runAsNonRoot: true
   runAsUser: 1000
+
+# Writable cache for Hugging Face transformers/tokenizers
+huggingfaceCache:
+  enabled: true
+  mountPath: "/var/cache/huggingface"
+  sizeLimit: "5Gi"  # emptyDir size limit (ephemeral)
 
 # Node selector
 nodeSelector: {}

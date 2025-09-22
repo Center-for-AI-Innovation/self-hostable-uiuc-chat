@@ -43,7 +43,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "uiuc-chat.fullname" . }}-secrets
-                  key: redis-password
+                  key: REDIS_PASSWORD
             - name: POSTGRES_HOST
               value: {{ include "uiuc-chat.postgresql.host" . }}
             - name: POSTGRES_PORT
@@ -56,7 +56,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "uiuc-chat.fullname" . }}-secrets
-                  key: postgres-password
+                  key: POSTGRES_PASSWORD
             - name: QDRANT_URL
               value: "http://{{ include "uiuc-chat.fullname" . }}-qdrant:6333"
             {{- if .Values.secrets.api.qdrantKey }}
@@ -72,18 +72,18 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "uiuc-chat.fullname" . }}-secrets
-                  key: minio-root-user
+                  key: MINIO_ACCESS_KEY
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ include "uiuc-chat.fullname" . }}-secrets
-                  key: minio-root-password
+                  key: MINIO_SECRET_KEY
             {{- if .Values.secrets.api.openaiKey }}
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ include "uiuc-chat.fullname" . }}-secrets
-                  key: openai-api-key
+                  key: OPENAI_API_KEY
             {{- end }}
           resources:
             {{- toYaml .Values.ingestWorker.resources | nindent 12 }}

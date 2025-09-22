@@ -12,7 +12,7 @@ frontend:
     tag: "latest"
     pullPolicy: Never
   env:
-    NEXT_PUBLIC_KEYCLOAK_URL: "http://uiuc-chat-test-keycloak:8080"
+    NEXT_PUBLIC_KEYCLOAK_URL: "http://uiuc-chat-test-keycloak:8080/"
     NEXT_PUBLIC_KEYCLOAK_REALM: "uiuc-chat"
     NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: "uiuc-chat-client"
   resources:

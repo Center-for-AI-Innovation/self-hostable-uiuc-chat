@@ -1,6 +1,7 @@
 {{- if .Values.frontend.ingress.enabled -}}
 {{- $fullName := include "uiuc-chat.fullname" . -}}
-{{- $svcPort := .Values.frontend.service.port -}}
+{{- $frontendPort := .Values.frontend.service.port -}}
+{{- $backendPort := .Values.backend.service.port -}}
 {{- if and .Values.frontend.ingress.className (not (hasKey .Values.frontend.ingress.annotations "kubernetes.io/ingress.class")) }}
   {{- $_ := set .Values.frontend.ingress.annotations "kubernetes.io/ingress.class" .Values.frontend.ingress.className}}
 {{- end }}
@@ -40,20 +41,66 @@ spec:
     - host: {{ .host | quote }}
       http:
         paths:
-          {{- range .paths }}
-          - path: {{ .path }}
-            {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
-            pathType: {{ .pathType }}
+          # Frontend root
+          - path: {{ (index .paths 0).path }}
+            {{- if and (index .paths 0).pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
+            pathType: {{ (index .paths 0).pathType }}
             {{- end }}
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
                 name: {{ $fullName }}-frontend
                 port:
-                  number: {{ $svcPort }}
+                  number: {{ $frontendPort }}
               {{- else }}
               serviceName: {{ $fullName }}-frontend
-              servicePort: {{ $svcPort }}
+              servicePort: {{ $frontendPort }}
+              {{- end }}
+          # Backend API under /api
+          - path: {{ default "/api" $.Values.paths.api }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
+            pathType: Prefix
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $fullName }}-backend
+                port:
+                  number: {{ $backendPort }}
+              {{- else }}
+              serviceName: {{ $fullName }}-backend
+              servicePort: {{ $backendPort }}
+              {{- end }}
+          # Keycloak under /auth
+          - path: {{ default "/auth" $.Values.paths.auth }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
+            pathType: Prefix
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $fullName }}-keycloak
+                port:
+                  number: 80
+              {{- else }}
+              serviceName: {{ $fullName }}-keycloak
+              servicePort: 80
+              {{- end }}
+          {{- if $.Values.minio.enabled }}
+          # MinIO console under /minio
+          - path: {{ default "/minio" $.Values.paths.minioConsole }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
+            pathType: Prefix
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $fullName }}-minio
+                port:
+                  number: 9001
+              {{- else }}
+              serviceName: {{ $fullName }}-minio
+              servicePort: 9001
               {{- end }}
           {{- end }}
     {{- end }}

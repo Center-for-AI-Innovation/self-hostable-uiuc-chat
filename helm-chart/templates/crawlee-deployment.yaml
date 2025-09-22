@@ -52,7 +52,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "uiuc-chat.fullname" . }}-secrets
-                  key: redis-password
+                  key: REDIS_PASSWORD
           {{- if .Values.crawlee.probes.liveness.enabled }}
           livenessProbe:
             httpGet:
