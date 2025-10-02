@@ -1,0 +1,110 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-backend
+  namespace: uiuc-chat
+  labels:
+    app: uiuc-chat-backend
+spec:
+  selector:
+    app: uiuc-chat-backend
+  ports:
+    - name: http
+      port: 8001
+      targetPort: 8001
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uiuc-chat-backend
+  namespace: uiuc-chat
+  labels:
+    app: uiuc-chat-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uiuc-chat-backend
+  template:
+    metadata:
+      labels:
+        app: uiuc-chat-backend
+    spec:
+      containers:
+        - name: backend
+          image: uiuc-chat-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8001
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 30
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+          env:
+            - name: FLASK_ENV
+              value: "development"
+            - name: POSTGRES_HOST
+              value: "uiuc-chat-postgresql"
+            - name: POSTGRES_ENDPOINT
+              value: "uiuc-chat-postgresql"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: "postgres"
+            - name: POSTGRES_DATABASE
+              value: "postgres"
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_USERNAME
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "password"
+            - name: REDIS_URL
+              value: "redis://:password@uiuc-chat-redis-master:6379/0"
+            - name: RABBITMQ_URL
+              value: "amqp://guest:guest@uiuc-chat-rabbitmq:5672/"
+            - name: QDRANT_URL
+              value: "http://uiuc-chat-qdrant:6333"
+            - name: MINIO_ENDPOINT
+              value: "http://uiuc-chat-minio:9000"
+            - name: MINIO_ACCESS_KEY
+              value: "minioadmin"
+            - name: MINIO_SECRET_KEY
+              value: "minioadmin"
+            - name: S3_ENDPOINT
+              value: "http://uiuc-chat-minio:9000"
+            - name: S3_BUCKET_NAME
+              value: "uiuc-chat-dev"
+            - name: S3_USE_SSL
+              value: "false"
+            - name: OLLAMA_SERVER_URL
+              value: "http://uiuc-chat-ollama:11434"
+            - name: NCSA_HOSTED_API_KEY
+              value: ""
+
