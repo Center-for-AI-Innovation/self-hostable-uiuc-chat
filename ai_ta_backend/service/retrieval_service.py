@@ -57,20 +57,28 @@ class RetrievalService:
     self.sentry = sentry
     self.posthog = posthog
     self.thread_pool_executor = thread_pool_executor
-    openai.api_key = os.environ["NCSA_HOSTED_API_KEY"]
-    self.embedding_model = os.environ['EMBEDDING_MODEL']
+    self.openai_api_key = os.getenv("OPENAI_API_KEY") if os.getenv("OPENAI_API_KEY") else os.getenv("NCSA_HOSTED_API_KEY")
+    self.embedding_model = os.getenv('EMBEDDING_MODEL') if os.getenv('EMBEDDING_MODEL') else 'text-embedding-ada-002'
+    self.openai_api_base = os.getenv('EMBEDDING_API_BASE') if os.getenv('EMBEDDING_API_BASE') else 'https://api.openai.com/v1'
 
-    self.embeddings = OpenAIEmbeddings(
-        model=self.embedding_model,
-        openai_api_key=os.environ["NCSA_HOSTED_API_KEY"],
-        openai_api_base=os.environ["EMBEDDING_API_BASE"],
-        # tiktoken_model_name="cl100k_base",
-        tiktoken_enabled=False,
-        # openai_api_key=os.environ["AZURE_OPENAI_KEY"],
-        # openai_api_base=os.environ["AZURE_OPENAI_ENDPOINT"],
-        # openai_api_type=os.environ['OPENAI_API_TYPE'],
-        # openai_api_version=os.environ["OPENAI_API_VERSION"],
-    )
+    if self.embedding_model == 'text-embedding-ada-002':
+        self.embeddings = OpenAIEmbeddings(
+            model=self.embedding_model,
+            openai_api_key=self.openai_api_key,
+            openai_api_base=self.openai_api_base,
+        )
+    else:
+        self.embeddings = OpenAIEmbeddings(
+            model=self.embedding_model,
+            openai_api_key=self.openai_api_key,
+            openai_api_base=self.openai_api_base,
+            # tiktoken_model_name="cl100k_base",
+            tiktoken_enabled=False,
+            # openai_api_key=os.environ["AZURE_OPENAI_KEY"],
+            # openai_api_base=os.environ["AZURE_OPENAI_ENDPOINT"],
+            # openai_api_type=os.environ['OPENAI_API_TYPE'],
+            # openai_api_version=os.environ["OPENAI_API_VERSION"],
+        )
 
     self.nomic_embeddings = OllamaEmbeddings(base_url=os.environ['OLLAMA_SERVER_URL'], model='nomic-embed-text:v1.5')
 
