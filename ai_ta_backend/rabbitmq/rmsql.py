@@ -115,7 +115,7 @@ class SQLAlchemyIngestDB:
             session.flush()
 
             session.refresh(doc_progress)
-        return doc_progress.to_dict()
+            return doc_progress.to_dict()
 
     def fetch_document_in_progress(self, job_id: str) -> dict:
         with self.get_session() as session:
@@ -240,8 +240,7 @@ class SQLAlchemyIngestDB:
 
         with self.get_session() as session:
             result = session.execute(delete_stmt)
-
-        return result.rowcount  # Number of rows deleted
+            return result.rowcount  # Number of rows deleted
 
     def delete_document_by_url(self, course_name: str, url: str):
         delete_stmt = (
@@ -251,5 +250,4 @@ class SQLAlchemyIngestDB:
         )
         with self.get_session() as session:
             result = session.execute(delete_stmt)
-
-        return result.rowcount  # Number of rows deleted
+            return result.rowcount  # Number of rows deleted
