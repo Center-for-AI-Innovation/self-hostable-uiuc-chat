@@ -25,11 +25,8 @@ worker_thread: threading.Thread | None = None
 worker_running = threading.Event()
 
 
-
-
 logging.getLogger('pika').setLevel(logging.WARNING)
 
-sql_session = SQLAlchemyIngestDB()
 
 class Worker:
 
@@ -41,6 +38,8 @@ class Worker:
         self.connection: pika.BlockingConnection | None = None
         self.channel: pika.adapters.blocking_connection.BlockingChannel | None = None
         self.connect()
+
+        self.sql_session = SQLAlchemyIngestDB()
 
     # Intended usage is "with Queue() as queue:"
     def __enter__(self):
@@ -100,13 +99,13 @@ class Worker:
         try:
             # flag this message as "processing started" so we can ack it later if memory runs out
 
-            prog_doc = sql_session.fetch_document_in_progress(job_id)
+            prog_doc = self.sql_session.fetch_document_in_progress(job_id)
             if not prog_doc:
                 logging.error(f"Job ID {job_id} not found in DocumentsInProgress table.")
                 channel.basic_ack(delivery_tag=method.delivery_tag)
             else:
                 if "error" in prog_doc and prog_doc["error"] == 'Attempting ingest':
-                    sql_session.insert_failed_document({
+                    self.sql_session.insert_failed_document({
                         "s3_path": str(prog_doc["s3_path"]),
                         "readable_filename": prog_doc["readable_filename"],
                         "course_name": prog_doc["course_name"],
@@ -115,11 +114,11 @@ class Worker:
                         "doc_groups": prog_doc["doc_groups"],
                         "error": "Ingest could not resolve successfully, worker crashed (e.g. ran out of memory)",
                     })
-                    sql_session.delete_document_in_progress(job_id)
+                    self.sql_session.delete_document_in_progress(job_id)
                     channel.basic_ack(delivery_tag=method.delivery_tag)
                 else:
                     prog_doc["error"] = 'Attempting ingest'
-                    sql_session.update_document_in_progress(prog_doc)
+                    self.sql_session.update_document_in_progress(prog_doc)
 
                     ingester = Ingest()
                     ingester.main_ingest(job_id=job_id, **inputs)
