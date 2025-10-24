@@ -129,8 +129,8 @@ class SQLAlchemyIngestDB:
             session.query(models.DocumentsInProgress) \
                 .filter(models.DocumentsInProgress.beam_task_id == doc_progress['beam_task_id']) \
                 .update(doc_progress)
-            session.commit()
-            return doc_progress
+            session.flush()
+        return doc_progress
 
     def insert_failed_document(self, failed_doc_payload: dict):
         with self.get_session() as session:
