@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-frontend
+  namespace: uiuc-chat
+  labels:
+    app: uiuc-chat-frontend
+spec:
+  selector:
+    app: uiuc-chat-frontend
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uiuc-chat-frontend
+  namespace: uiuc-chat
+  labels:
+    app: uiuc-chat-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uiuc-chat-frontend
+  template:
+    metadata:
+      labels:
+        app: uiuc-chat-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: uiuc-chat-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          env:
+            - name: NEXT_PUBLIC_KEYCLOAK_URL
+              value: "http://uiuc-chat-keycloak:8080/"
+            - name: NEXT_PUBLIC_KEYCLOAK_REALM
+              value: "illinois_chat_realm"
+            - name: NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
+              value: "uiuc-chat-client"
+            - name: NEXT_PUBLIC_BACKEND_URL
+              value: "http://uiuc-chat-backend:8001"
+

@@ -67,6 +67,10 @@ postgresql:
 # Redis
 redis:
   enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/redis
+    tag: "7.0"
   auth:
     enabled: true
     password: "password"
@@ -78,6 +82,10 @@ redis:
 # RabbitMQ
 rabbitmq:
   enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/rabbitmq
+    tag: "3.12"
   auth:
     username: "guest"
     password: "guest"

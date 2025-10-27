@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uiuc-chat-worker
+  namespace: uiuc-chat
+  labels:
+    app: uiuc-chat-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uiuc-chat-worker
+  template:
+    metadata:
+      labels:
+        app: uiuc-chat-worker
+    spec:
+      containers:
+        - name: worker
+          image: uiuc-chat-backend:helm-merge-1
+          imagePullPolicy: Never
+          command: ["python"]
+          args: ["-m", "ai_ta_backend.rabbitmq.worker"]
+          ports:
+            - containerPort: 8001
+          livenessProbe:
+            httpGet:
+              path: /api/healthcheck
+              port: 8001
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/healthcheck
+              port: 8001
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 12
+          startupProbe:
+            httpGet:
+              path: /api/healthcheck
+              port: 8001
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 60
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          env:
+            # Database (Postgres) - required by rmsql.py
+            - name: POSTGRES_ENDPOINT
+              value: "uiuc-chat-postgresql"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DATABASE
+              value: "postgres"
+            - name: POSTGRES_USERNAME
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "password"
+            # Vector DB
+            - name: QDRANT_COLLECTION_NAME
+              value: "illinois_chat_dev"
+            - name: S3_BUCKET_NAME
+              value: "uiuc-chat-dev"
+            - name: QDRANT_URL
+              value: "http://uiuc-chat-qdrant:6333"
+            # Optional Redis (not used directly by worker, kept for parity)
+            - name: REDIS_URL
+              value: "redis://:password@uiuc-chat-redis-master:6379/0"
+            - name: RABBITMQ_URL
+              value: "amqp://guest:guest@uiuc-chat-rabbitmq:5672/"
+            # MinIO/S3 access
+            - name: LOCAL_MINIO
+              value: "true"
+            - name: MINIO_ENDPOINT
+              value: "http://uiuc-chat-minio:9000"
+            - name: AWS_ACCESS_KEY_ID
+              value: "minioadmin"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "minioadmin"
+            # Embeddings configuration (use Ollama's /api/embeddings via base /api)
+            - name: EMBEDDING_API_BASE
+              value: "http://uiuc-chat-ollama:11434/api"
+            - name: EMBEDDING_MODEL
+              value: "nomic-embed-text"
+            - name: NCSA_HOSTED_API_KEY
+              value: "dummy-key-for-ollama"
+

@@ -217,6 +217,11 @@ postgresql:
     persistence:
       enabled: true
       size: 8Gi
+  # Database schema initialization
+  schema:
+    enabled: true
+    # Set to false to skip automatic schema setup
+    # Useful for production environments with existing databases
 
 # Redis configuration (using Bitnami chart)
 redis:

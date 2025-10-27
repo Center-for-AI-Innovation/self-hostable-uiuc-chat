@@ -1,0 +1,2709 @@
+---
+# Source: uiuc-chat/charts/keycloak/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: uiuc-chat-keycloak
+  labels:
+    helm.sh/chart: keycloak-18.10.0
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "17.0.1-legacy"
+    app.kubernetes.io/managed-by: Helm
+imagePullSecrets:
+    []
+---
+# Source: uiuc-chat/charts/minio/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "minio-sa"
+---
+# Source: uiuc-chat/charts/qdrant/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: uiuc-chat-qdrant
+  labels:
+    helm.sh/chart: qdrant-1.15.4
+    app: qdrant
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "v1.15.4"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: uiuc-chat/charts/rabbitmq/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: uiuc-chat-rabbitmq
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    helm.sh/chart: rabbitmq-12.0.13
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+automountServiceAccountToken: true
+secrets:
+  - name: uiuc-chat-rabbitmq
+---
+# Source: uiuc-chat/charts/redis/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: true
+metadata:
+  name: uiuc-chat-redis
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.0.11
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: uiuc-chat/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: uiuc-chat
+  labels:
+    helm.sh/chart: uiuc-chat-0.1.0
+    app.kubernetes.io/name: uiuc-chat
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: uiuc-chat/charts/minio/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: uiuc-chat-minio
+  labels:
+    app: minio
+    chart: minio-5.0.15
+    release: uiuc-chat
+    heritage: Helm
+type: Opaque
+data:
+  rootUser: "cDVWdDBrZnJSaEZWTWh0MmlhYjg="
+  rootPassword: "YjFtOG9VaDZod2tiWDJvZDZLS1NKdmZuN1ZhNlNDdnR5Nm5oNXVacw=="
+---
+# Source: uiuc-chat/charts/postgresql/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: uiuc-chat-postgresql
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.0.1
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  postgres-password: "cGFzc3dvcmQ="
+  password: "cGFzc3dvcmQ="
+  # We don't auto-generate LDAP password when it's not provided as we do for other passwords
+---
+# Source: uiuc-chat/charts/rabbitmq/templates/config-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: uiuc-chat-rabbitmq-config
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    helm.sh/chart: rabbitmq-12.0.13
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  rabbitmq.conf: |-
+    IyMgVXNlcm5hbWUgYW5kIHBhc3N3b3JkCiMjCmRlZmF1bHRfdXNlciA9IGd1ZXN0CiMjIENsdXN0ZXJpbmcKIyMKY2x1c3Rlcl9mb3JtYXRpb24ucGVlcl9kaXNjb3ZlcnlfYmFja2VuZCAgPSByYWJiaXRfcGVlcl9kaXNjb3ZlcnlfazhzCmNsdXN0ZXJfZm9ybWF0aW9uLms4cy5ob3N0ID0ga3ViZXJuZXRlcy5kZWZhdWx0CmNsdXN0ZXJfZm9ybWF0aW9uLm5vZGVfY2xlYW51cC5pbnRlcnZhbCA9IDEwCmNsdXN0ZXJfZm9ybWF0aW9uLm5vZGVfY2xlYW51cC5vbmx5X2xvZ193YXJuaW5nID0gdHJ1ZQpjbHVzdGVyX3BhcnRpdGlvbl9oYW5kbGluZyA9IGF1dG9oZWFsCgojIHF1ZXVlIG1hc3RlciBsb2NhdG9yCnF1ZXVlX21hc3Rlcl9sb2NhdG9yID0gbWluLW1hc3RlcnMKIyBlbmFibGUgbG9vcGJhY2sgdXNlcgpsb29wYmFja191c2Vycy5ndWVzdCA9IGZhbHNlCiNkZWZhdWx0X3Zob3N0ID0gdWl1Yy1jaGF0LXZob3N0CiNkaXNrX2ZyZWVfbGltaXQuYWJzb2x1dGUgPSA1ME1C
+---
+# Source: uiuc-chat/charts/rabbitmq/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: uiuc-chat-rabbitmq
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    helm.sh/chart: rabbitmq-12.0.13
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  rabbitmq-password: "Z3Vlc3Q="
+  rabbitmq-erlang-cookie: "YVlOTUlxNTRxZFQ4c2E4d0d5ZDRPdlF5M0xCUjRDVWo="
+---
+# Source: uiuc-chat/charts/redis/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: uiuc-chat-redis
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.0.11
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  redis-password: "cGFzc3dvcmQ="
+---
+# Source: uiuc-chat/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: uiuc-chat-secrets
+  labels:
+    helm.sh/chart: uiuc-chat-0.1.0
+    app.kubernetes.io/name: uiuc-chat
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  # Database credentials (matching dependency chart passwords)
+  POSTGRES_PASSWORD: "cGFzc3dvcmQ="
+  
+  # Redis credentials (matching dependency chart passwords)
+  REDIS_PASSWORD: "cGFzc3dvcmQ="
+  
+  # RabbitMQ credentials (matching dependency chart passwords)
+  RABBITMQ_PASSWORD: "Z3Vlc3Q="
+  
+  # MinIO credentials (matching dependency chart passwords)
+  MINIO_ACCESS_KEY: "bWluaW9hZG1pbg=="
+  MINIO_SECRET_KEY: "bWluaW9hZG1pbg=="
+  
+  # API keys (UIUC Chat specific)
+  QDRANT_API_KEY: "ZGV2LWtleQ=="
+---
+# Source: uiuc-chat/charts/keycloak/templates/configmap-startup.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: uiuc-chat-keycloak-startup
+  labels:
+    helm.sh/chart: keycloak-18.10.0
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "17.0.1-legacy"
+    app.kubernetes.io/managed-by: Helm
+data:
+  keycloak.cli: |
+    embed-server --server-config=standalone-ha.xml --std-out=echo
+    batch
+    
+    echo Configuring node identifier
+    
+    ## Sets the node identifier to the node name (= pod name). Node identifiers have to be unique. They can have a
+    ## maximum length of 23 characters. Thus, the chart's fullname template truncates its length accordingly.
+    /subsystem=transactions:write-attribute(name=node-identifier, value=${jboss.node.name})
+    
+    echo Finished configuring node identifier
+    
+    run-batch
+    stop-embedded-server
+---
+# Source: uiuc-chat/charts/minio/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: uiuc-chat-minio
+  labels:
+    app: minio
+    chart: minio-5.0.15
+    release: uiuc-chat
+    heritage: Helm
+data:
+  initialize: |-
+    #!/bin/sh
+    set -e # Have script exit in the event of a failed command.
+    MC_CONFIG_DIR="/etc/minio/mc/"
+    MC="/usr/bin/mc --insecure --config-dir ${MC_CONFIG_DIR}"
+    
+    # connectToMinio
+    # Use a check-sleep-check loop to wait for MinIO service to be available
+    connectToMinio() {
+    	SCHEME=$1
+    	ATTEMPTS=0
+    	LIMIT=29 # Allow 30 attempts
+    	set -e   # fail if we can't read the keys.
+    	ACCESS=$(cat /config/rootUser)
+    	SECRET=$(cat /config/rootPassword)
+    	set +e # The connections to minio are allowed to fail.
+    	echo "Connecting to MinIO server: $SCHEME://$MINIO_ENDPOINT:$MINIO_PORT"
+    	MC_COMMAND="${MC} alias set myminio $SCHEME://$MINIO_ENDPOINT:$MINIO_PORT $ACCESS $SECRET"
+    	$MC_COMMAND
+    	STATUS=$?
+    	until [ $STATUS = 0 ]; do
+    		ATTEMPTS=$(expr $ATTEMPTS + 1)
+    		echo \"Failed attempts: $ATTEMPTS\"
+    		if [ $ATTEMPTS -gt $LIMIT ]; then
+    			exit 1
+    		fi
+    		sleep 2 # 1 second intervals between attempts
+    		$MC_COMMAND
+    		STATUS=$?
+    	done
+    	set -e # reset `e` as active
+    	return 0
+    }
+    
+    # checkBucketExists ($bucket)
+    # Check if the bucket exists, by using the exit code of `mc ls`
+    checkBucketExists() {
+    	BUCKET=$1
+    	CMD=$(${MC} stat myminio/$BUCKET >/dev/null 2>&1)
+    	return $?
+    }
+    
+    # createBucket ($bucket, $policy, $purge)
+    # Ensure bucket exists, purging if asked to
+    createBucket() {
+    	BUCKET=$1
+    	POLICY=$2
+    	PURGE=$3
+    	VERSIONING=$4
+    	OBJECTLOCKING=$5
+    
+    	# Purge the bucket, if set & exists
+    	# Since PURGE is user input, check explicitly for `true`
+    	if [ $PURGE = true ]; then
+    		if checkBucketExists $BUCKET; then
+    			echo "Purging bucket '$BUCKET'."
+    			set +e # don't exit if this fails
+    			${MC} rm -r --force myminio/$BUCKET
+    			set -e # reset `e` as active
+    		else
+    			echo "Bucket '$BUCKET' does not exist, skipping purge."
+    		fi
+    	fi
+    
+    	# Create the bucket if it does not exist and set objectlocking if enabled (NOTE: versioning will be not changed if OBJECTLOCKING is set because it enables versioning to the Buckets created)
+    	if ! checkBucketExists $BUCKET; then
+    		if [ ! -z $OBJECTLOCKING ]; then
+    			if [ $OBJECTLOCKING = true ]; then
+    				echo "Creating bucket with OBJECTLOCKING '$BUCKET'"
+    				${MC} mb --with-lock myminio/$BUCKET
+    			elif [ $OBJECTLOCKING = false ]; then
+    				echo "Creating bucket '$BUCKET'"
+    				${MC} mb myminio/$BUCKET
+    			fi
+    		elif [ -z $OBJECTLOCKING ]; then
+    			echo "Creating bucket '$BUCKET'"
+    			${MC} mb myminio/$BUCKET
+    		else
+    			echo "Bucket '$BUCKET' already exists."
+    		fi
+    	fi
+    
+    	# set versioning for bucket if objectlocking is disabled or not set
+    	if [ $OBJECTLOCKING = false ]; then
+    		if [ ! -z $VERSIONING ]; then
+    			if [ $VERSIONING = true ]; then
+    				echo "Enabling versioning for '$BUCKET'"
+    				${MC} version enable myminio/$BUCKET
+    			elif [ $VERSIONING = false ]; then
+    				echo "Suspending versioning for '$BUCKET'"
+    				${MC} version suspend myminio/$BUCKET
+    			fi
+    		fi
+    	else
+    		echo "Bucket '$BUCKET' versioning unchanged."
+    	fi
+    
+    	# At this point, the bucket should exist, skip checking for existence
+    	# Set policy on the bucket
+    	echo "Setting policy of bucket '$BUCKET' to '$POLICY'."
+    	${MC} anonymous set $POLICY myminio/$BUCKET
+    }
+    
+    # Try connecting to MinIO instance
+    scheme=http
+    connectToMinio $scheme
+    
+    
+    
+  add-user: |-
+    #!/bin/sh
+    set -e ; # Have script exit in the event of a failed command.
+    MC_CONFIG_DIR="/etc/minio/mc/"
+    MC="/usr/bin/mc --insecure --config-dir ${MC_CONFIG_DIR}"
+    
+    # AccessKey and secretkey credentials file are added to prevent shell execution errors caused by special characters.
+    # Special characters for example : ',",<,>,{,}
+    MINIO_ACCESSKEY_SECRETKEY_TMP="/tmp/accessKey_and_secretKey_tmp"
+    
+    # connectToMinio
+    # Use a check-sleep-check loop to wait for MinIO service to be available
+    connectToMinio() {
+      SCHEME=$1
+      ATTEMPTS=0 ; LIMIT=29 ; # Allow 30 attempts
+      set -e ; # fail if we can't read the keys.
+      ACCESS=$(cat /config/rootUser) ; SECRET=$(cat /config/rootPassword) ;
+      set +e ; # The connections to minio are allowed to fail.
+      echo "Connecting to MinIO server: $SCHEME://$MINIO_ENDPOINT:$MINIO_PORT" ;
+      MC_COMMAND="${MC} alias set myminio $SCHEME://$MINIO_ENDPOINT:$MINIO_PORT $ACCESS $SECRET" ;
+      $MC_COMMAND ;
+      STATUS=$? ;
+      until [ $STATUS = 0 ]
+      do
+        ATTEMPTS=`expr $ATTEMPTS + 1` ;
+        echo \"Failed attempts: $ATTEMPTS\" ;
+        if [ $ATTEMPTS -gt $LIMIT ]; then
+          exit 1 ;
+        fi ;
+        sleep 2 ; # 1 second intervals between attempts
+        $MC_COMMAND ;
+        STATUS=$? ;
+      done ;
+      set -e ; # reset `e` as active
+      return 0
+    }
+    
+    # checkUserExists ()
+    # Check if the user exists, by using the exit code of `mc admin user info`
+    checkUserExists() {
+      CMD=$(${MC} admin user info myminio $(head -1 $MINIO_ACCESSKEY_SECRETKEY_TMP) > /dev/null 2>&1)
+      return $?
+    }
+    
+    # createUser ($policy)
+    createUser() {
+      POLICY=$1
+      #check accessKey_and_secretKey_tmp file
+      if [[ ! -f $MINIO_ACCESSKEY_SECRETKEY_TMP ]];then
+        echo "credentials file does not exist"
+        return 1
+      fi
+      if [[ $(cat $MINIO_ACCESSKEY_SECRETKEY_TMP|wc -l) -ne 2 ]];then
+        echo "credentials file is invalid"
+        rm -f $MINIO_ACCESSKEY_SECRETKEY_TMP
+        return 1
+      fi
+      USER=$(head -1 $MINIO_ACCESSKEY_SECRETKEY_TMP)
+      # Create the user if it does not exist
+      if ! checkUserExists ; then
+        echo "Creating user '$USER'"
+        cat $MINIO_ACCESSKEY_SECRETKEY_TMP | ${MC} admin user add myminio
+      else
+        echo "User '$USER' already exists."
+      fi
+      #clean up credentials files.
+      rm -f $MINIO_ACCESSKEY_SECRETKEY_TMP
+    
+      # set policy for user
+      if [ ! -z $POLICY -a $POLICY != " " ] ; then
+          echo "Adding policy '$POLICY' for '$USER'"
+          set +e ; # policy already attach errors out, allow it.
+          ${MC} admin policy attach myminio $POLICY --user=$USER
+          set -e
+      else
+          echo "User '$USER' has no policy attached."
+      fi
+    }
+    
+    # Try connecting to MinIO instance
+    scheme=http
+    connectToMinio $scheme
+    
+    
+    
+    # Create the users
+    echo console > $MINIO_ACCESSKEY_SECRETKEY_TMP
+    echo console123 >> $MINIO_ACCESSKEY_SECRETKEY_TMP
+    createUser consoleAdmin
+    
+  add-policy: |-
+    #!/bin/sh
+    set -e ; # Have script exit in the event of a failed command.
+    MC_CONFIG_DIR="/etc/minio/mc/"
+    MC="/usr/bin/mc --insecure --config-dir ${MC_CONFIG_DIR}"
+    
+    # connectToMinio
+    # Use a check-sleep-check loop to wait for MinIO service to be available
+    connectToMinio() {
+      SCHEME=$1
+      ATTEMPTS=0 ; LIMIT=29 ; # Allow 30 attempts
+      set -e ; # fail if we can't read the keys.
+      ACCESS=$(cat /config/rootUser) ; SECRET=$(cat /config/rootPassword) ;
+      set +e ; # The connections to minio are allowed to fail.
+      echo "Connecting to MinIO server: $SCHEME://$MINIO_ENDPOINT:$MINIO_PORT" ;
+      MC_COMMAND="${MC} alias set myminio $SCHEME://$MINIO_ENDPOINT:$MINIO_PORT $ACCESS $SECRET" ;
+      $MC_COMMAND ;
+      STATUS=$? ;
+      until [ $STATUS = 0 ]
+      do
+        ATTEMPTS=`expr $ATTEMPTS + 1` ;
+        echo \"Failed attempts: $ATTEMPTS\" ;
+        if [ $ATTEMPTS -gt $LIMIT ]; then
+          exit 1 ;
+        fi ;
+        sleep 2 ; # 1 second intervals between attempts
+        $MC_COMMAND ;
+        STATUS=$? ;
+      done ;
+      set -e ; # reset `e` as active
+      return 0
+    }
+    
+    # checkPolicyExists ($policy)
+    # Check if the policy exists, by using the exit code of `mc admin policy info`
+    checkPolicyExists() {
+      POLICY=$1
+      CMD=$(${MC} admin policy info myminio $POLICY > /dev/null 2>&1)
+      return $?
+    }
+    
+    # createPolicy($name, $filename)
+    createPolicy () {
+      NAME=$1
+      FILENAME=$2
+    
+      # Create the name if it does not exist
+      echo "Checking policy: $NAME (in /config/$FILENAME.json)"
+      if ! checkPolicyExists $NAME ; then
+        echo "Creating policy '$NAME'"
+      else
+        echo "Policy '$NAME' already exists."
+      fi
+      ${MC} admin policy create myminio $NAME /config/$FILENAME.json
+    
+    }
+    
+    # Try connecting to MinIO instance
+    scheme=http
+    connectToMinio $scheme
+    
+    
+    
+  add-svcacct: |-
+    #!/bin/sh
+    set -e ; # Have script exit in the event of a failed command.
+    MC_CONFIG_DIR="/etc/minio/mc/"
+    MC="/usr/bin/mc --insecure --config-dir ${MC_CONFIG_DIR}"
+    
+    # AccessKey and secretkey credentials file are added to prevent shell execution errors caused by special characters.
+    # Special characters for example : ',",<,>,{,}
+    MINIO_ACCESSKEY_SECRETKEY_TMP="/tmp/accessKey_and_secretKey_svcacct_tmp"
+    
+    # connectToMinio
+    # Use a check-sleep-check loop to wait for MinIO service to be available
+    connectToMinio() {
+      SCHEME=$1
+      ATTEMPTS=0 ; LIMIT=29 ; # Allow 30 attempts
+      set -e ; # fail if we can't read the keys.
+      ACCESS=$(cat /config/rootUser) ; SECRET=$(cat /config/rootPassword) ;
+      set +e ; # The connections to minio are allowed to fail.
+      echo "Connecting to MinIO server: $SCHEME://$MINIO_ENDPOINT:$MINIO_PORT" ;
+      MC_COMMAND="${MC} alias set myminio $SCHEME://$MINIO_ENDPOINT:$MINIO_PORT $ACCESS $SECRET" ;
+      $MC_COMMAND ;
+      STATUS=$? ;
+      until [ $STATUS = 0 ]
+      do
+        ATTEMPTS=`expr $ATTEMPTS + 1` ;
+        echo \"Failed attempts: $ATTEMPTS\" ;
+        if [ $ATTEMPTS -gt $LIMIT ]; then
+          exit 1 ;
+        fi ;
+        sleep 2 ; # 2 second intervals between attempts
+        $MC_COMMAND ;
+        STATUS=$? ;
+      done ;
+      set -e ; # reset `e` as active
+      return 0
+    }
+    
+    # checkSvcacctExists ()
+    # Check if the svcacct exists, by using the exit code of `mc admin user svcacct info`
+    checkSvcacctExists() {
+      CMD=$(${MC} admin user svcacct info myminio $(head -1 $MINIO_ACCESSKEY_SECRETKEY_TMP) > /dev/null 2>&1)
+      return $?
+    }
+    
+    # createSvcacct ($user)
+    createSvcacct () {
+      USER=$1
+      FILENAME=$2
+      #check accessKey_and_secretKey_tmp file
+      if [[ ! -f $MINIO_ACCESSKEY_SECRETKEY_TMP ]];then
+        echo "credentials file does not exist"
+        return 1
+      fi
+      if [[ $(cat $MINIO_ACCESSKEY_SECRETKEY_TMP|wc -l) -ne 2 ]];then
+        echo "credentials file is invalid"
+        rm -f $MINIO_ACCESSKEY_SECRETKEY_TMP
+        return 1
+      fi
+      SVCACCT=$(head -1 $MINIO_ACCESSKEY_SECRETKEY_TMP)
+      # Create the svcacct if it does not exist
+      if ! checkSvcacctExists ; then
+        echo "Creating svcacct '$SVCACCT'"
+        # Check if policy file is define
+        if [ -z $FILENAME ]; then
+          ${MC} admin user svcacct add --access-key $(head -1 $MINIO_ACCESSKEY_SECRETKEY_TMP) --secret-key $(tail -n1 $MINIO_ACCESSKEY_SECRETKEY_TMP) myminio $USER
+        else
+          ${MC} admin user svcacct add --access-key $(head -1 $MINIO_ACCESSKEY_SECRETKEY_TMP) --secret-key $(tail -n1 $MINIO_ACCESSKEY_SECRETKEY_TMP) --policy /config/$FILENAME.json myminio $USER
+        fi
+      else
+        echo "Svcacct '$SVCACCT' already exists."
+      fi
+      #clean up credentials files.
+      rm -f $MINIO_ACCESSKEY_SECRETKEY_TMP
+    }
+    
+    # Try connecting to MinIO instance
+    scheme=http
+    connectToMinio $scheme
+    
+    
+    
+  custom-command: |-
+    #!/bin/sh
+    set -e ; # Have script exit in the event of a failed command.
+    MC_CONFIG_DIR="/etc/minio/mc/"
+    MC="/usr/bin/mc --insecure --config-dir ${MC_CONFIG_DIR}"
+    
+    # connectToMinio
+    # Use a check-sleep-check loop to wait for MinIO service to be available
+    connectToMinio() {
+      SCHEME=$1
+      ATTEMPTS=0 ; LIMIT=29 ; # Allow 30 attempts
+      set -e ; # fail if we can't read the keys.
+      ACCESS=$(cat /config/rootUser) ; SECRET=$(cat /config/rootPassword) ;
+      set +e ; # The connections to minio are allowed to fail.
+      echo "Connecting to MinIO server: $SCHEME://$MINIO_ENDPOINT:$MINIO_PORT" ;
+      MC_COMMAND="${MC} alias set myminio $SCHEME://$MINIO_ENDPOINT:$MINIO_PORT $ACCESS $SECRET" ;
+      $MC_COMMAND ;
+      STATUS=$? ;
+      until [ $STATUS = 0 ]
+      do
+        ATTEMPTS=`expr $ATTEMPTS + 1` ;
+        echo \"Failed attempts: $ATTEMPTS\" ;
+        if [ $ATTEMPTS -gt $LIMIT ]; then
+          exit 1 ;
+        fi ;
+        sleep 2 ; # 1 second intervals between attempts
+        $MC_COMMAND ;
+        STATUS=$? ;
+      done ;
+      set -e ; # reset `e` as active
+      return 0
+    }
+    
+    # runCommand ($@)
+    # Run custom mc command
+    runCommand() {
+      ${MC} "$@"
+      return $?
+    }
+    
+    # Try connecting to MinIO instance
+    scheme=http
+    connectToMinio $scheme
+---
+# Source: uiuc-chat/charts/qdrant/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: uiuc-chat-qdrant
+  labels:
+    helm.sh/chart: qdrant-1.15.4
+    app: qdrant
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "v1.15.4"
+    app.kubernetes.io/managed-by: Helm
+data:
+  initialize.sh: |
+    #!/bin/sh
+    echo "Soft limits"
+    ulimit -a -S
+    echo "Hard limits"
+    ulimit -a -H
+    ulimit -n $(ulimit -Hn)
+    SET_INDEX=${HOSTNAME##*-}
+    echo "Starting initializing for pod $SET_INDEX"
+    if [ "$SET_INDEX" = "0" ]; then
+      exec ./entrypoint.sh --uri 'http://uiuc-chat-qdrant-0.uiuc-chat-qdrant-headless:6335'
+    else
+      exec ./entrypoint.sh --bootstrap 'http://uiuc-chat-qdrant-0.uiuc-chat-qdrant-headless:6335' --uri 'http://uiuc-chat-qdrant-'"$SET_INDEX"'.uiuc-chat-qdrant-headless:6335'
+    fi
+    
+  production.yaml: |
+    cluster:
+      consensus:
+        tick_period_ms: 100
+      enabled: true
+      p2p:
+        enable_tls: false
+        port: 6335
+---
+# Source: uiuc-chat/charts/redis/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: uiuc-chat-redis-configuration
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.0.11
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+data:
+  redis.conf: |-
+    # User-supplied common configuration:
+    # Enable AOF https://redis.io/topics/persistence#append-only-file
+    appendonly yes
+    # Disable RDB persistence, AOF persistence already enabled.
+    save ""
+    # End of common configuration
+  master.conf: |-
+    dir /data
+    # User-supplied master configuration:
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    # End of master configuration
+  replica.conf: |-
+    dir /data
+    # User-supplied replica configuration:
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    # End of replica configuration
+---
+# Source: uiuc-chat/charts/redis/templates/health-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: uiuc-chat-redis-health
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.0.11
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+data:
+  ping_readiness_local.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    [[ -n "$REDIS_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_PASSWORD"
+    response=$(
+      timeout -s 3 $1 \
+      redis-cli \
+        -h localhost \
+        -p $REDIS_PORT \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    if [ "$response" != "PONG" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_liveness_local.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    [[ -n "$REDIS_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_PASSWORD"
+    response=$(
+      timeout -s 3 $1 \
+      redis-cli \
+        -h localhost \
+        -p $REDIS_PORT \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    responseFirstWord=$(echo $response | head -n1 | awk '{print $1;}')
+    if [ "$response" != "PONG" ] && [ "$responseFirstWord" != "LOADING" ] && [ "$responseFirstWord" != "MASTERDOWN" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_readiness_master.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
+    [[ -n "$REDIS_MASTER_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_MASTER_PASSWORD"
+    response=$(
+      timeout -s 3 $1 \
+      redis-cli \
+        -h $REDIS_MASTER_HOST \
+        -p $REDIS_MASTER_PORT_NUMBER \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    if [ "$response" != "PONG" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_liveness_master.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
+    [[ -n "$REDIS_MASTER_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_MASTER_PASSWORD"
+    response=$(
+      timeout -s 3 $1 \
+      redis-cli \
+        -h $REDIS_MASTER_HOST \
+        -p $REDIS_MASTER_PORT_NUMBER \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    responseFirstWord=$(echo $response | head -n1 | awk '{print $1;}')
+    if [ "$response" != "PONG" ] && [ "$responseFirstWord" != "LOADING" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_readiness_local_and_master.sh: |-
+    script_dir="$(dirname "$0")"
+    exit_status=0
+    "$script_dir/ping_readiness_local.sh" $1 || exit_status=$?
+    "$script_dir/ping_readiness_master.sh" $1 || exit_status=$?
+    exit $exit_status
+  ping_liveness_local_and_master.sh: |-
+    script_dir="$(dirname "$0")"
+    exit_status=0
+    "$script_dir/ping_liveness_local.sh" $1 || exit_status=$?
+    "$script_dir/ping_liveness_master.sh" $1 || exit_status=$?
+    exit $exit_status
+---
+# Source: uiuc-chat/charts/redis/templates/scripts-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: uiuc-chat-redis-scripts
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.0.11
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+data:
+  start-master.sh: |
+    #!/bin/bash
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    if [[ ! -f /opt/bitnami/redis/etc/master.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/master.conf /opt/bitnami/redis/etc/master.conf
+    fi
+    if [[ ! -f /opt/bitnami/redis/etc/redis.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/redis.conf /opt/bitnami/redis/etc/redis.conf
+    fi
+    ARGS=("--port" "${REDIS_PORT}")
+    ARGS+=("--requirepass" "${REDIS_PASSWORD}")
+    ARGS+=("--masterauth" "${REDIS_PASSWORD}")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/redis.conf")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/master.conf")
+    exec redis-server "${ARGS[@]}"
+  start-replica.sh: |
+    #!/bin/bash
+
+    get_port() {
+        hostname="$1"
+        type="$2"
+
+        port_var=$(echo "${hostname^^}_SERVICE_PORT_$type" | sed "s/-/_/g")
+        port=${!port_var}
+
+        if [ -z "$port" ]; then
+            case $type in
+                "SENTINEL")
+                    echo 26379
+                    ;;
+                "REDIS")
+                    echo 6379
+                    ;;
+            esac
+        else
+            echo $port
+        fi
+    }
+
+    get_full_hostname() {
+        hostname="$1"
+        echo "${hostname}.${HEADLESS_SERVICE}"
+    }
+
+    REDISPORT=$(get_port "$HOSTNAME" "REDIS")
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
+    if [[ ! -f /opt/bitnami/redis/etc/replica.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/replica.conf /opt/bitnami/redis/etc/replica.conf
+    fi
+    if [[ ! -f /opt/bitnami/redis/etc/redis.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/redis.conf /opt/bitnami/redis/etc/redis.conf
+    fi
+
+    echo "" >> /opt/bitnami/redis/etc/replica.conf
+    echo "replica-announce-port $REDISPORT" >> /opt/bitnami/redis/etc/replica.conf
+    echo "replica-announce-ip $(get_full_hostname "$HOSTNAME")" >> /opt/bitnami/redis/etc/replica.conf
+    ARGS=("--port" "${REDIS_PORT}")
+    ARGS+=("--replicaof" "${REDIS_MASTER_HOST}" "${REDIS_MASTER_PORT_NUMBER}")
+    ARGS+=("--requirepass" "${REDIS_PASSWORD}")
+    ARGS+=("--masterauth" "${REDIS_MASTER_PASSWORD}")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/redis.conf")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/replica.conf")
+    exec redis-server "${ARGS[@]}"
+---
+# Source: uiuc-chat/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: uiuc-chat-app-config
+  labels:
+    helm.sh/chart: uiuc-chat-0.1.0
+    app.kubernetes.io/name: uiuc-chat
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+data:
+  # Application configuration
+  ENVIRONMENT: "dev"
+  
+  # Service URLs
+  POSTGRES_HOST: "uiuc-chat-postgresql"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "postgres"
+  POSTGRES_USER: "postgres"
+
+  # ai-ta-backend expected PostgreSQL envs (aliases)
+  POSTGRES_ENDPOINT: "uiuc-chat-postgresql"
+  POSTGRES_DATABASE: "postgres"
+  POSTGRES_USERNAME: "postgres"
+  
+  REDIS_HOST: "uiuc-chat-redis-master"
+  REDIS_PORT: "6379"
+  
+  RABBITMQ_HOST: "uiuc-chat-rabbitmq"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_URL: "amqp://guest:guest@uiuc-chat-rabbitmq:5672"
+  
+  QDRANT_URL: "http://uiuc-chat-qdrant:6333"
+  MINIO_URL: "http://uiuc-chat-minio:9000"
+  KEYCLOAK_URL: "http://uiuc-chat-keycloak:8080"
+  OLLAMA_BASE_URL: "http://uiuc-chat-ollama:11434"
+  
+  # Application specific
+  QDRANT_COLLECTION_NAME: "illinois_chat_dev"
+  S3_BUCKET_NAME: "uiuc-chat-dev"
+  
+  # Public URLs (if ingress is configured)
+---
+# Source: uiuc-chat/charts/minio/templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uiuc-chat-minio
+  labels:
+    app: minio
+    chart: minio-5.0.15
+    release: uiuc-chat
+    heritage: Helm
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "10Gi"
+---
+# Source: uiuc-chat/templates/persistent-volumes.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uiuc-chat-ollama-pvc
+  labels:
+    helm.sh/chart: uiuc-chat-0.1.0
+    app.kubernetes.io/name: uiuc-chat
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: ollama
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+---
+# Source: uiuc-chat/charts/rabbitmq/templates/role.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: uiuc-chat-rabbitmq-endpoint-reader
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    helm.sh/chart: rabbitmq-12.0.13
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+rules:
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create"]
+---
+# Source: uiuc-chat/charts/rabbitmq/templates/rolebinding.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: uiuc-chat-rabbitmq-endpoint-reader
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    helm.sh/chart: rabbitmq-12.0.13
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+subjects:
+  - kind: ServiceAccount
+    name: uiuc-chat-rabbitmq
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: uiuc-chat-rabbitmq-endpoint-reader
+---
+# Source: uiuc-chat/charts/keycloak/templates/service-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-keycloak-headless
+  labels:
+    helm.sh/chart: keycloak-18.10.0
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "17.0.1-legacy"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: headless
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/instance: uiuc-chat
+---
+# Source: uiuc-chat/charts/keycloak/templates/service-http.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-keycloak-http
+  labels:
+    helm.sh/chart: keycloak-18.10.0
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "17.0.1-legacy"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: http
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+    - name: https
+      port: 8443
+      targetPort: https
+      protocol: TCP
+    - name: http-management
+      port: 9990
+      targetPort: http-management
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/instance: uiuc-chat
+---
+# Source: uiuc-chat/charts/minio/templates/console-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-minio-console
+  labels:
+    app: minio
+    chart: minio-5.0.15
+    release: uiuc-chat
+    heritage: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 9001
+      protocol: TCP
+      targetPort: 9001
+  selector:
+    app: minio
+    release: uiuc-chat
+---
+# Source: uiuc-chat/charts/minio/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-minio
+  labels:
+    app: minio
+    chart: minio-5.0.15
+    release: uiuc-chat
+    heritage: Helm
+    monitoring: "true"
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 9000
+      protocol: TCP
+      targetPort: 9000
+  selector:
+    app: minio
+    release: uiuc-chat
+---
+# Source: uiuc-chat/charts/postgresql/templates/primary/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-postgresql-hl
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.0.1
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: primary
+    # Use this annotation in addition to the actual publishNotReadyAddresses
+    # field below because the annotation will stop being respected soon but the
+    # field is broken in some versions of Kubernetes:
+    # https://github.com/kubernetes/kubernetes/issues/58662
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  # We want all pods in the StatefulSet to have their addresses published for
+  # the sake of the other Postgresql pods even before they're ready, since they
+  # have to be able to talk to each other in order to become ready.
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+  selector:
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/component: primary
+---
+# Source: uiuc-chat/charts/postgresql/templates/primary/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-postgresql
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.0.1
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: primary
+  annotations:
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/component: primary
+---
+# Source: uiuc-chat/charts/qdrant/templates/service-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-qdrant-headless
+  labels:
+    helm.sh/chart: qdrant-1.15.4
+    app: qdrant
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "v1.15.4"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: cluster-discovery
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: http
+      port: 6333
+      targetPort: 6333
+      protocol: TCP
+    - name: grpc
+      port: 6334
+      targetPort: 6334
+      protocol: TCP
+  selector:
+    app: qdrant
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/instance: uiuc-chat
+---
+# Source: uiuc-chat/charts/qdrant/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-qdrant
+  labels:
+    helm.sh/chart: qdrant-1.15.4
+    app: qdrant
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "v1.15.4"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 6333
+      targetPort: 6333
+      protocol: TCP
+    - name: grpc
+      port: 6334
+      targetPort: 6334
+      protocol: TCP
+  selector:
+    app: qdrant
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/instance: uiuc-chat
+---
+# Source: uiuc-chat/charts/rabbitmq/templates/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-rabbitmq-headless
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    helm.sh/chart: rabbitmq-12.0.13
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+spec:
+  clusterIP: None
+  ports:
+    - name: epmd
+      port: 4369
+      targetPort: epmd
+    - name: amqp
+      port: 5672
+      targetPort: amqp
+    - name: dist
+      port: 25672
+      targetPort: dist
+    - name: http-stats
+      port: 15672
+      targetPort: stats
+  selector: 
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/instance: uiuc-chat
+  publishNotReadyAddresses: true
+---
+# Source: uiuc-chat/charts/rabbitmq/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-rabbitmq
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    helm.sh/chart: rabbitmq-12.0.13
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: amqp
+      port: 5672
+      targetPort: amqp
+      nodePort: null
+    - name: epmd
+      port: 4369
+      targetPort: epmd
+      nodePort: null
+    - name: dist
+      port: 25672
+      targetPort: dist
+      nodePort: null
+    - name: http-stats
+      port: 15672
+      targetPort: stats
+      nodePort: null
+  selector: 
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/instance: uiuc-chat
+---
+# Source: uiuc-chat/charts/redis/templates/headless-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-redis-headless
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.0.11
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: uiuc-chat
+---
+# Source: uiuc-chat/charts/redis/templates/master/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-redis-master
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.0.11
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: master
+spec:
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
+  sessionAffinity: None
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/component: master
+---
+# Source: uiuc-chat/charts/redis/templates/replicas/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-redis-replicas
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.0.11
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: replica
+spec:
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
+  sessionAffinity: None
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/component: replica
+---
+# Source: uiuc-chat/templates/ollama-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: uiuc-chat-ollama
+  labels:
+    helm.sh/chart: uiuc-chat-0.1.0
+    app.kubernetes.io/name: uiuc-chat
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: ollama
+spec:
+  type: ClusterIP
+  ports:
+    - port: 11434
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: uiuc-chat
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/component: ollama
+---
+# Source: uiuc-chat/charts/minio/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uiuc-chat-minio
+  labels:
+    app: minio
+    chart: minio-5.0.15
+    release: uiuc-chat
+    heritage: Helm
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+      release: uiuc-chat
+  template:
+    metadata:
+      name: uiuc-chat-minio
+      labels:
+        app: minio
+        release: uiuc-chat
+      annotations:
+        checksum/secrets: 693c5245a40702e57bfcd84b10849ac6e76314fd9712f30f4233dcf7f34fd770
+        checksum/config: e3698d81389c98c1a775cbc56c192fd4c020ddc318d8c6358586e569b7355dd7
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      
+      serviceAccountName: minio-sa
+      containers:
+        - name: minio
+          image: "quay.io/minio/minio:RELEASE.2024-01-11T07-46-16Z"
+          imagePullPolicy: IfNotPresent
+          command:
+            - "/bin/sh"
+            - "-ce"
+            - "/usr/bin/docker-entrypoint.sh minio server /export -S /etc/minio/certs/ --address :9000 --console-address :9001"
+          volumeMounts:
+            - name: minio-user
+              mountPath: "/tmp/credentials"
+              readOnly: true
+            - name: export
+              mountPath: /export            
+          ports:
+            - name: http
+              containerPort: 9000
+            - name: http-console
+              containerPort: 9001
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: uiuc-chat-minio
+                  key: rootUser
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: uiuc-chat-minio
+                  key: rootPassword
+            - name: MINIO_PROMETHEUS_AUTH_TYPE
+              value: "public"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi      
+      volumes:
+        - name: export
+          persistentVolumeClaim:
+            claimName: uiuc-chat-minio
+        - name: minio-user
+          secret:
+            secretName: uiuc-chat-minio
+---
+# Source: uiuc-chat/templates/ollama-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uiuc-chat-ollama
+  labels:
+    helm.sh/chart: uiuc-chat-0.1.0
+    app.kubernetes.io/name: uiuc-chat
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: ollama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: uiuc-chat
+      app.kubernetes.io/instance: uiuc-chat
+      app.kubernetes.io/component: ollama
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: uiuc-chat
+        app.kubernetes.io/instance: uiuc-chat
+        app.kubernetes.io/component: ollama
+    spec:
+      serviceAccountName: uiuc-chat
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: ollama
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1000
+          image: ollama/ollama:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 11434
+              protocol: TCP
+          env:
+            - name: OLLAMA_HOST
+              value: "0.0.0.0:11434"
+          volumeMounts:
+            - name: ollama-data
+              mountPath: /root/.ollama
+          livenessProbe:
+            httpGet:
+              path: /api/tags
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/tags
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            limits:
+              cpu: 4000m
+              memory: 16Gi
+            requests:
+              cpu: 2000m
+              memory: 8Gi
+      volumes:
+        - name: ollama-data
+          persistentVolumeClaim:
+            claimName: uiuc-chat-ollama-pvc
+---
+# Source: uiuc-chat/charts/keycloak/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: uiuc-chat-keycloak
+  labels:
+    helm.sh/chart: keycloak-18.10.0
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "17.0.1-legacy"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: keycloak
+      app.kubernetes.io/instance: uiuc-chat
+  replicas: 1
+  serviceName: uiuc-chat-keycloak-headless
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        checksum/config-startup: 71ee669f6d08f3e218a240cbad17f7d755bd2e19a2a7288543b05ef7dc7b9df7
+        checksum/secrets: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+      labels:
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/instance: uiuc-chat
+    spec:
+      containers:
+        - name: keycloak
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+          image: "quay.io/keycloak/keycloak:17.0.1-legacy"
+          imagePullPolicy: IfNotPresent
+          command:
+            []
+          args:
+            []
+          env:
+            - name: DB_VENDOR
+              value: "postgres"
+            - name: DB_ADDR
+              value: "uiuc-chat-postgresql"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_DATABASE
+              value: "postgres"
+            - name: DB_USER
+              value: "postgres"
+            - name: DB_PASSWORD
+              value: "password"
+            - name: KEYCLOAK_USER
+              value: "admin"
+            - name: KEYCLOAK_PASSWORD
+              value: "admin"
+            
+          envFrom:
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: https
+              containerPort: 8443
+              protocol: TCP
+            - name: http-management
+              containerPort: 9990
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /auth/
+              port: http
+            initialDelaySeconds: 0
+            timeoutSeconds: 5
+            
+          readinessProbe:
+            httpGet:
+              path: /auth/realms/master
+              port: http
+            initialDelaySeconds: 30
+            timeoutSeconds: 1
+            
+          startupProbe:
+            httpGet:
+              path: /auth/
+              port: http
+            initialDelaySeconds: 30
+            timeoutSeconds: 1
+            failureThreshold: 60
+            periodSeconds: 5
+            
+          resources:
+            {}
+          volumeMounts:
+            - name: startup
+              mountPath: "/opt/jboss/startup-scripts/keycloak.cli"
+              subPath: "keycloak.cli"
+              readOnly: true
+      serviceAccountName: uiuc-chat-keycloak
+      securityContext:
+        fsGroup: 1000
+      enableServiceLinks: true
+      restartPolicy: Always
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: keycloak
+                  app.kubernetes.io/instance: uiuc-chat
+                matchExpressions:
+                  - key: app.kubernetes.io/component
+                    operator: NotIn
+                    values:
+                      - test
+              topologyKey: kubernetes.io/hostname
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: keycloak
+                    app.kubernetes.io/instance: uiuc-chat
+                  matchExpressions:
+                    - key: app.kubernetes.io/component
+                      operator: NotIn
+                      values:
+                        - test
+                topologyKey: failure-domain.beta.kubernetes.io/zone
+        
+      terminationGracePeriodSeconds: 60
+      volumes:
+        - name: startup
+          configMap:
+            name: uiuc-chat-keycloak-startup
+            defaultMode: 0555
+            items:
+              - key: keycloak.cli
+                path: keycloak.cli
+---
+# Source: uiuc-chat/charts/postgresql/templates/primary/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: uiuc-chat-postgresql
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.0.1
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: primary
+  annotations:
+spec:
+  replicas: 1
+  serviceName: uiuc-chat-postgresql-hl
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/instance: uiuc-chat
+      app.kubernetes.io/component: primary
+  template:
+    metadata:
+      name: uiuc-chat-postgresql
+      labels:
+        app.kubernetes.io/name: postgresql
+        helm.sh/chart: postgresql-12.0.1
+        app.kubernetes.io/instance: uiuc-chat
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: primary
+      annotations:
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: postgresql
+                    app.kubernetes.io/instance: uiuc-chat
+                    app.kubernetes.io/component: primary
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      hostNetwork: false
+      hostIPC: false
+      initContainers:
+      containers:
+        - name: postgresql
+          image: docker.io/postgres:16-alpine
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: POSTGRESQL_PORT_NUMBER
+              value: "5432"
+            - name: POSTGRESQL_VOLUME_DIR
+              value: "/bitnami/postgresql"
+            - name: PGDATA
+              value: "/bitnami/postgresql/data"
+            # Authentication
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: uiuc-chat-postgresql
+                  key: postgres-password
+            - name: POSTGRES_DB
+              value: "postgres"
+            # Replication
+            # Initdb
+            # Standby
+            # LDAP
+            - name: POSTGRESQL_ENABLE_LDAP
+              value: "no"
+            # TLS
+            - name: POSTGRESQL_ENABLE_TLS
+              value: "no"
+            # Audit
+            - name: POSTGRESQL_LOG_HOSTNAME
+              value: "false"
+            - name: POSTGRESQL_LOG_CONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_LOG_DISCONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_PGAUDIT_LOG_CATALOG
+              value: "off"
+            # Others
+            - name: POSTGRESQL_CLIENT_MIN_MESSAGES
+              value: "error"
+            - name: POSTGRESQL_SHARED_PRELOAD_LIBRARIES
+              value: "pgaudit"
+          ports:
+            - name: tcp-postgresql
+              containerPort: 5432
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U "postgres" -d "dbname=postgres" -h 127.0.0.1 -p 5432
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - -e
+                
+                - |
+                  exec pg_isready -U "postgres" -d "dbname=postgres" -h 127.0.0.1 -p 5432
+          resources:
+            limits: {}
+            requests:
+              cpu: 250m
+              memory: 256Mi
+          volumeMounts:
+            - name: dshm
+              mountPath: /dev/shm
+            - name: data
+              mountPath: /bitnami/postgresql
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "5Gi"
+---
+# Source: uiuc-chat/charts/qdrant/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: uiuc-chat-qdrant
+  labels:
+    helm.sh/chart: qdrant-1.15.4
+    app: qdrant
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "v1.15.4"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: qdrant
+      app.kubernetes.io/name: qdrant
+      app.kubernetes.io/instance: uiuc-chat
+  serviceName: uiuc-chat-qdrant-headless
+  template:
+    metadata:
+      annotations:
+        checksum/config: 43637e74864c36bbd86e98fe631b82ab55d1d328b221b8247d8846a3d9a7f9a6
+      labels:
+        app: qdrant
+        app.kubernetes.io/name: qdrant
+        app.kubernetes.io/instance: uiuc-chat
+    spec:
+      initContainers:
+      - name: ensure-dir-ownership
+        image: "docker.io/qdrant/qdrant:v1.7.4"
+        command:
+          - chown
+          - -R
+          - 1000:3000
+          - /qdrant/storage
+          - /qdrant/snapshots
+        volumeMounts:
+          - name: qdrant-storage
+            mountPath: /qdrant/storage
+          - name: qdrant-snapshots
+            mountPath: /qdrant/snapshots
+      containers:
+        - name: qdrant
+          image: "docker.io/qdrant/qdrant:v1.7.4"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: QDRANT_INIT_FILE_PATH
+              value: /qdrant/init/.qdrant-initialized
+          command: ["/bin/bash", "-c"]
+          args:
+          - ./config/initialize.sh
+          ports:
+            - name: http
+              containerPort: 6333
+              protocol: TCP
+            - name: grpc
+              containerPort: 6334
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: "/readyz"
+              port: 6333
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 2000
+            runAsNonRoot: true
+            runAsUser: 1000
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                - sleep
+                - "3"
+          volumeMounts:
+          - name: qdrant-storage
+            mountPath: /qdrant/storage
+          - name: qdrant-config
+            mountPath: /qdrant/config/initialize.sh
+            subPath: initialize.sh
+          - name: qdrant-config
+            mountPath: /qdrant/config/production.yaml
+            subPath: production.yaml
+          - name: qdrant-snapshots
+            mountPath: /qdrant/snapshots
+          - name: qdrant-init
+            mountPath: /qdrant/init
+      securityContext:
+        fsGroup: 3000
+        fsGroupChangePolicy: Always
+      serviceAccountName: uiuc-chat-qdrant
+      volumes:
+        - name: qdrant-config
+          configMap:
+            name: uiuc-chat-qdrant
+            defaultMode: 0755
+        - name: qdrant-snapshots
+          emptyDir: {}
+        - name: qdrant-init
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: qdrant-storage
+        labels:
+          app: qdrant
+      spec:
+        storageClassName: 
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "10Gi"
+---
+# Source: uiuc-chat/charts/rabbitmq/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: uiuc-chat-rabbitmq
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    helm.sh/chart: rabbitmq-12.0.13
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+spec:
+  serviceName: uiuc-chat-rabbitmq-headless
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rabbitmq
+      app.kubernetes.io/instance: uiuc-chat
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: rabbitmq
+        helm.sh/chart: rabbitmq-12.0.13
+        app.kubernetes.io/instance: uiuc-chat
+        app.kubernetes.io/managed-by: Helm
+      annotations:
+        checksum/config: 5b29ef9498e3e3343648b12465702488bd1dd0ca047b8f29a59b359289e05ba4
+        checksum/secret: 60b89e88552dbf3199383de06d1741f9fe62bab11a31079411cbed04322a59c2
+    spec:
+      
+      serviceAccountName: uiuc-chat-rabbitmq
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: rabbitmq
+                    app.kubernetes.io/instance: uiuc-chat
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      terminationGracePeriodSeconds: 120
+      initContainers:
+      containers:
+        - name: rabbitmq
+          image: docker.io/bitnamilegacy/rabbitmq:3.12
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/bash
+                  - -ec
+                  - |
+                    if [[ -f /opt/bitnami/scripts/rabbitmq/nodeshutdown.sh ]]; then
+                        /opt/bitnami/scripts/rabbitmq/nodeshutdown.sh -t "120" -d "false"
+                    else
+                        rabbitmqctl stop_app
+                    fi
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: K8S_SERVICE_NAME
+              value: uiuc-chat-rabbitmq-headless
+            - name: K8S_ADDRESS_TYPE
+              value: hostname
+            - name: RABBITMQ_FORCE_BOOT
+              value: "no"
+            - name: RABBITMQ_NODE_NAME
+              value: "rabbit@$(MY_POD_NAME).$(K8S_SERVICE_NAME).$(MY_POD_NAMESPACE).svc.cluster.local"
+            - name: K8S_HOSTNAME_SUFFIX
+              value: ".$(K8S_SERVICE_NAME).$(MY_POD_NAMESPACE).svc.cluster.local"
+            - name: RABBITMQ_MNESIA_DIR
+              value: "/bitnami/rabbitmq/mnesia/$(RABBITMQ_NODE_NAME)"
+            - name: RABBITMQ_LDAP_ENABLE
+              value: "no"
+            - name: RABBITMQ_LOGS
+              value: "-"
+            - name: RABBITMQ_ULIMIT_NOFILES
+              value: "65536"
+            - name: RABBITMQ_USE_LONGNAME
+              value: "true"
+            - name: RABBITMQ_ERL_COOKIE
+              valueFrom:
+                secretKeyRef:
+                  name: uiuc-chat-rabbitmq
+                  key: rabbitmq-erlang-cookie
+            - name: RABBITMQ_LOAD_DEFINITIONS
+              value: "no"
+            - name: RABBITMQ_DEFINITIONS_FILE
+              value: "/app/load_definition.json"
+            - name: RABBITMQ_SECURE_PASSWORD
+              value: "yes"
+            - name: RABBITMQ_USERNAME
+              value: "guest"
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: uiuc-chat-rabbitmq
+                  key: rabbitmq-password
+            - name: RABBITMQ_PLUGINS
+              value: "rabbitmq_management, rabbitmq_peer_discovery_k8s, rabbitmq_auth_backend_ldap"
+          envFrom:
+          ports:
+            - name: amqp
+              containerPort: 5672
+            - name: dist
+              containerPort: 25672
+            - name: stats
+              containerPort: 15672
+            - name: epmd
+              containerPort: 4369
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 20
+            exec:
+              command:
+                - sh
+                - -ec
+                - curl -f --user guest:$RABBITMQ_PASSWORD 127.0.0.1:15672/api/health/checks/virtual-hosts
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 20
+            exec:
+              command:
+                - sh
+                - -ec
+                - curl -f --user guest:$RABBITMQ_PASSWORD 127.0.0.1:15672/api/health/checks/local-alarms
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: configuration
+              mountPath: /bitnami/rabbitmq/conf
+            - name: data
+              mountPath: /bitnami/rabbitmq/mnesia
+      volumes:
+        - name: configuration
+          projected:
+            sources:
+              - secret:
+                  name: uiuc-chat-rabbitmq-config
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          app.kubernetes.io/name: rabbitmq
+          app.kubernetes.io/instance: uiuc-chat
+      spec:
+        accessModes:
+            - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "2Gi"
+---
+# Source: uiuc-chat/charts/redis/templates/master/application.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: uiuc-chat-redis-master
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.0.11
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/instance: uiuc-chat
+      app.kubernetes.io/component: master
+  serviceName: uiuc-chat-redis-headless
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        helm.sh/chart: redis-17.0.11
+        app.kubernetes.io/instance: uiuc-chat
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: master
+      annotations:
+        checksum/configmap: 8cb814e8687386d57838705472c6eaa434d8882b0516ffebe6c7cb33d6593ae4
+        checksum/health: 6c28b3aa2e956162751fc4818270409e41611bc231fe2bdae10bfdb810af0f38
+        checksum/scripts: 2b0c81bb471317eeedf2ea8821111951bf2c15da58d2e6aabff7911b05426957
+        checksum/secret: ccfdc83e422d8dd3b096bb80046c90da1c1ff7ed03b927e510ea3b9fbcde076f
+    spec:
+      
+      securityContext:
+        fsGroup: 1001
+      serviceAccountName: uiuc-chat-redis
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: redis
+                    app.kubernetes.io/instance: uiuc-chat
+                    app.kubernetes.io/component: master
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: redis
+          image: docker.io/bitnamilegacy/redis:7.0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsUser: 1001
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - /opt/bitnami/scripts/start-scripts/start-master.sh
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: REDIS_REPLICATION_MODE
+              value: master
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "no"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: uiuc-chat-redis
+                  key: redis-password
+            - name: REDIS_TLS_ENABLED
+              value: "no"
+            - name: REDIS_PORT
+              value: "6379"
+          ports:
+            - name: redis
+              containerPort: 6379
+          livenessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            # One second longer than command timeout should prevent generation of zombie processes.
+            timeoutSeconds: 6
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - sh
+                - -c
+                - /health/ping_liveness_local.sh 5
+          readinessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - sh
+                - -c
+                - /health/ping_readiness_local.sh 1
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: start-scripts
+              mountPath: /opt/bitnami/scripts/start-scripts
+            - name: health
+              mountPath: /health
+            - name: redis-data
+              mountPath: /data
+              subPath: 
+            - name: config
+              mountPath: /opt/bitnami/redis/mounted-etc
+            - name: redis-tmp-conf
+              mountPath: /opt/bitnami/redis/etc/
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: start-scripts
+          configMap:
+            name: uiuc-chat-redis-scripts
+            defaultMode: 0755
+        - name: health
+          configMap:
+            name: uiuc-chat-redis-health
+            defaultMode: 0755
+        - name: config
+          configMap:
+            name: uiuc-chat-redis-configuration
+        - name: redis-tmp-conf
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+        labels:
+          app.kubernetes.io/name: redis
+          app.kubernetes.io/instance: uiuc-chat
+          app.kubernetes.io/component: master
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "2Gi"
+---
+# Source: uiuc-chat/charts/redis/templates/replicas/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: uiuc-chat-redis-replicas
+  namespace: "uiuc-chat"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.0.11
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: replica
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/instance: uiuc-chat
+      app.kubernetes.io/component: replica
+  serviceName: uiuc-chat-redis-headless
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        helm.sh/chart: redis-17.0.11
+        app.kubernetes.io/instance: uiuc-chat
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: replica
+      annotations:
+        checksum/configmap: 8cb814e8687386d57838705472c6eaa434d8882b0516ffebe6c7cb33d6593ae4
+        checksum/health: 6c28b3aa2e956162751fc4818270409e41611bc231fe2bdae10bfdb810af0f38
+        checksum/scripts: 2b0c81bb471317eeedf2ea8821111951bf2c15da58d2e6aabff7911b05426957
+        checksum/secret: ccfdc83e422d8dd3b096bb80046c90da1c1ff7ed03b927e510ea3b9fbcde076f
+    spec:
+      
+      securityContext:
+        fsGroup: 1001
+      serviceAccountName: uiuc-chat-redis
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: redis
+                    app.kubernetes.io/instance: uiuc-chat
+                    app.kubernetes.io/component: replica
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: redis
+          image: docker.io/bitnamilegacy/redis:7.0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsUser: 1001
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - /opt/bitnami/scripts/start-scripts/start-replica.sh
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: REDIS_REPLICATION_MODE
+              value: slave
+            - name: REDIS_MASTER_HOST
+              value: uiuc-chat-redis-master-0.uiuc-chat-redis-headless.uiuc-chat.svc.cluster.local
+            - name: REDIS_MASTER_PORT_NUMBER
+              value: "6379"
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "no"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: uiuc-chat-redis
+                  key: redis-password
+            - name: REDIS_MASTER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: uiuc-chat-redis
+                  key: redis-password
+            - name: REDIS_TLS_ENABLED
+              value: "no"
+            - name: REDIS_PORT
+              value: "6379"
+          ports:
+            - name: redis
+              containerPort: 6379
+          startupProbe:
+            failureThreshold: 22
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            tcpSocket:
+              port: redis
+          livenessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 6
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - sh
+                - -c
+                - /health/ping_liveness_local_and_master.sh 5
+          readinessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - sh
+                - -c
+                - /health/ping_readiness_local_and_master.sh 1
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: start-scripts
+              mountPath: /opt/bitnami/scripts/start-scripts
+            - name: health
+              mountPath: /health
+            - name: redis-data
+              mountPath: /data
+              subPath: 
+            - name: config
+              mountPath: /opt/bitnami/redis/mounted-etc
+            - name: redis-tmp-conf
+              mountPath: /opt/bitnami/redis/etc
+      volumes:
+        - name: start-scripts
+          configMap:
+            name: uiuc-chat-redis-scripts
+            defaultMode: 0755
+        - name: health
+          configMap:
+            name: uiuc-chat-redis-health
+            defaultMode: 0755
+        - name: config
+          configMap:
+            name: uiuc-chat-redis-configuration
+        - name: redis-tmp-conf
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+        labels:
+          app.kubernetes.io/name: redis
+          app.kubernetes.io/instance: uiuc-chat
+          app.kubernetes.io/component: replica
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+---
+# Source: uiuc-chat/charts/qdrant/templates/tests/test-db-interaction.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "uiuc-chat-qdrant-test-db-interaction"
+  labels:
+    helm.sh/chart: qdrant-1.15.4
+    app: qdrant
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "v1.15.4"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+data:
+  entrypoint.sh: |
+    #!/bin/bash
+    set -xe
+    # Kind's networking is very flaky
+    echo 'connect-timeout = 5' > $HOME/.curlrc
+    echo 'retry = 60' >> $HOME/.curlrc
+    echo 'retry-delay = 5' >> $HOME/.curlrc
+    echo 'retry-all-errors' >> $HOME/.curlrc
+    # Don't clutter the logs with progress bars
+    echo 'no-progress-meter' >> $HOME/.curlrc
+    # Ensure errors cause the script to fail, but show the response body
+    echo 'fail-with-body' >> $HOME/.curlrc
+
+    if [ -d /mnt/secrets/certs ]; then
+      cp /mnt/secrets/certs/ca.pem /usr/share/pki/trust/anchors/private-ca.pem
+      update-ca-certificates
+    fi
+
+    QDRANT_COLLECTION="test_collection"
+    echo "Connecting to uiuc-chat-qdrant.uiuc-chat:6333"
+    QDRANT_URL="http://uiuc-chat-qdrant.uiuc-chat:6333"
+    API_KEY_HEADER=""
+
+    # Delete collection if exists
+    curl -X DELETE -H "${API_KEY_HEADER}" $QDRANT_URL/collections/${QDRANT_COLLECTION}
+
+    # Create collection
+    curl -X PUT \
+    -H 'Content-Type: application-json' \
+    -d '{"vectors":{"size":4,"distance":"Dot"}}' \
+    -H  "${API_KEY_HEADER}" \
+    $QDRANT_URL/collections/${QDRANT_COLLECTION}
+
+    # Insert points
+    curl -X PUT \
+    -H 'Content-Type: application-json' \
+    -d '{"points":[
+      {"id":1,"vector":[0.05, 0.61, 0.76, 0.74],"payload":{"city":"Berlin"}},
+      {"id":2,"vector":[0.19, 0.81, 0.75, 0.11],"payload":{"city":"London"}},
+      {"id":3,"vector":[0.36, 0.55, 0.47, 0.94],"payload":{"city":"Moscow"}},
+      {"id":4,"vector":[0.18, 0.01, 0.85, 0.80],"payload":{"city":"New York"}},
+      {"id":5,"vector":[0.24, 0.18, 0.22, 0.44],"payload":{"city":"Beijing"}},
+      {"id":6,"vector":[0.35, 0.08, 0.11, 0.44],"payload":{"city":"Mumbai"}}
+    ]}' \
+    -H  "${API_KEY_HEADER}" \
+    $QDRANT_URL/collections/${QDRANT_COLLECTION}/points
+
+    # Run query
+    curl -X POST \
+    -H 'Content-Type: application-json' \
+    -d '{"vector":[0.2, 0.1, 0.9, 0.7],"limit":3}' \
+    -H  "${API_KEY_HEADER}" \
+    $QDRANT_URL/collections/${QDRANT_COLLECTION}/points/search
+---
+# Source: uiuc-chat/charts/qdrant/templates/tests/test-db-interaction.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "uiuc-chat-qdrant-test-db-interaction"
+  labels:
+    helm.sh/chart: qdrant-1.15.4
+    app: qdrant
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "v1.15.4"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: test-script
+      image: "registry.suse.com/bci/bci-base:latest"
+      args: ['bash', '/app/entrypoint.sh']
+      volumeMounts:
+        - mountPath: /app
+          name: test-script
+  volumes:
+    - name: test-script
+      configMap:
+        name: "uiuc-chat-qdrant-test-db-interaction"
+  restartPolicy: Never
+  serviceAccountName: uiuc-chat-qdrant
+---
+# Source: uiuc-chat/charts/minio/templates/post-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: uiuc-chat-minio-post-job
+  labels:
+    app: minio-post-job
+    chart: minio-5.0.15
+    release: uiuc-chat
+    heritage: Helm
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+spec:
+  template:
+    metadata:
+      labels:
+        app: minio-job
+        release: uiuc-chat
+    spec:
+      restartPolicy: OnFailure      
+      volumes:
+        - name: etc-path
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: minio-configuration
+          projected:
+            sources:
+              - configMap:
+                  name: uiuc-chat-minio
+              - secret:
+                  name: uiuc-chat-minio
+      serviceAccountName: minio-sa
+      containers:
+        - name: minio-make-user
+          image: "quay.io/minio/mc:RELEASE.2024-01-11T05-49-32Z"
+          imagePullPolicy: IfNotPresent
+          command: [ "/bin/sh", "/config/add-user" ]
+          env:
+            - name: MINIO_ENDPOINT
+              value: uiuc-chat-minio
+            - name: MINIO_PORT
+              value: "9000"
+          volumeMounts:
+            - name: etc-path
+              mountPath: /etc/minio/mc
+            - name: tmp
+              mountPath: /tmp
+            - name: minio-configuration
+              mountPath: /config
+          resources:
+            requests:
+              memory: 128Mi
+---
+# Source: uiuc-chat/templates/keycloak-realm-setup-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: uiuc-chat-keycloak-realm-setup
+  labels:
+    helm.sh/chart: uiuc-chat-0.1.0
+    app.kubernetes.io/name: uiuc-chat
+    app.kubernetes.io/instance: uiuc-chat
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: keycloak
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: uiuc-chat-0.1.0
+        app.kubernetes.io/name: uiuc-chat
+        app.kubernetes.io/instance: uiuc-chat
+        app.kubernetes.io/version: "1.0.0"
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: keycloak
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: realm-setup
+        image: quay.io/keycloak/keycloak:17.0.1-legacy
+        command:
+        - /bin/bash
+        - -c
+        - |
+          echo "Waiting for Keycloak to be ready..."
+          until curl -f http://uiuc-chat-keycloak-http:80/auth/realms/master; do
+            echo "Keycloak not ready yet, waiting..."
+            sleep 10
+          done
+          
+          echo "Keycloak is ready, waiting for admin user to be created..."
+          
+          # Wait for admin user to be created (can take some time with external database)
+          for i in {1..30}; do
+            echo "Attempt $i: Trying to configure admin credentials..."
+            /opt/jboss/keycloak/bin/kcadm.sh config credentials --server http://uiuc-chat-keycloak-http:80/auth --realm master --user admin --password admin
+            if [ $? -eq 0 ]; then
+              echo "Admin credentials configured successfully!"
+              break
+            else
+              echo "Admin user not ready yet, waiting 10 seconds..."
+              sleep 10
+            fi
+          done
+          
+          if [ $? -eq 0 ]; then
+            echo "Admin credentials configured, creating realm..."
+            
+            # Create the realm
+            /opt/jboss/keycloak/bin/kcadm.sh create realms -s realm=illinois_chat_realm -s displayName="UIUC.chat" -s enabled=true
+            
+            if [ $? -eq 0 ]; then
+              echo "Realm created successfully!"
+              
+              # Create a client for the realm
+              /opt/jboss/keycloak/bin/kcadm.sh create clients -r illinois_chat_realm -s clientId=uiuc-chat-client -s enabled=true -s publicClient=true -s standardFlowEnabled=true -s implicitFlowEnabled=true -s directAccessGrantsEnabled=true -s 'redirectUris=["*"]' -s 'webOrigins=["*"]'
+              
+              if [ $? -eq 0 ]; then
+                echo "Client created successfully!"
+              else
+                echo "Failed to create client"
+              fi
+              
+              # Create a test user
+              /opt/jboss/keycloak/bin/kcadm.sh create users -r illinois_chat_realm -s username=testuser -s enabled=true -s email=test@example.com -s firstName=Test -s lastName=User
+              
+              if [ $? -eq 0 ]; then
+                echo "Test user created successfully!"
+                # Set password for the test user
+                /opt/jboss/keycloak/bin/kcadm.sh set-password -r illinois_chat_realm --username testuser --new-password testpassword
+                echo "Test user password set!"
+              else
+                echo "Failed to create test user"
+              fi
+              
+            else
+              echo "Failed to create realm"
+              exit 1
+            fi
+          else
+            echo "Failed to configure admin credentials"
+            exit 1
+          fi
+          
+          echo "Realm setup completed successfully!"

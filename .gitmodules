@@ -14,8 +14,8 @@
 [submodule "uiuc-chat-frontend"]
 	path = uiuc-chat-frontend
 	url = https://github.com/Center-for-AI-Innovation/uiuc-chat-frontend.git
-	branch = illinois-chat
+	branch = illinois-chat-helm
 [submodule "uiuc-chat-backend"]
 	path = uiuc-chat-backend
 	url = https://github.com/Center-for-AI-Innovation/ai-ta-backend.git
-	branch = illinois-chat
+	branch = illinois-chat-helm

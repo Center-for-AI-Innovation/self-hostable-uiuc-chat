@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: uiuc-chat-backend:latest
+          image: uiuc-chat-backend:helm-merge-3
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8001
@@ -41,24 +41,25 @@ spec:
             httpGet:
               path: /health
               port: 8001
-            initialDelaySeconds: 20
+            initialDelaySeconds: 60
             periodSeconds: 10
+            timeoutSeconds: 10
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health
               port: 8001
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 6
+            timeoutSeconds: 10
+            failureThreshold: 12
           startupProbe:
             httpGet:
               path: /health
               port: 8001
             periodSeconds: 5
-            timeoutSeconds: 5
-            failureThreshold: 30
+            timeoutSeconds: 10
+            failureThreshold: 60
           resources:
             requests:
               cpu: "250m"
@@ -91,6 +92,14 @@ spec:
               value: "amqp://guest:guest@uiuc-chat-rabbitmq:5672/"
             - name: QDRANT_URL
               value: "http://uiuc-chat-qdrant:6333"
+            - name: QDRANT_API_KEY
+              value: ""
+            - name: VYRIAD_QDRANT_URL
+              value: "http://uiuc-chat-qdrant:6333"
+            - name: VYRIAD_QDRANT_PORT
+              value: "6333"
+            - name: VYRIAD_QDRANT_API_KEY
+              value: ""
             - name: MINIO_ENDPOINT
               value: "http://uiuc-chat-minio:9000"
             - name: MINIO_ACCESS_KEY
@@ -105,6 +114,24 @@ spec:
               value: "false"
             - name: OLLAMA_SERVER_URL
               value: "http://uiuc-chat-ollama:11434"
+            - name: EMBEDDING_MODEL
+              value: "nomic-embed-text"
             - name: NCSA_HOSTED_API_KEY
               value: ""
+            - name: QDRANT_COLLECTION_NAME
+              value: "illinois_chat_dev"
+            # Missing environment variables for full functionality
+            - name: KV_REST_API_TOKEN
+              value: "dummy-token-for-testing"
+            - name: EMAIL_SENDER
+              value: "noreply@uiuc.chat"
+            - name: VERCEL_READ_ONLY_API_KEY
+              value: "dummy-vercel-key"
+            - name: VERCEL_BASE_URL
+              value: "https://api.vercel.com/v1/"
+            # Supabase environment variables for PubMed extraction
+            - name: SUPABASE_URL
+              value: "https://dummy.supabase.co"
+            - name: SUPABASE_API_KEY
+              value: "dummy-supabase-key"
 
