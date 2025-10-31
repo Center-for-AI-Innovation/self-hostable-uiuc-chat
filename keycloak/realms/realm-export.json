@@ -322,13 +322,13 @@
         "http://localhost:3001/*",
         "http://localhost:3000/",
         "http://localhost:3000/*",
-        "http://localhost:55612/",
-        "http://localhost:55612/*"
+        "http://localhost:55615/",
+        "http://localhost:55615/*"
       ],
       "webOrigins": [
         "+",
         "http://localhost:3001",
-        "http://localhost:55612"
+        "http://localhost:55615"
       ],
       "notBefore": 0,
       "bearerOnly": false,
@@ -424,8 +424,8 @@
       "clientId": "uiuc-chat-client",
       "name": "UIUC Chat Client",
       "description": "Client for the UIUC Chat Frontend",
-      "rootUrl": "http://localhost:55612/",
-      "adminUrl": "http://localhost:55612/",
+      "rootUrl": "http://localhost:55615/",
+      "adminUrl": "http://localhost:55615/",
       "baseUrl": "",
       "surrogateAuthRequired": false,
       "enabled": true,
@@ -436,14 +436,17 @@
         "http://localhost:3000/*",
         "http://localhost:3001/",
         "http://localhost:3001/*",
-        "http://localhost:55612/",
-        "http://localhost:55612/*"
+        "http://localhost:55615/",
+        "http://localhost:55615/*",
+        "https://chat.local/",
+        "https://chat.local/*"
       ],
       "webOrigins": [
         "+",
         "http://localhost:3000",
         "http://localhost:3001",
-        "http://localhost:55612"
+        "http://localhost:55615",
+        "https://chat.local"
       ],
       "notBefore": 0,
       "bearerOnly": false,

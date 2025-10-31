@@ -12,14 +12,42 @@ environment: "dev"
 # Frontend configuration - enable in-cluster for end-to-end testing in dev
 frontend:
   enabled: true
+  image:
+    tag: "v16"
+    pullPolicy: Never
+  ingress:
+    enabled: true
+    className: "nginx"
+    tls:
+      - secretName: uiuc-chat-tls
+        hosts:
+          - chat.local
+    hosts:
+      - host: "chat.local"
+        paths:
+          - path: "/"
+            pathType: "Prefix"
   env:
-    NEXT_PUBLIC_KEYCLOAK_URL: "http://uiuc-chat-keycloak:8080/"
+    NEXT_PUBLIC_KEYCLOAK_URL: "https://chat.local/auth/"
     NEXT_PUBLIC_KEYCLOAK_REALM: "illinois_chat_realm"
     NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: "uiuc-chat-client"
+    NEXT_PUBLIC_BACKEND_URL: "/backend"
+    RAILWAY_URL: "http://uiuc-chat-backend:8001"
+    KEYCLOAK_URL: "https://chat.local/auth/"
+
+# Override default path routing  
+paths:
+  api: "/backend"  # Route /backend to backend, /api will go to frontend
+  ollama: "/ollama"  # Expose Ollama for frontend model selection
 
 # Backend configuration - enable in-cluster for end-to-end testing in dev  
 backend:
   enabled: true
+  image:
+    tag: "latest"
+    pullPolicy: Never
+  env:
+    OLLAMA_SERVER_URL: "http://uiuc-chat-ollama:11434"  # Internal Kubernetes Ollama service
 
 # Worker service - can run in cluster
 worker:
@@ -137,6 +165,22 @@ keycloak:
       value: "admin"
     - name: KEYCLOAK_PASSWORD
       value: "admin"
+    - name: KEYCLOAK_FRONTEND_URL
+      value: "https://chat.local/auth/"
+    - name: PROXY_ADDRESS_FORWARDING
+      value: "true"
+    - name: KC_HOSTNAME
+      value: "chat.local"
+    - name: KC_HOSTNAME_PATH
+      value: "/auth"
+    - name: KC_HOSTNAME_STRICT
+      value: "false"
+    - name: KC_HOSTNAME_STRICT_HTTPS
+      value: "true"
+    - name: KC_HTTP_ENABLED
+      value: "true"
+    - name: KC_PROXY
+      value: "edge"
 
 # Development secrets
 secrets:

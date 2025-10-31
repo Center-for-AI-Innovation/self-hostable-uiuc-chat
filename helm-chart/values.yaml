@@ -7,7 +7,7 @@ global:
   imagePullSecrets: []
   storageClass: ""
   # Public ingress host for browser-facing URLs
-  host: ""
+  host: "chat.local"
 
 # Environment (dev/prod)
 environment: "prod"
@@ -24,8 +24,8 @@ frontend:
     type: ClusterIP
     port: 3000
   ingress:
-    enabled: false
-    className: ""
+    enabled: true
+    className: "nginx"
     annotations: {}
     hosts:
       - host: chat.local
@@ -35,7 +35,7 @@ frontend:
     tls: []
   env:
     # In production with ingress, set to https://<global.host>/auth
-    NEXT_PUBLIC_KEYCLOAK_URL: "http://uiuc-chat-keycloak:8080/"
+    NEXT_PUBLIC_KEYCLOAK_URL: "http://chat.local/auth/"
     NEXT_PUBLIC_KEYCLOAK_REALM: "illinois_chat_realm"
     NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: "uiuc-chat-client"
   resources:
@@ -208,6 +208,10 @@ ollama:
 # PostgreSQL configuration (using Bitnami chart)
 postgresql:
   enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamisecure/postgresql
+    tag: "15"
   auth:
     postgresPassword: "password"
     username: "postgres"
@@ -226,6 +230,10 @@ postgresql:
 # Redis configuration (using Bitnami chart)
 redis:
   enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamisecure/redis
+    tag: "7"
   auth:
     enabled: true
     password: "password"
@@ -237,6 +245,10 @@ redis:
 # RabbitMQ configuration (using Bitnami chart)
 rabbitmq:
   enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamisecure/rabbitmq
+    tag: "3.12"
   auth:
     username: "guest"
     password: "guest"
@@ -296,6 +308,7 @@ paths:
   api: "/api"
   auth: "/auth"
   minioConsole: "/minio"
+  ollama: "/ollama"
 
 # === KUBERNETES CONFIGURATIONS ===
 

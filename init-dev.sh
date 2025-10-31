@@ -327,8 +327,8 @@ fi
 if curl -s --max-time 10 "${QDRANT_URL}/collections/illinois_chat" "${CURL_HEADERS[@]}" 2>/dev/null | grep -q '"status":"ok"'; then
     # Verify the existing collection schema matches expected config
     details=$(curl -sS --max-time 10 "${QDRANT_URL}/collections/illinois_chat" "${CURL_HEADERS[@]}" 2>/dev/null || true)
-    if echo "$details" | grep -q '"size"[[:space:]]*:[[:space:]]*768' && echo "$details" | grep -q '"distance"[[:space:]]*:[[:space:]]*"Cosine"'; then
-        print_success "✓ Qdrant collection already exists with correct schema (size=768, distance=Cosine)"
+    if echo "$details" | grep -q '"size"[[:space:]]*:[[:space:]]*384' && echo "$details" | grep -q '"distance"[[:space:]]*:[[:space:]]*"Cosine"'; then
+        print_success "✓ Qdrant collection already exists with correct schema (size=384, distance=Cosine)"
     else
         print_warning "Existing Qdrant collection schema does not match expected. Recreating collection..."
         # Delete and recreate with correct schema
@@ -338,7 +338,7 @@ if curl -s --max-time 10 "${QDRANT_URL}/collections/illinois_chat" "${CURL_HEADE
             "${CURL_HEADERS[@]}" \
             -d '{
               "vectors": {
-                "size": 768,
+                "size": 384,
                 "distance": "Cosine"
               }
             }' 2>/dev/null || true)
@@ -361,7 +361,7 @@ else
             "${CURL_HEADERS[@]}" \
             -d '{
               "vectors": {
-                "size": 768,
+                "size": 384,
                 "distance": "Cosine"
               }
             }' 2>/dev/null || true)

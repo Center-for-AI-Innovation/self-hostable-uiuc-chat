@@ -17,7 +17,7 @@ maintainers:
 dependencies:
   - name: postgresql
     version: "~12.0.0"
-    repository: "https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami"
+    repository: "https://raw.githubusercontent.com/bitnami/charts/archttps://hub.docker.com/r/bitnamisecure/redishive-full-index/bitnami"
     condition: postgresql.enabled
   - name: redis
     version: "~17.0.0"

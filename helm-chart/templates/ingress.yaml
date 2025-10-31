@@ -79,11 +79,11 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ $fullName }}-keycloak
+                name: {{ $fullName }}-keycloak-http
                 port:
                   number: 80
               {{- else }}
-              serviceName: {{ $fullName }}-keycloak
+              serviceName: {{ $fullName }}-keycloak-http
               servicePort: 80
               {{- end }}
           {{- if $.Values.minio.enabled }}
@@ -101,6 +101,23 @@ spec:
               {{- else }}
               serviceName: {{ $fullName }}-minio
               servicePort: 9001
+              {{- end }}
+          {{- end }}
+          {{- if $.Values.ollama.enabled }}
+          # Ollama API under /ollama
+          - path: {{ default "/ollama" $.Values.paths.ollama }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
+            pathType: Prefix
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $fullName }}-ollama
+                port:
+                  number: {{ $.Values.ollama.service.port }}
+              {{- else }}
+              serviceName: {{ $fullName }}-ollama
+              servicePort: {{ $.Values.ollama.service.port }}
               {{- end }}
           {{- end }}
     {{- end }}

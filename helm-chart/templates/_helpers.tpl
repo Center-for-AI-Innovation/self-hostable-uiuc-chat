@@ -200,11 +200,22 @@ MinIO connection details (using dependency chart naming)
 Keycloak connection details (using dependency chart naming)
 */}}
 {{- define "uiuc-chat.keycloak.host" -}}
-{{ include "uiuc-chat.fullname" . }}-keycloak
+{{ include "uiuc-chat.fullname" . }}-keycloak-http
 {{- end }}
 
 {{- define "uiuc-chat.keycloak.port" -}}
 8080
+{{- end }}
+
+{{/*
+Backend connection details
+*/}}
+{{- define "uiuc-chat.backend.host" -}}
+{{ include "uiuc-chat.fullname" . }}-backend
+{{- end }}
+
+{{- define "uiuc-chat.backend.port" -}}
+8001
 {{- end }}
 
 

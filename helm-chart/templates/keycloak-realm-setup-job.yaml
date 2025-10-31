@@ -48,14 +48,31 @@ spec:
           done
           
           if [ $? -eq 0 ]; then
-            echo "Admin credentials configured, creating realm..."
+            echo "Admin credentials configured, checking if realm exists..."
             
-            # Create the realm
-            /opt/jboss/keycloak/bin/kcadm.sh create realms -s realm=illinois_chat_realm -s displayName="UIUC.chat" -s enabled=true
-            
+            # Check if realm already exists
+            /opt/jboss/keycloak/bin/kcadm.sh get realms/illinois_chat_realm > /dev/null 2>&1
             if [ $? -eq 0 ]; then
-              echo "Realm created successfully!"
+              echo "Realm already exists, skipping creation"
+            else
+              echo "Creating realm..."
+              # Create the realm
+              /opt/jboss/keycloak/bin/kcadm.sh create realms -s realm=illinois_chat_realm -s displayName="UIUC.chat" -s enabled=true
               
+              if [ $? -eq 0 ]; then
+                echo "Realm created successfully!"
+              else
+                echo "Failed to create realm"
+                exit 1
+              fi
+            fi
+            
+            # Check if client already exists
+            /opt/jboss/keycloak/bin/kcadm.sh get clients -r illinois_chat_realm -q clientId=uiuc-chat-client > /dev/null 2>&1
+            if [ $? -eq 0 ]; then
+              echo "Client already exists, skipping creation"
+            else
+              echo "Creating client..."
               # Create a client for the realm
               /opt/jboss/keycloak/bin/kcadm.sh create clients -r illinois_chat_realm -s clientId=uiuc-chat-client -s enabled=true -s publicClient=true -s standardFlowEnabled=true -s implicitFlowEnabled=true -s directAccessGrantsEnabled=true -s 'redirectUris=["*"]' -s 'webOrigins=["*"]'
               
@@ -64,7 +81,14 @@ spec:
               else
                 echo "Failed to create client"
               fi
-              
+            fi
+            
+            # Check if test user already exists
+            /opt/jboss/keycloak/bin/kcadm.sh get users -r illinois_chat_realm -q username=testuser > /dev/null 2>&1
+            if [ $? -eq 0 ]; then
+              echo "Test user already exists, skipping creation"
+            else
+              echo "Creating test user..."
               # Create a test user
               /opt/jboss/keycloak/bin/kcadm.sh create users -r illinois_chat_realm -s username=testuser -s enabled=true -s email=test@example.com -s firstName=Test -s lastName=User
               
@@ -76,10 +100,6 @@ spec:
               else
                 echo "Failed to create test user"
               fi
-              
-            else
-              echo "Failed to create realm"
-              exit 1
             fi
           else
             echo "Failed to configure admin credentials"

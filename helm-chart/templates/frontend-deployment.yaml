@@ -23,6 +23,10 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "uiuc-chat.serviceAccountName" . }}
+      hostAliases:
+      - ip: "10.96.42.138"
+        hostnames:
+        - "chat.local"
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -42,6 +46,34 @@ spec:
               value: {{ .Values.frontend.env.NEXT_PUBLIC_KEYCLOAK_REALM | quote }}
             - name: NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
               value: {{ .Values.frontend.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID | quote }}
+            - name: NEXT_PUBLIC_BACKEND_URL
+              value: {{ default (printf "http://%s:%s" (include "uiuc-chat.backend.host" .) (include "uiuc-chat.backend.port" .)) .Values.frontend.env.NEXT_PUBLIC_BACKEND_URL | quote }}
+            - name: RAILWAY_URL
+              value: {{ default (printf "http://%s:%s" (include "uiuc-chat.backend.host" .) (include "uiuc-chat.backend.port" .)) .Values.frontend.env.RAILWAY_URL | quote }}
+            - name: KEYCLOAK_URL
+              value: {{ default (printf "http://%s:%s/auth/" (include "uiuc-chat.keycloak.host" .) (include "uiuc-chat.keycloak.port" .)) .Values.frontend.env.KEYCLOAK_URL | quote }}
+            - name: REDIS_URL
+              value: {{ printf "redis://:password@%s:6379/0" (include "uiuc-chat.redis.host" .) | quote }}
+            - name: POSTGRES_ENDPOINT
+              value: {{ include "uiuc-chat.postgresql.host" . | quote }}
+            - name: POSTGRES_PORT
+              value: {{ include "uiuc-chat.postgresql.port" . | quote }}
+            - name: POSTGRES_DATABASE
+              value: {{ .Values.postgresql.auth.database | quote }}
+            - name: POSTGRES_USERNAME
+              value: {{ .Values.postgresql.auth.username | quote }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.postgresql.auth.password | quote }}
+            - name: KEYCLOAK_DB_ENDPOINT
+              value: {{ include "uiuc-chat.postgresql.host" . | quote }}
+            - name: KEYCLOAK_DB_PORT
+              value: {{ include "uiuc-chat.postgresql.port" . | quote }}
+            - name: KEYCLOAK_DB_DATABASE
+              value: {{ .Values.postgresql.auth.database | quote }}
+            - name: KEYCLOAK_DB_USERNAME
+              value: {{ .Values.postgresql.auth.username | quote }}
+            - name: KEYCLOAK_DB_PASSWORD
+              value: {{ .Values.postgresql.auth.password | quote }}
           livenessProbe:
             httpGet:
               path: /
