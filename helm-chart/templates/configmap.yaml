@@ -1,0 +1,51 @@
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "uiuc-chat.fullname" . }}-app-config
+  labels:
+    {{- include "uiuc-chat.labels" . | nindent 4 }}
+data:
+  # Application configuration
+  ENVIRONMENT: {{ .Values.environment | quote }}
+  
+  # Service URLs
+  POSTGRES_HOST: {{ include "uiuc-chat.postgresql.host" . | quote }}
+  POSTGRES_PORT: {{ include "uiuc-chat.postgresql.port" . | quote }}
+  POSTGRES_DB: {{ include "uiuc-chat.postgresql.database" . | quote }}
+  POSTGRES_USER: {{ include "uiuc-chat.postgresql.username" . | quote }}
+
+  # ai-ta-backend expected PostgreSQL envs (aliases)
+  POSTGRES_ENDPOINT: {{ include "uiuc-chat.postgresql.host" . | quote }}
+  POSTGRES_DATABASE: {{ include "uiuc-chat.postgresql.database" . | quote }}
+  POSTGRES_USERNAME: {{ include "uiuc-chat.postgresql.username" . | quote }}
+  
+  REDIS_HOST: {{ include "uiuc-chat.redis.host" . | quote }}
+  REDIS_PORT: {{ include "uiuc-chat.redis.port" . | quote }}
+  
+  RABBITMQ_HOST: {{ include "uiuc-chat.rabbitmq.host" . | quote }}
+  RABBITMQ_PORT: {{ include "uiuc-chat.rabbitmq.port" . | quote }}
+  RABBITMQ_URL: {{ printf "amqp://%s:%s@%s:%s" .Values.rabbitmq.auth.username .Values.rabbitmq.auth.password (include "uiuc-chat.rabbitmq.host" .) (include "uiuc-chat.rabbitmq.port" .) | quote }}
+  
+  QDRANT_URL: "http://{{ include "uiuc-chat.fullname" . }}-qdrant:6333"
+  MINIO_URL: "http://{{ include "uiuc-chat.fullname" . }}-minio:9000"
+  KEYCLOAK_URL: "http://{{ include "uiuc-chat.fullname" . }}-keycloak:8080"
+  
+  {{- if and .Values.ollama.enabled (eq .Values.environment "dev") }}
+  OLLAMA_BASE_URL: "http://{{ include "uiuc-chat.fullname" . }}-ollama:11434"
+  {{- end }}
+  
+  # Application specific
+  QDRANT_COLLECTION_NAME: {{ .Values.worker.env.QDRANT_COLLECTION_NAME | quote }}
+  S3_BUCKET_NAME: {{ .Values.worker.env.S3_BUCKET_NAME | quote }}
+  
+  # Public URLs (if ingress is configured)
+  {{- if .Values.global.host }}
+  PUBLIC_HOST: {{ .Values.global.host | quote }}
+  PUBLIC_API_PATH: {{ default "/api" .Values.paths.api | quote }}
+  PUBLIC_AUTH_PATH: {{ default "/auth" .Values.paths.auth | quote }}
+  PUBLIC_ROOT_PATH: {{ default "/" .Values.paths.root | quote }}
+  {{- end }}
+
+

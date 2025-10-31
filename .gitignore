@@ -170,3 +170,22 @@ pip-selfcheck.json
 
 # IDE
 .idea
+.vscode/
+.idea/
+*.swp
+
+# Helm chart dependencies (downloaded .tgz files)
+helm-chart/charts/*.tgz
+helm-chart/Chart.lock
+
+# Helm dependency lock file should be committed for reproducible builds
+# Chart.lock
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,126 @@
+{{- if .Values.frontend.ingress.enabled -}}
+{{- $fullName := include "uiuc-chat.fullname" . -}}
+{{- $frontendPort := .Values.frontend.service.port -}}
+{{- $backendPort := .Values.backend.service.port -}}
+{{- if and .Values.frontend.ingress.className (not (hasKey .Values.frontend.ingress.annotations "kubernetes.io/ingress.class")) }}
+  {{- $_ := set .Values.frontend.ingress.annotations "kubernetes.io/ingress.class" .Values.frontend.ingress.className}}
+{{- end }}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-frontend
+  labels:
+    {{- include "uiuc-chat.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+  {{- with .Values.frontend.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if and .Values.frontend.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.frontend.ingress.className }}
+  {{- end }}
+  {{- if .Values.frontend.ingress.tls }}
+  tls:
+    {{- range .Values.frontend.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.frontend.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          # Frontend root
+          - path: {{ (index .paths 0).path }}
+            {{- if and (index .paths 0).pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
+            pathType: {{ (index .paths 0).pathType }}
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $fullName }}-frontend
+                port:
+                  number: {{ $frontendPort }}
+              {{- else }}
+              serviceName: {{ $fullName }}-frontend
+              servicePort: {{ $frontendPort }}
+              {{- end }}
+          # Backend API under /api
+          - path: {{ default "/api" $.Values.paths.api }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
+            pathType: Prefix
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $fullName }}-backend
+                port:
+                  number: {{ $backendPort }}
+              {{- else }}
+              serviceName: {{ $fullName }}-backend
+              servicePort: {{ $backendPort }}
+              {{- end }}
+          # Keycloak under /auth
+          - path: {{ default "/auth" $.Values.paths.auth }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
+            pathType: Prefix
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $fullName }}-keycloak-http
+                port:
+                  number: 80
+              {{- else }}
+              serviceName: {{ $fullName }}-keycloak-http
+              servicePort: 80
+              {{- end }}
+          {{- if $.Values.minio.enabled }}
+          # MinIO console under /minio
+          - path: {{ default "/minio" $.Values.paths.minioConsole }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
+            pathType: Prefix
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $fullName }}-minio
+                port:
+                  number: 9001
+              {{- else }}
+              serviceName: {{ $fullName }}-minio
+              servicePort: 9001
+              {{- end }}
+          {{- end }}
+          {{- if $.Values.ollama.enabled }}
+          # Ollama API under /ollama
+          - path: {{ default "/ollama" $.Values.paths.ollama }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
+            pathType: Prefix
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $fullName }}-ollama
+                port:
+                  number: {{ $.Values.ollama.service.port }}
+              {{- else }}
+              serviceName: {{ $fullName }}-ollama
+              servicePort: {{ $.Values.ollama.service.port }}
+              {{- end }}
+          {{- end }}
+    {{- end }}
+{{- end }}
+
+

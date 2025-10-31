@@ -1,0 +1,41 @@
+apiVersion: v2
+name: uiuc-chat
+description: A Helm chart for UIUC Chat application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - chat
+  - ai
+  - llm
+  - education
+home: https://github.com/UIUC-Chatbot/self-hostable-uiuc-chat
+sources:
+  - https://github.com/UIUC-Chatbot/self-hostable-uiuc-chat
+maintainers:
+  - name: UIUC Chat Team
+dependencies:
+  - name: postgresql
+    version: "~12.0.0"
+    repository: "https://raw.githubusercontent.com/bitnami/charts/archttps://hub.docker.com/r/bitnamisecure/redishive-full-index/bitnami"
+    condition: postgresql.enabled
+  - name: redis
+    version: "~17.0.0"
+    repository: "https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami"
+    condition: redis.enabled
+  - name: rabbitmq
+    version: "~12.0.0"
+    repository: "https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami"
+    condition: rabbitmq.enabled
+  - name: minio
+    version: "~5.0.0"
+    repository: "https://charts.min.io/"
+    condition: minio.enabled
+  - name: keycloak
+    version: "~18.10.0"
+    repository: "https://codecentric.github.io/helm-charts"
+    condition: keycloak.enabled
+  - name: qdrant
+    version: "~1.15.0"
+    repository: "https://qdrant.github.io/qdrant-helm"
+    condition: qdrant.enabled

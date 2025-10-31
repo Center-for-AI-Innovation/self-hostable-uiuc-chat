@@ -1,0 +1,194 @@
+# Development environment values for uiuc-chat
+# This extends the base values.yaml
+
+# Global configuration
+global:
+  security:
+    allowInsecureImages: true
+
+# Environment identifier
+environment: "dev"
+
+# Frontend configuration - enable in-cluster for end-to-end testing in dev
+frontend:
+  enabled: true
+  image:
+    tag: "v16"
+    pullPolicy: Never
+  ingress:
+    enabled: true
+    className: "nginx"
+    tls:
+      - secretName: uiuc-chat-tls
+        hosts:
+          - chat.local
+    hosts:
+      - host: "chat.local"
+        paths:
+          - path: "/"
+            pathType: "Prefix"
+  env:
+    NEXT_PUBLIC_KEYCLOAK_URL: "https://chat.local/auth/"
+    NEXT_PUBLIC_KEYCLOAK_REALM: "illinois_chat_realm"
+    NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: "uiuc-chat-client"
+    NEXT_PUBLIC_BACKEND_URL: "/backend"
+    RAILWAY_URL: "http://uiuc-chat-backend:8001"
+    KEYCLOAK_URL: "https://chat.local/auth/"
+
+# Override default path routing  
+paths:
+  api: "/backend"  # Route /backend to backend, /api will go to frontend
+  ollama: "/ollama"  # Expose Ollama for frontend model selection
+
+# Backend configuration - enable in-cluster for end-to-end testing in dev  
+backend:
+  enabled: true
+  image:
+    tag: "latest"
+    pullPolicy: Never
+  env:
+    OLLAMA_SERVER_URL: "http://uiuc-chat-ollama:11434"  # Internal Kubernetes Ollama service
+
+# Worker service - can run in cluster
+worker:
+  enabled: true
+  env:
+    QDRANT_COLLECTION_NAME: "illinois_chat_dev"
+    S3_BUCKET_NAME: "uiuc-chat-dev"
+
+# Enable Ollama for local LLM development
+ollama:
+  enabled: true
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 16Gi
+    requests:
+      cpu: 2000m
+      memory: 8Gi
+
+# Crawlee and ingest worker - optional in dev
+crawlee:
+  enabled: false
+
+ingestWorker:
+  enabled: false
+
+# === DEPENDENCY CHART CONFIGURATIONS FOR DEV ===
+
+# PostgreSQL (single instance in dev)
+postgresql:
+  enabled: true
+  image:
+    repository: "postgres"
+    tag: "16-alpine"  # Using official PostgreSQL image
+  auth:
+    postgresPassword: "password"
+    username: "postgres"
+    password: "password"
+    database: "postgres"
+  primary:
+    persistence:
+      enabled: true
+      size: 5Gi  # Smaller for dev
+
+# Redis
+redis:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/redis
+    tag: "7.0"
+  auth:
+    enabled: true
+    password: "password"
+  master:
+    persistence:
+      enabled: true
+      size: 2Gi  # Smaller for dev
+
+# RabbitMQ
+rabbitmq:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/rabbitmq
+    tag: "3.12"
+  auth:
+    username: "guest"
+    password: "guest"
+  persistence:
+    enabled: true
+    size: 2Gi  # Smaller for dev
+
+# MinIO
+minio:
+  enabled: true
+  auth:
+    rootUser: "minioadmin"
+    rootPassword: "minioadmin"
+  persistence:
+    enabled: true
+    size: 10Gi  # Smaller for dev
+  replicas: 1  # Single replica for dev
+  mode: standalone  # Use standalone mode for dev
+
+# Keycloak - using shared PostgreSQL (Codecentric chart)
+keycloak:
+  enabled: true
+  auth:
+    adminUser: "admin"
+    adminPassword: "admin"
+  postgresql:
+    enabled: false  # Use shared PostgreSQL
+  externalDatabase:
+    host: "uiuc-chat-postgresql"
+    port: 5432
+    database: "postgres"
+    user: "postgres"
+    password: "password"
+  # Database and admin user configuration
+  extraEnv: |
+    - name: DB_VENDOR
+      value: "postgres"
+    - name: DB_ADDR
+      value: "uiuc-chat-postgresql"
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_DATABASE
+      value: "postgres"
+    - name: DB_USER
+      value: "postgres"
+    - name: DB_PASSWORD
+      value: "password"
+    - name: KEYCLOAK_USER
+      value: "admin"
+    - name: KEYCLOAK_PASSWORD
+      value: "admin"
+    - name: KEYCLOAK_FRONTEND_URL
+      value: "https://chat.local/auth/"
+    - name: PROXY_ADDRESS_FORWARDING
+      value: "true"
+    - name: KC_HOSTNAME
+      value: "chat.local"
+    - name: KC_HOSTNAME_PATH
+      value: "/auth"
+    - name: KC_HOSTNAME_STRICT
+      value: "false"
+    - name: KC_HOSTNAME_STRICT_HTTPS
+      value: "true"
+    - name: KC_HTTP_ENABLED
+      value: "true"
+    - name: KC_PROXY
+      value: "edge"
+
+# Development secrets
+secrets:
+  create: true
+  api:
+    openaiKey: ""  # Set externally or leave empty for dev
+    qdrantKey: "dev-key"
+
+# Lower resource limits for development
+autoscaling:
+  enabled: false

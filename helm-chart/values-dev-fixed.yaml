@@ -1,0 +1,124 @@
+# Development environment values for uiuc-chat
+# This extends the base values.yaml
+
+# Environment identifier
+environment: "dev"
+
+# Frontend configuration - typically run locally in dev
+frontend:
+  enabled: false  # Run locally for hot reload
+  env:
+    NEXT_PUBLIC_KEYCLOAK_URL: "http://uiuc-chat-dev-keycloak:8080/"
+    NEXT_PUBLIC_KEYCLOAK_REALM: "illinois_chat_realm"
+    NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: "uiuc-chat-client"
+
+# Backend configuration - typically run locally in dev  
+backend:
+  enabled: false  # Run locally for debugging
+
+# Worker service - can run in cluster
+worker:
+  enabled: true
+  env:
+    QDRANT_COLLECTION_NAME: "illinois_chat_dev"
+    S3_BUCKET_NAME: "uiuc-chat-dev"
+
+# Enable Ollama for local LLM development
+ollama:
+  enabled: true
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 16Gi
+    requests:
+      cpu: 2000m
+      memory: 8Gi
+
+# Crawlee and ingest worker - optional in dev
+crawlee:
+  enabled: false
+
+ingestWorker:
+  enabled: false
+
+# === DEPENDENCY CHART CONFIGURATIONS FOR DEV ===
+
+# PostgreSQL (single instance in dev)
+postgresql:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: postgres
+    tag: "15"
+  auth:
+    postgresPassword: "password"
+    username: "postgres"
+    password: "password"
+    database: "postgres"
+  primary:
+    persistence:
+      enabled: true
+      size: 5Gi  # Smaller for dev
+
+# Redis
+redis:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: redis
+    tag: "7"
+  auth:
+    enabled: true
+    password: "password"
+  master:
+    persistence:
+      enabled: true
+      size: 2Gi  # Smaller for dev
+
+# RabbitMQ
+rabbitmq:
+  enabled: true
+  auth:
+    username: "guest"
+    password: "guest"
+  persistence:
+    enabled: true
+    size: 2Gi  # Smaller for dev
+
+# MinIO
+minio:
+  enabled: true
+  auth:
+    rootUser: "minioadmin"
+    rootPassword: "minioadmin"
+  persistence:
+    enabled: true
+    size: 10Gi  # Smaller for dev
+  replicas: 1  # Single replica for dev
+  mode: standalone  # Use standalone mode for dev
+
+# Keycloak - using shared PostgreSQL
+keycloak:
+  enabled: true
+  auth:
+    adminUser: "admin"
+    adminPassword: "admin"
+  postgresql:
+    enabled: false  # Use shared PostgreSQL
+  externalDatabase:
+    host: "uiuc-chat-postgresql"
+    port: 5432
+    database: "postgres"
+    user: "postgres"
+    password: "password"
+
+# Development secrets
+secrets:
+  create: true
+  api:
+    openaiKey: ""  # Set externally or leave empty for dev
+    qdrantKey: "dev-key"
+
+# Lower resource limits for development
+autoscaling:
+  enabled: false

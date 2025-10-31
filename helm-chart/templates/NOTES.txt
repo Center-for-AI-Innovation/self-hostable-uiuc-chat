@@ -1,0 +1,114 @@
+1. Get the application URL by running these commands:
+{{- if .Values.frontend.ingress.enabled }}
+{{- range $host := .Values.frontend.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.frontend.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.frontend.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "uiuc-chat.fullname" . }}-frontend)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.frontend.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "uiuc-chat.fullname" . }}-frontend'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "uiuc-chat.fullname" . }}-frontend --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.frontend.service.port }}
+{{- else if contains "ClusterIP" .Values.frontend.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "{{ include "uiuc-chat.frontend.selectorLabels" . }}" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
+{{- end }}
+
+2. Application Information:
+   - Environment: {{ .Values.environment }}
+   - Namespace: {{ .Release.Namespace }}
+   - Release: {{ .Release.Name }}
+
+3. Services Status:
+{{- if .Values.frontend.enabled }}
+   ✓ Frontend: Enabled
+{{- else }}
+   ✗ Frontend: Disabled (run locally for development)
+{{- end }}
+{{- if .Values.backend.enabled }}
+   ✓ Backend API: Enabled
+{{- else }}
+   ✗ Backend API: Disabled (run locally for development)
+{{- end }}
+{{- if .Values.worker.enabled }}
+   ✓ Worker Service: Enabled
+{{- end }}
+{{- if .Values.qdrant.enabled }}
+   ✓ Qdrant Vector DB: Enabled
+{{- end }}
+{{- if .Values.minio.enabled }}
+   ✓ MinIO Object Storage: Enabled
+{{- end }}
+{{- if .Values.keycloak.enabled }}
+   ✓ Keycloak Auth: Enabled
+{{- end }}
+{{- if .Values.ollama.enabled }}
+   ✓ Ollama Local LLM: Enabled (dev mode)
+{{- end }}
+{{- if .Values.postgresql.enabled }}
+   ✓ PostgreSQL: Enabled
+{{- end }}
+{{- if .Values.redis.enabled }}
+   ✓ Redis Cache: Enabled
+{{- end }}
+{{- if .Values.rabbitmq.enabled }}
+   ✓ RabbitMQ: Enabled
+{{- end }}
+
+4. Useful Commands:
+   # Check pod status
+   kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+
+   # View application logs
+   kubectl logs -f deployment/{{ include "uiuc-chat.fullname" . }}-backend
+
+   # Access MinIO Console (if enabled)
+{{- if .Values.minio.enabled }}
+   kubectl port-forward service/{{ include "uiuc-chat.fullname" . }}-minio 9001:9001
+   # Then visit http://localhost:9001
+{{- end }}
+
+   # Access Keycloak Admin Console (if enabled)
+{{- if .Values.keycloak.enabled }}
+   kubectl port-forward service/{{ include "uiuc-chat.fullname" . }}-keycloak 8080:8080
+   # Then visit http://localhost:8080/admin
+   # Username: {{ .Values.keycloak.auth.adminUser }}
+   # Password: [check secret {{ include "uiuc-chat.fullname" . }}-secrets]
+{{- end }}
+
+5. Configuration Notes:
+{{- if eq .Values.environment "dev" }}
+   🚀 Development Mode Active:
+   - Ollama is enabled for local LLM testing
+   - Resource limits are reduced for development
+   - Consider running frontend/backend locally for hot reload
+{{- else }}
+   🏭 Production Mode Active:
+   - External LLM APIs should be configured
+   - Ensure proper ingress and TLS setup
+   - Monitor resource usage and scaling
+{{- end }}
+
+{{- if not .Values.secrets.create }}
+   ⚠️  External secrets mode is enabled. Ensure all required secrets are created:
+   - Database passwords
+   - API keys (OpenAI, etc.)
+   - Service credentials
+{{- end }}
+
+{{- if .Values.frontend.ingress.enabled }}
+   🌐 Ingress is enabled. Ensure your ingress controller is properly configured.
+{{- end }}
+
+{{- if .Values.networkPolicies.enabled }}
+   🔒 Network policies are enabled for enhanced security.
+{{- end }}
+
+

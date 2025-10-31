@@ -1,0 +1,163 @@
+{{- if .Values.networkPolicies.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "uiuc-chat.fullname" . }}-frontend-netpol
+  labels:
+    {{- include "uiuc-chat.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "uiuc-chat.frontend.selectorLabels" . | nindent 6 }}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 3000
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          {{- include "uiuc-chat.backend.selectorLabels" . | nindent 10 }}
+    ports:
+    - protocol: TCP
+      port: 8001
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: keycloak
+          app.kubernetes.io/instance: {{ include "uiuc-chat.fullname" . }}
+    ports:
+    - protocol: TCP
+      port: 8080
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "uiuc-chat.fullname" . }}-backend-netpol
+  labels:
+    {{- include "uiuc-chat.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "uiuc-chat.backend.selectorLabels" . | nindent 6 }}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          {{- include "uiuc-chat.frontend.selectorLabels" . | nindent 10 }}
+    - podSelector:
+        matchLabels:
+          {{- include "uiuc-chat.crawlee.selectorLabels" . | nindent 10 }}
+    ports:
+    - protocol: TCP
+      port: 8001
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: qdrant
+          app.kubernetes.io/instance: {{ include "uiuc-chat.fullname" . }}
+    ports:
+    - protocol: TCP
+      port: 6333
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: minio
+          app.kubernetes.io/instance: {{ include "uiuc-chat.fullname" . }}
+    ports:
+    - protocol: TCP
+      port: 9000
+  {{- if .Values.postgresql.enabled }}
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: postgresql
+    ports:
+    - protocol: TCP
+      port: 5432
+  {{- end }}
+  {{- if .Values.redis.enabled }}
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  {{- end }}
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "uiuc-chat.fullname" . }}-worker-netpol
+  labels:
+    {{- include "uiuc-chat.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "uiuc-chat.worker.selectorLabels" . | nindent 6 }}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: qdrant
+          app.kubernetes.io/instance: {{ include "uiuc-chat.fullname" . }}
+    ports:
+    - protocol: TCP
+      port: 6333
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: minio
+          app.kubernetes.io/instance: {{ include "uiuc-chat.fullname" . }}
+    ports:
+    - protocol: TCP
+      port: 9000
+  {{- if .Values.rabbitmq.enabled }}
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: rabbitmq
+    ports:
+    - protocol: TCP
+      port: 5672
+  {{- end }}
+  {{- if .Values.postgresql.enabled }}
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: postgresql
+    ports:
+    - protocol: TCP
+      port: 5432
+  {{- end }}
+  {{- if and .Values.ollama.enabled (eq .Values.environment "dev") }}
+  - to:
+    - podSelector:
+        matchLabels:
+          {{- include "uiuc-chat.ollama.selectorLabels" . | nindent 10 }}
+    ports:
+    - protocol: TCP
+      port: 11434
+  {{- end }}
+
+{{- end }}
+
+

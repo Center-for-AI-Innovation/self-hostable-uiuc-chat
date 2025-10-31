@@ -1,0 +1,103 @@
+{{- if .Values.ingestWorker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "uiuc-chat.fullname" . }}-ingest-worker
+  labels:
+    {{- include "uiuc-chat.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ingest-worker
+spec:
+  replicas: {{ .Values.ingestWorker.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "uiuc-chat.ingestWorker.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "uiuc-chat.ingestWorker.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "uiuc-chat.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: ingest-worker
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "uiuc-chat.image" .Values.ingestWorker.image }}
+          imagePullPolicy: {{ .Values.ingestWorker.image.pullPolicy }}
+          command: ["python", "ai_ta_backend/rabbitmq/worker.py"]
+          env:
+            - name: RABBITMQ_URL
+              value: "amqp://{{ .Values.rabbitmq.auth.username }}:{{ .Values.rabbitmq.auth.password }}@{{ include "uiuc-chat.rabbitmq.host" . }}:{{ include "uiuc-chat.rabbitmq.port" . }}"
+            - name: RABBITMQ_QUEUE
+              value: "uiuc-chat"
+            - name: REDIS_HOST
+              value: {{ include "uiuc-chat.redis.host" . }}
+            - name: REDIS_PORT
+              value: {{ include "uiuc-chat.redis.port" . | quote }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uiuc-chat.fullname" . }}-secrets
+                  key: REDIS_PASSWORD
+            - name: POSTGRES_HOST
+              value: {{ include "uiuc-chat.postgresql.host" . }}
+            - name: POSTGRES_PORT
+              value: {{ include "uiuc-chat.postgresql.port" . | quote }}
+            - name: POSTGRES_DB
+              value: {{ include "uiuc-chat.postgresql.database" . }}
+            - name: POSTGRES_USER
+              value: {{ include "uiuc-chat.postgresql.username" . }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uiuc-chat.fullname" . }}-secrets
+                  key: POSTGRES_PASSWORD
+            - name: QDRANT_URL
+              value: "http://{{ include "uiuc-chat.fullname" . }}-qdrant:6333"
+            {{- if .Values.secrets.api.qdrantKey }}
+            - name: QDRANT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uiuc-chat.fullname" . }}-secrets
+                  key: qdrant-api-key
+            {{- end }}
+            - name: MINIO_URL
+              value: "http://{{ include "uiuc-chat.fullname" . }}-minio:9000"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uiuc-chat.fullname" . }}-secrets
+                  key: MINIO_ACCESS_KEY
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uiuc-chat.fullname" . }}-secrets
+                  key: MINIO_SECRET_KEY
+            {{- if .Values.secrets.api.openaiKey }}
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uiuc-chat.fullname" . }}-secrets
+                  key: OPENAI_API_KEY
+            {{- end }}
+          resources:
+            {{- toYaml .Values.ingestWorker.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+

@@ -1,0 +1,24 @@
+LangGraph Testing Document
+
+This is a test document for verifying the UIUC Chat ingestion and retrieval pipeline.
+
+Key Concepts:
+- LangGraph is a powerful framework for building stateful multi-actor applications with large language models
+- It enables creating dynamic graphs that represent language relationships effectively
+- The framework supports graph algorithms for analysis, such as shortest paths, clustering, and centrality measures
+- LangGraph integrates seamlessly with Python-based workflows and can be used for advanced language analysis
+
+Technical Details:
+- Built on top of Python and designed for scalability
+- Supports various graph visualization tools like NetworkX, Graphviz, PyVis, and Plotly
+- Enables building robust and scalable systems for language-based graph analysis
+- Provides clean, maintainable, and efficient Python code with proper documentation
+
+Use Cases:
+- Language relationship mapping and exploration
+- Multi-actor conversational systems
+- Complex workflow orchestration with LLMs
+- Advanced linguistic pattern analysis and visualization
+
+This document should be successfully ingested, processed, and retrievable through the chat system.
+

@@ -1,0 +1,360 @@
+# Default values for uiuc-chat
+# This is a YAML-formatted file.
+
+# Global configuration
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+  # Public ingress host for browser-facing URLs
+  host: "chat.local"
+
+# Environment (dev/prod)
+environment: "prod"
+
+# Frontend configuration
+frontend:
+  enabled: true
+  image:
+    repository: uiuc-chat-frontend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 3000
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations: {}
+    hosts:
+      - host: chat.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  env:
+    # In production with ingress, set to https://<global.host>/auth
+    NEXT_PUBLIC_KEYCLOAK_URL: "http://chat.local/auth/"
+    NEXT_PUBLIC_KEYCLOAK_REALM: "illinois_chat_realm"
+    NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: "uiuc-chat-client"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Backend Flask API configuration
+backend:
+  enabled: true
+  image:
+    repository: uiuc-chat-backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 8001
+  env:
+    FLASK_ENV: "production"
+    POSTGRES_HOST: "uiuc-chat-postgresql"
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: "postgres"
+    POSTGRES_USER: "postgres"
+    POSTGRES_PASSWORD: "password"
+    REDIS_URL: "redis://:password@uiuc-chat-redis-master:6379/0"
+    RABBITMQ_URL: "amqp://guest:guest@uiuc-chat-rabbitmq:5672/"
+    QDRANT_URL: "http://uiuc-chat-qdrant:6333"
+    MINIO_ENDPOINT: "http://uiuc-chat-minio:9000"
+    MINIO_ACCESS_KEY: "minioadmin"
+    MINIO_SECRET_KEY: "minioadmin"
+    S3_ENDPOINT: "http://uiuc-chat-minio:9000"
+    S3_BUCKET_NAME: "uiuc-chat"
+    S3_USE_SSL: "false"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+# Worker service configuration
+worker:
+  enabled: true
+  image:
+    repository: uiuc-chat-backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  env:
+    QDRANT_COLLECTION_NAME: "illinois_chat"
+    S3_BUCKET_NAME: "uiuc-chat"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+# Ingest worker configuration
+ingestWorker:
+  enabled: true
+  image:
+    repository: uiuc-chat-backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Crawlee service configuration
+crawlee:
+  enabled: true
+  image:
+    repository: ic-crawlee
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 3000
+  env:
+    INGEST_URL: "http://uiuc-chat-backend:8001/ingest"
+    SUPABASE_URL: "http://localhost:54321"  # TODO: replace with real Supabase URL
+    SUPABASE_ANON_KEY: "dev-anon-key"       # TODO: replace with real anon key
+  probes:
+    liveness:
+      enabled: true
+    readiness:
+      enabled: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Qdrant vector database configuration (using official Qdrant Helm chart)
+qdrant:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: docker.io/qdrant/qdrant
+    tag: "v1.7.4"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    ports:
+      - name: http
+        port: 6333
+        targetPort: 6333
+        protocol: TCP
+        checksEnabled: true
+      - name: grpc
+        port: 6334
+        targetPort: 6334
+        protocol: TCP
+        checksEnabled: false
+  persistence:
+    enabled: true
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+# Ollama (for development environment only)
+ollama:
+  enabled: false  # Only enabled in dev
+  image:
+    repository: ollama/ollama
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 11434
+  persistence:
+    enabled: true
+    size: 50Gi
+    accessMode: ReadWriteOnce
+  env:
+    OLLAMA_HOST: "0.0.0.0:11434"
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 8Gi
+    requests:
+      cpu: 1000m
+      memory: 4Gi
+
+# === DEPENDENCY CHART CONFIGURATIONS ===
+
+# PostgreSQL configuration (using Bitnami chart)
+postgresql:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamisecure/postgresql
+    tag: "15"
+  auth:
+    postgresPassword: "password"
+    username: "postgres"
+    password: "password"
+    database: "postgres"
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+  # Database schema initialization
+  schema:
+    enabled: true
+    # Set to false to skip automatic schema setup
+    # Useful for production environments with existing databases
+
+# Redis configuration (using Bitnami chart)
+redis:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamisecure/redis
+    tag: "7"
+  auth:
+    enabled: true
+    password: "password"
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+
+# RabbitMQ configuration (using Bitnami chart)
+rabbitmq:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamisecure/rabbitmq
+    tag: "3.12"
+  auth:
+    username: "guest"
+    password: "guest"
+  persistence:
+    enabled: true
+    size: 8Gi
+
+# MinIO configuration (using MinIO chart)
+minio:
+  enabled: true
+  auth:
+    rootUser: "minioadmin"
+    rootPassword: "minioadmin"
+  persistence:
+    enabled: true
+    size: 20Gi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+# Keycloak configuration (using Bitnami chart)
+keycloak:
+  enabled: true
+  auth:
+    adminUser: "admin"
+    adminPassword: "admin"
+  postgresql:
+    enabled: false  # Use shared PostgreSQL instance
+  externalDatabase:
+    host: "uiuc-chat-postgresql"
+    port: 5432
+    database: "postgres"
+    user: "postgres"
+    password: "password"
+  # Codecentric-compatible admin env vars
+  extraEnv: |
+    - name: KEYCLOAK_USER
+      value: "admin"
+    - name: KEYCLOAK_PASSWORD
+      value: "admin"
+
+# === APPLICATION SECRETS ===
+secrets:
+  # Internal secrets - created by the chart
+  create: true
+  api:
+    openaiKey: ""
+    qdrantKey: ""
+
+# Public path configuration used for ingress and frontend URLs
+paths:
+  root: "/"
+  api: "/api"
+  auth: "/auth"
+  minioConsole: "/minio"
+  ollama: "/ollama"
+
+# === KUBERNETES CONFIGURATIONS ===
+
+# Network policies
+networkPolicies:
+  enabled: false
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+
+# Security context
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Writable cache for Hugging Face transformers/tokenizers
+huggingfaceCache:
+  enabled: true
+  mountPath: "/var/cache/huggingface"
+  sizeLimit: "5Gi"  # emptyDir size limit (ephemeral)
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Autoscaling
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80

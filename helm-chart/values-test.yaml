@@ -1,0 +1,274 @@
+# Testing environment values for uiuc-chat
+# Lightweight configuration for testing
+
+# Environment identifier
+environment: "test"
+
+# Enable application components for full stack testing
+frontend:
+  enabled: true
+  image:
+    repository: self-hostable-uiuc-chat-uiuc-chat-frontend
+    tag: "latest"
+    pullPolicy: Never
+  env:
+    NEXT_PUBLIC_KEYCLOAK_URL: "http://uiuc-chat-test-keycloak:8080/"
+    NEXT_PUBLIC_KEYCLOAK_REALM: "uiuc-chat"
+    NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: "uiuc-chat-client"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+backend:
+  enabled: true
+  image:
+    repository: self-hostable-uiuc-chat-flask-app
+    tag: "latest"
+    pullPolicy: Never
+  env:
+    FLASK_ENV: "development"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+worker:
+  enabled: false  # Temporarily disabled due to missing pydub dependency
+  image:
+    repository: self-hostable-uiuc-chat-worker
+    tag: "latest"
+    pullPolicy: Never
+  env:
+    QDRANT_COLLECTION_NAME: "illinois_chat_test"
+    S3_BUCKET_NAME: "uiuc-chat-test"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+crawlee:
+  enabled: true  # Re-enabled with Supabase config
+  image:
+    repository: self-hostable-uiuc-chat-crawlee
+    tag: "latest"
+    pullPolicy: Never
+  env:
+    INGEST_URL: "http://uiuc-chat-test-backend:8001/ingest"
+    SUPABASE_URL: "http://placeholder.supabase.com"  # Placeholder to prevent crashes
+    SUPABASE_SECRET: "placeholder-secret-key-12345"  # Placeholder secret
+  probes:
+    liveness:
+      enabled: false
+    readiness:
+      enabled: false
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+ingestWorker:
+  enabled: true  # Re-enabled to test configuration
+  image:
+    repository: self-hostable-uiuc-chat-ingest-worker
+    tag: "latest"
+    pullPolicy: Never
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Disable Ollama for testing (resource intensive)
+ollama:
+  enabled: false
+
+# === DEPENDENCY CHART CONFIGURATIONS FOR TESTING ===
+
+# PostgreSQL (lightweight for testing)
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "password"
+    username: "postgres"
+    password: "password"
+    database: "postgres"
+  primary:
+    persistence:
+      enabled: true
+      size: 1Gi  # Smaller for testing
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+
+# Redis (lightweight)
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "password"
+  master:
+    persistence:
+      enabled: true
+      size: 1Gi  # Smaller for testing
+    resources:
+      limits:
+        cpu: 250m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  replica:
+    replicaCount: 1  # Reduce replicas for testing
+    resources:
+      limits:
+        cpu: 250m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+# RabbitMQ (lightweight)
+rabbitmq:
+  enabled: true
+  auth:
+    username: "guest"
+    password: "guest"
+  persistence:
+    enabled: true
+    size: 1Gi  # Smaller for testing
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# MinIO (single instance mode for testing)
+minio:
+  enabled: true
+  mode: standalone  # Single instance instead of distributed
+  auth:
+    rootUser: "minioadmin"
+    rootPassword: "minioadmin"
+  persistence:
+    enabled: true
+    size: 2Gi  # Smaller for testing
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Qdrant (lightweight)
+qdrant:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: docker.io/qdrant/qdrant
+    tag: "v1.7.4"
+    pullPolicy: Never
+  service:
+    type: ClusterIP
+    ports:
+      - name: http
+        port: 6333
+        targetPort: 6333
+        protocol: TCP
+        checksEnabled: true
+      - name: grpc
+        port: 6334
+        targetPort: 6334
+        protocol: TCP
+        checksEnabled: false
+  persistence:
+    enabled: true
+    size: 1Gi  # Smaller for testing
+    accessModes:
+      - ReadWriteOnce
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+# Keycloak (using shared PostgreSQL)
+keycloak:
+  enabled: true
+  auth:
+    adminUser: "admin"
+    adminPassword: "admin"
+  postgresql:
+    enabled: false  # Use shared PostgreSQL
+  externalDatabase:
+    host: "uiuc-chat-postgresql"
+    port: 5432
+    database: "postgres"
+    user: "postgres"
+    password: "password"
+  # Realm import configuration
+  extraVolumes: |
+    - name: realm-config
+      configMap:
+        name: uiuc-chat-keycloak-realm
+    - name: theme-config
+      configMap:
+        name: uiuc-chat-keycloak-theme
+  extraVolumeMounts: |
+    - name: realm-config
+      mountPath: /opt/keycloak/data/import
+      readOnly: true
+    - name: theme-config
+      mountPath: /opt/keycloak/themes/keywind
+      readOnly: true
+  # Custom theme configuration
+  extraEnv: |
+    - name: KC_SPI_THEME_STATIC_MAX_AGE
+      value: "2592000"
+    - name: KC_SPI_THEME_CACHE_THEMES
+      value: "true"
+    - name: KC_SPI_THEME_CACHE_TEMPLATES
+      value: "true"
+    - name: KEYCLOAK_IMPORT
+      value: "/opt/keycloak/data/import/realm-export.json"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+# Testing secrets
+secrets:
+  create: true
+  api:
+    openaiKey: "test-key"
+    qdrantKey: "test-key"
+
+# Lower resource limits for testing
+autoscaling:
+  enabled: false

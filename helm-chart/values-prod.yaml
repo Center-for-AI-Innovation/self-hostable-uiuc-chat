@@ -1,0 +1,194 @@
+# Production environment values for uiuc-chat
+# This extends the base values.yaml
+
+# Environment identifier
+environment: "prod"
+
+# Frontend configuration
+frontend:
+  enabled: true
+  env:
+    NEXT_PUBLIC_KEYCLOAK_URL: "http://uiuc-chat-keycloak:8080/"
+    NEXT_PUBLIC_KEYCLOAK_REALM: "illinois_chat_realm"
+    NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: "uiuc-chat-client"
+  replicaCount: 2
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    hosts:
+      - host: chat.yourdomain.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: uiuc-chat-tls
+        hosts:
+          - chat.yourdomain.com
+
+# Backend configuration
+backend:
+  enabled: true
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+
+# Worker service
+worker:
+  enabled: true
+  replicaCount: 3
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+
+# Ingest worker for production workloads
+ingestWorker:
+  enabled: true
+  replicaCount: 2
+
+# Crawlee for production web crawling
+crawlee:
+  enabled: true
+  replicaCount: 1
+
+# Ollama disabled in production (use external LLM APIs)
+ollama:
+  enabled: false
+
+# === DEPENDENCY CHART CONFIGURATIONS FOR PROD ===
+
+# PostgreSQL for production
+postgresql:
+  enabled: true
+  image:
+    tag: "15.5.0-debian-11-r0"
+  auth:
+    postgresPassword: "CHANGE-ME-IN-PRODUCTION"
+    username: "postgres"
+    password: "CHANGE-ME-IN-PRODUCTION"
+    database: "postgres"
+  primary:
+    persistence:
+      enabled: true
+      size: 100Gi
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+
+# Redis for production
+redis:
+  enabled: true
+  image:
+    tag: "7.0.4-debian-11-r11"
+  auth:
+    enabled: true
+    password: "CHANGE-ME-IN-PRODUCTION"
+  master:
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+
+# RabbitMQ for production
+rabbitmq:
+  enabled: true
+  auth:
+    username: "uiuc-chat"
+    password: "CHANGE-ME-IN-PRODUCTION"
+  persistence:
+    enabled: true
+    size: 20Gi
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+# MinIO for production
+minio:
+  enabled: true
+  replicas: 1
+  mode: standalone
+  auth:
+    rootUser: "CHANGE-ME-IN-PRODUCTION"
+    rootPassword: "CHANGE-ME-IN-PRODUCTION"
+  persistence:
+    enabled: true
+    size: 500Gi
+
+# Keycloak for production
+keycloak:
+  enabled: true
+  auth:
+    adminUser: "admin"
+    adminPassword: "CHANGE-ME-IN-PRODUCTION"
+  postgresql:
+    enabled: false  # Use shared PostgreSQL
+  externalDatabase:
+    host: "uiuc-chat-postgresql"
+    port: 5432
+    database: "postgres"
+    user: "postgres"
+    password: "CHANGE-ME-IN-PRODUCTION"
+
+# Production secrets - use external secret management
+secrets:
+  create: false  # Use external secret management in production
+
+# Network policies for security
+networkPolicies:
+  enabled: true
+
+# Security contexts
+podSecurityContext:
+  fsGroup: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Node selector for production workloads (disabled for minikube)
+nodeSelector: {}
+
+# Affinity rules for high availability (disabled for minikube)
+affinity: {}
+
+# Enable autoscaling in production
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80

@@ -1,0 +1,84 @@
+{{- if .Values.worker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "uiuc-chat.fullname" . }}-worker
+  labels:
+    {{- include "uiuc-chat.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "uiuc-chat.worker.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "uiuc-chat.worker.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "uiuc-chat.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: worker
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "uiuc-chat.image" .Values.worker.image }}
+          imagePullPolicy: {{ .Values.worker.image.pullPolicy }}
+          command: ["python", "ai_ta_backend/rabbitmq/worker.py"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "uiuc-chat.fullname" . }}-app-config
+            - secretRef:
+                name: {{ include "uiuc-chat.fullname" . }}-secrets
+          env:
+            - name: QDRANT_COLLECTION_NAME
+              value: {{ .Values.worker.env.QDRANT_COLLECTION_NAME | quote }}
+            - name: S3_BUCKET_NAME
+              value: {{ .Values.worker.env.S3_BUCKET_NAME | quote }}
+            {{- if and .Values.ollama.enabled (eq .Values.environment "dev") }}
+            - name: OLLAMA_BASE_URL
+              value: "http://{{ include "uiuc-chat.fullname" . }}-ollama:11434"
+            {{- end }}
+            {{- if .Values.huggingfaceCache.enabled }}
+            - name: TRANSFORMERS_CACHE
+              value: {{ printf "%s/transformers" .Values.huggingfaceCache.mountPath | quote }}
+            - name: HF_HOME
+              value: {{ .Values.huggingfaceCache.mountPath | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+          {{- if .Values.huggingfaceCache.enabled }}
+          volumeMounts:
+            - name: huggingface-cache
+              mountPath: {{ .Values.huggingfaceCache.mountPath | quote }}
+          {{- end }}
+      {{- if .Values.huggingfaceCache.enabled }}
+      volumes:
+        - name: huggingface-cache
+          emptyDir:
+            {{- if .Values.huggingfaceCache.sizeLimit }}
+            sizeLimit: {{ .Values.huggingfaceCache.sizeLimit | quote }}
+            {{- end }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+
