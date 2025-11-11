@@ -1,0 +1,38 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    networks:
+      - uiuc-chat-network
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ollama-models-init:
+    image: curlimages/curl:latest
+    container_name: ollama-models-init
+    networks:
+      - uiuc-chat-network
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ./scripts/init-ollama-models.sh:/init-models.sh:ro
+    entrypoint: ["/bin/sh", "/init-models.sh"]
+    restart: "no"
+
+networks:
+  uiuc-chat-network:
+    driver: bridge
+
+volumes:
+  ollama-data: {}

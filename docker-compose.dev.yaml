@@ -1,8 +1,6 @@
 services:
   redis:
     image: redis:7.2
-    restart: unless-stopped
-    container_name: redis
     command: redis-server --requirepass ${INGEST_REDIS_PASSWORD}
     ports:
        - 6379:6379
@@ -18,8 +16,6 @@ services:
 
   qdrant:
     image: qdrant/qdrant:v1.9.0
-    restart: unless-stopped
-    container_name: qdrant
     # environment:
     #   - QDRANT_API_KEY=${QDRANT_API_KEY}
     ports:
@@ -35,15 +31,15 @@ services:
     networks:
       - uiuc-chat-network
     healthcheck:
-      test: [ "CMD", "curl", "-f", "-H", "Authorization: Bearer ${QDRANT_API_KEY}", "http://qdrant:6333/health" ]
+      test:
+        - CMD-SHELL
+        - bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1
       interval: 30s
       timeout: 10s
       retries: 3
 
   minio:
     image: minio/minio:RELEASE.2024-06-13T22-53-53Z
-    restart: unless-stopped
-    container_name: minio
     # Customize env vars in .env file
     environment:
       MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
@@ -62,54 +58,64 @@ services:
     volumes:
       - minio-data:/data
     healthcheck:
-      test: [ "CMD", "test", "-f", "/proc/1/exe", "&&", "readlink", "/proc/1/exe", "|", "grep", "-q", "/usr/bin/minio" ]
+      test:
+        - CMD-SHELL
+        - bash -c ':> /dev/tcp/127.0.0.1/${DOCKER_INTERNAL_MINIO_API_PORT}' || exit 1
       interval: 30s
       timeout: 10s
       retries: 3
 
-#  crawlee:
-#    build: ./ic_crawlee
-#    container_name: ic_crawlee
-#    networks:
-#      - uiuc-chat-network
-#    volumes:
-#      - ./data:/data
-#    ports:
-#      - "3345:3000"
-#    env_file:
-#      - .env
-#    environment:
-#      - INGEST_URL=http://flask-app:8001/ingest
-#    depends_on:
-#      - redis
+  # crawlee:
+  #   build: ./ic_crawlee
+  #   platform: linux/amd64  # M chip
+  #   networks:
+  #     - uiuc-chat-network
+  #   volumes:
+  #     - ./data:/data
+  #   ports:
+  #     - "3345:3000"
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - INGEST_URL=http://flask-app:8001/ingest
+  #   depends_on:
+  #     - redis
 
   postgres-illinois-chat:
     image: postgres
-    restart: unless-stopped
     networks:
       - uiuc-chat-network
     volumes:
-      - postgres-illinois-chat:/var/lib/postgres/data
+      - postgres-illinois-chat:/var/lib/postgresql
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
+      POSTGRES_DATABASE: postgres
+      POSTGRES_USERNAME: postgres
       POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   postgres-keycloak:
     image: postgres
-    restart: unless-stopped
     networks:
       - uiuc-chat-network
     volumes:
-      - postgres-keycloak:/var/lib/postgres/data
+      - postgres-keycloak:/var/lib/postgresql
     ports:
       - "5433:5432"
     environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
+      POSTGRES_DATABASE: postgres
+      POSTGRES_USERNAME: postgres
       POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -130,10 +136,8 @@ services:
       - rabbitmq:/var/lib/rabbitmq
 
   keycloak:
-#    platform: linux/amd64  # M chip
+    platform: linux/amd64  # M chip
     image: quay.io/keycloak/keycloak:26.1
-    container_name: keycloak
-    restart: unless-stopped
     env_file:
       - .env
     ports:
@@ -147,7 +151,7 @@ services:
       - --hostname-strict=false
       - --db=postgres
       - --db-url=jdbc:postgresql://postgres-keycloak:5432/postgres
-      - --db-username=${POSTGRES_USER}
+      - --db-username=${POSTGRES_USERNAME}
       - --db-password=${POSTGRES_PASSWORD}
       - --import-realm
     environment:
@@ -159,38 +163,28 @@ services:
       - ./keycloak-theme:/opt/keycloak/themes/keywind
       - ./keycloak/realms/realm-export.json:/opt/keycloak/data/import/realm-export.json
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://keycloak:8080/health/ready" ]
+      test:
+        - CMD-SHELL
+        - bash -c ':> /dev/tcp/127.0.0.1/8080' || exit 1
       interval: 30s
       timeout: 10s
       retries: 3
 
-  worker:
-    build:
-      context: ./uiuc-chat-backend
-      dockerfile: Self-Hosted-Dockerfile
-    restart: unless-stopped
+  drizzle-gateway:
+    image: ghcr.io/drizzle-team/gateway:latest
+    ports:
+      - "4983:4983"
     networks:
       - uiuc-chat-network
-    ports:
-      - "8001:8001"
-    depends_on:
-      - rabbitmq
-      - postgres-illinois-chat
+    volumes:
+      - drizzle-gateway:/app/drizzle-gateway-volume
     environment:
-      RABBITMQ_URL: 'amqp://guest:guest@rabbitmq:5672'
-      POSTGRES_HOST: postgres-illinois-chat
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      QDRANT_URL: "http://qdrant:6333"
-      QDRANT_API_KEY: "your-strong-key-here"
-      QDRANT_COLLECTION_NAME: illinois_chat
-      MINIO_URL: http://minio:10000
-      AWS_ACCESS_KEY_ID: "minioadmin"
-      AWS_SECRET_ACCESS_KEY: "minioadmin"
-      S3_BUCKET_NAME: uiuc-chat
+      - PORT=4983
+      - STORE_PATH=/app/drizzle-gateway-volume
+      - MASTERPASS=${DRIZZLE_MASTERPASS:-your_master_password}
+    depends_on:
+      postgres-illinois-chat:
+        condition: service_healthy
 
 # declare the network resource
 # this will allow you to use service discovery and address a container by its name from within the network
@@ -205,3 +199,5 @@ volumes:
   postgres-illinois-chat: {}
   postgres-keycloak: {}
   rabbitmq: {}
+  ollama-data: {}
+  drizzle-gateway: {}
