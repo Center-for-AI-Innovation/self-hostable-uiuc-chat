@@ -11,6 +11,7 @@
 [submodule "ic_crawlee"]
 	path = ic_crawlee
 	url = https://github.com/Center-for-AI-Innovation/crawlee.git
+	branch = main
 [submodule "uiuc-chat-frontend"]
 	path = uiuc-chat-frontend
 	url = https://github.com/Center-for-AI-Innovation/uiuc-chat-frontend.git
