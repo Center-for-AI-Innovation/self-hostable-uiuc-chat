@@ -1,0 +1,32 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - monorepo
+      - illinois-chat
+      - main
+
+jobs:
+  trunk-and-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout monorepo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Trunk
+        uses: trunk-io/trunk-action@v1
+        with:
+          check-mode: true
+
+      # Backend tests placeholder
+      - name: Backend tests
+        run: |
+          echo "TODO: add backend tests (e.g., pytest) here"
+
+      # Frontend tests placeholder
+      - name: Frontend tests
+        run: |
+          echo "TODO: add frontend tests (e.g., npm test) here"

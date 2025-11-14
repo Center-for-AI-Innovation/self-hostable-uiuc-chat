@@ -73,12 +73,12 @@ See docs on https://docs.uiuc.chat
 
 Backend:
 ```bash
-cd uiuc-chat-backend
+cd apps/backend
 infisical run --env=dev -- flask --app ai_ta_backend.main:app --debug run --port 8000
 ```
 Frontend:
 ```bash
-cd uiuc-chat-frontend
+cd apps/frontend
 npm run dev
 ```
 
@@ -86,10 +86,10 @@ npm run dev
 
 ```bash
 # rebuild only the frontend after file changes in that repo. Super quick, supports Docker's Layer Cache.
-sudo bash init.sh --rebuild=uiuc-chat-frontend
+sudo bash init.sh --rebuild=apps/frontend
 
 # rebuild both frontend and backend after file changes
-sudo bash init.sh --rebuild="uiuc-chat-frontend flask-app "
+sudo bash init.sh --rebuild="apps/frontend flask-app "
 ```
 
 If you're interested in contributing, check out our [official developer quickstart](https://docs.uiuc.chat/developers/developer-quickstart).

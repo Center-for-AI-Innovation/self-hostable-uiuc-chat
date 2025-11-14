@@ -5,13 +5,13 @@ services:
     container_name: redis
     command: redis-server --requirepass ${INGEST_REDIS_PASSWORD}
     ports:
-       - 6379:6379
+      - 6379:6379
     networks:
       - uiuc-chat-network
     volumes:
       - redis-data:/data
     healthcheck:
-      test: [ "CMD", "redis-cli", "--raw", "ping" ]
+      test: ["CMD", "redis-cli", "--raw", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -72,8 +72,8 @@ services:
       retries: 3
 
   crawlee:
-    build: ./ic_crawlee
-    container_name: ic_crawlee
+    build: ./apps/crawlee
+    container_name: apps/crawlee
     networks:
       - uiuc-chat-network
     volumes:
@@ -134,7 +134,7 @@ services:
       - "5672:5672"
       - "15672:15672"
     healthcheck:
-      test: [ "CMD", "nc", "-z", "localhost", "5672" ]
+      test: ["CMD", "nc", "-z", "localhost", "5672"]
       interval: 3s
       timeout: 10s
       retries: 3
@@ -144,7 +144,7 @@ services:
       - rabbitmq:/var/lib/rabbitmq
 
   keycloak:
-#    platform: linux/amd64  # M chip
+    #    platform: linux/amd64  # M chip
     image: quay.io/keycloak/keycloak:26.1
     container_name: keycloak
     restart: unless-stopped
@@ -170,7 +170,7 @@ services:
       - KC_METRICS_ENABLED=true
       - KC_HEALTH_ENABLED=true
     volumes:
-      - ./keycloak-theme:/opt/keycloak/themes/keywind
+      - ./infra/keycloak/theme:/opt/keycloak/themes/keywind
       - ./keycloak/realms/realm-export.json:/opt/keycloak/data/import/realm-export.json
     healthcheck:
       test:
@@ -183,7 +183,7 @@ services:
   worker:
     platform: linux/arm64/v8
     build:
-      context: ./uiuc-chat-backend
+      context: ./apps/backend
       dockerfile: Self-Hosted-Dockerfile
     restart: unless-stopped
     networks:
@@ -194,7 +194,7 @@ services:
       - rabbitmq
       - postgres-illinois-chat
     environment:
-      RABBITMQ_URL: 'amqp://guest:guest@rabbitmq:5672'
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
       POSTGRES_HOST: postgres-illinois-chat
       POSTGRES_PORT: 5432
       POSTGRES_DB: postgres

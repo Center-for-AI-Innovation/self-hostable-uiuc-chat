@@ -1,0 +1,81 @@
+name: Build and Push Release Images
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-push-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout monorepo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Trunk
+        uses: trunk-io/trunk-action@v1
+        with:
+          check-mode: true
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build backend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: uiuc-chat-backend
+          IMAGE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          cd apps/backend
+          docker build -f Self-Hosted-Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+
+      - name: Push backend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: uiuc-chat-backend
+          IMAGE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Build worker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY_WORKER: uiuc-chat-worker
+          WORKER_IMAGE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          cd apps/backend
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$WORKER_IMAGE_TAG ai_ta_backend/rabbitmq/
+
+      - name: Push worker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY_WORKER: uiuc-chat-worker
+          WORKER_IMAGE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY_WORKER:$WORKER_IMAGE_TAG
+
+      - name: Build frontend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: uiuc-chat-frontend
+          IMAGE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          cd apps/frontend
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+
+      - name: Push frontend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: uiuc-chat-frontend
+          IMAGE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
