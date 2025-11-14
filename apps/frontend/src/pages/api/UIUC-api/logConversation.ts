@@ -1,0 +1,150 @@
+import { type NextApiResponse } from 'next'
+import { AuthenticatedRequest } from '~/utils/authMiddleware'
+import { db } from '~/db/dbClient'
+import { type Content, type Conversation } from '~/types/chat'
+import { RunTree } from 'langsmith'
+import { sanitizeForLogging } from '@/utils/sanitization'
+import { llmConvoMonitor } from '~/db/schema'
+import { getBackendUrl } from '~/utils/apiUtils'
+import { withCourseAccessFromRequest } from '~/pages/api/authorization'
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '50mb',
+    },
+  },
+}
+
+const logConversation = async (req: AuthenticatedRequest, res: NextApiResponse) => {
+  const { course_name, conversation } = req.body as {
+    course_name: string
+    conversation: Conversation
+  }
+
+  // Sanitize the entire conversation object
+  const sanitizedConversation = sanitizeForLogging(conversation)
+
+  try {
+    const result = await db
+      .insert(llmConvoMonitor)
+      .values({
+        convo: sanitizedConversation,
+        convo_id: await sanitizedConversation.id.toString(),
+        course_name: course_name,
+        user_email: sanitizedConversation.userEmail,
+      })
+      .onConflictDoUpdate({
+        target: [llmConvoMonitor.convo_id],
+        set: {
+          convo: sanitizedConversation,
+          convo_id: await sanitizedConversation.id.toString(),
+          course_name: course_name,
+          user_email: sanitizedConversation.userEmail,
+        },
+      })
+  } catch (error: any) {
+    console.log('new error from database in logConversation:', error)
+  }
+
+  // Send to our custom monitor
+  try {
+    const response = await fetch(getBackendUrl() + '/llm-monitor-message', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        // messages: sanitizedConversation.messages, // we get these from database on the backend.
+        course_name: course_name,
+        conversation_id: conversation.id,
+        model_name: conversation.model.name,
+        user_email: sanitizedConversation.userEmail,
+      }),
+    })
+
+    if (!response.ok) {
+      console.error('Error sending to AI TA backend:', response.statusText)
+    }
+  } catch (error) {
+    console.error('Error sending to AI TA backend:', error)
+  }
+
+  // console.log('👇👇👇👇👇👇👇👇👇👇👇👇👇')
+  // console.log(
+  //   '2nd Latest message object (user)',
+  //   conversation.messages[conversation.messages.length - 2],
+  // )
+  // console.log(
+  //   'Latest message object (assistant)',
+  //   conversation.messages[conversation.messages.length - 1],
+  // )
+  // console.log('full convo id', conversation.id)
+  // console.log(
+  //   'User message',
+  //   (
+  //     conversation.messages[conversation.messages.length - 2]
+  //       ?.content[0] as Content
+  //   ).text,
+  // )
+  // console.log(
+  //   'Assistant message',
+  //   conversation.messages[conversation.messages.length - 2]?.content,
+  // )
+  // console.log(
+  //   'Engineered prompt',
+  //   conversation.messages[conversation.messages.length - 2]!
+  //     .finalPromtEngineeredMessage,
+  // )
+  // console.log(
+  //   'System message',
+  //   conversation.messages[conversation.messages.length - 2]!
+  //     .latestSystemMessage,
+  // )
+  // console.log('👆👆👆👆👆👆👆👆👆👆👆👆👆')
+
+  // Log to Langsmith
+  const rt = new RunTree({
+    run_type: 'llm',
+    name: 'Final Response Log',
+    inputs: {
+      'User input': sanitizeForLogging(
+        (
+          conversation.messages[conversation.messages.length - 2]
+            ?.content[0] as Content
+        )?.text,
+      ),
+      'System message': sanitizeForLogging(
+        conversation.messages[conversation.messages.length - 2]!
+          .latestSystemMessage,
+      ),
+      'Engineered prompt': sanitizeForLogging(
+        conversation.messages[conversation.messages.length - 2]!
+          .finalPromtEngineeredMessage,
+      ),
+    },
+    outputs: {
+      Assistant: sanitizeForLogging(
+        conversation.messages[conversation.messages.length - 1]?.content,
+      ),
+    },
+    project_name: 'uiuc-chat-production',
+    metadata: {
+      projectName: course_name,
+      conversation_id: conversation.id,
+      tools: sanitizeForLogging(
+        conversation.messages[conversation.messages.length - 2]?.tools,
+      ),
+    }, // "conversation_id" is a SPECIAL KEYWORD. CANNOT BE ALTERED: https://docs.smith.langchain.com/old/monitoring/faq/threads
+    // id: conversation.id, // DON'T USE - breaks the threading support
+  })
+
+  // End and submit the run
+  rt.end()
+  await rt.postRun()
+  // console.log('✅✅✅✅✅✅✅✅ AFTER ALL LANGSMITH CALLS')
+
+  return res.status(200).json({ success: true })
+}
+
+export default withCourseAccessFromRequest("any")(logConversation)

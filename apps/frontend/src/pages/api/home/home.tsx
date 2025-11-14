@@ -1,0 +1,796 @@
+// src/pages/home/home.tsx
+import { useCallback, useEffect, useRef, useState } from 'react'
+
+import { useTranslation } from 'next-i18next'
+import Head from 'next/head'
+
+import { useCreateReducer } from '@/hooks/useCreateReducer'
+
+import useErrorService from '@/services/errorService'
+
+import { cleanSelectedConversation } from '@/utils/app/clean'
+import { DEFAULT_SYSTEM_PROMPT } from '@/utils/app/const'
+
+import { type Conversation } from '@/types/chat'
+import { type KeyValuePair } from '@/types/data'
+
+import { Chat } from '@/components/Chat/Chat'
+import { Chatbar } from '@/components/Chatbar/Chatbar'
+
+import HomeContext from './home.context'
+import { type HomeInitialState, initialState } from './home.state'
+
+import { useQueryClient } from '@tanstack/react-query'
+import { montserrat_heading } from 'fonts'
+import { v4 as uuidv4 } from 'uuid'
+import { selectBestTemperature } from '~/components/Chat/Temperature'
+import { LoadingSpinner } from '~/components/UIUC-Components/LoadingSpinner'
+import { MainPageBackground } from '~/components/UIUC-Components/MainPageBackground'
+import {
+  useFetchConversationHistory, useFetchLastConversation,
+  useUpdateConversation,
+} from '~/hooks/conversationQueries'
+import {
+  useCreateFolder,
+  useDeleteFolder,
+  useFetchFolders,
+  useUpdateFolder,
+} from '~/hooks/folderQueries'
+import { type CourseMetadata } from '~/types/courseMetadata'
+import { type FolderType, type FolderWithConversation } from '~/types/folder'
+import {
+  selectBestModel,
+  VisionCapableModels,
+} from '~/utils/modelProviders/LLMProvider'
+import { type OpenAIModelID } from '~/utils/modelProviders/types/openai'
+
+import Navbar from '~/components/UIUC-Components/navbars/Navbar'
+
+const Home = ({
+                current_email,
+                course_metadata,
+                course_name,
+                document_count,
+                link_parameters,
+              }: {
+  current_email: string
+  course_metadata: CourseMetadata | null
+  course_name: string
+  document_count: number | null
+  link_parameters: {
+    guidedLearning: boolean
+    documentsOnly: boolean
+    systemPromptOnly: boolean
+  }
+}) => {
+  // States
+  const [isInitialSetupDone, setIsInitialSetupDone] = useState(false)
+
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+
+  // Add these two new state setters
+  const [isQueryRewriting, setIsQueryRewriting] = useState<boolean>(false)
+  const [queryRewriteResult, setQueryRewriteResult] = useState<string>('')
+
+  // Hooks
+  const { t } = useTranslation('chat')
+  const { getModelsError } = useErrorService()
+
+  const queryClient = useQueryClient()
+  // const queryCache = queryClient.getQueryCache()
+
+  const createFolderMutation = useCreateFolder(
+    current_email as string,
+    queryClient,
+    course_name,
+  )
+  const updateFolderMutation = useUpdateFolder(
+    current_email as string,
+    queryClient,
+    course_name,
+  )
+  const deleteFolderMutation = useDeleteFolder(
+    current_email as string,
+    queryClient,
+    course_name,
+  )
+
+  const {
+    data: foldersData,
+    isFetched: isFoldersFetched,
+    isLoading: isLoadingFolders,
+  } = useFetchFolders(current_email as string, course_name as string)
+
+  // fetch last conversation to get the temperature
+  const {
+    data: lastConversation,
+    isFetched: isLastConversationFetched,
+    isLoading: isLastConversationLoading,
+  } = useFetchLastConversation(course_name)
+
+  const stopConversationRef = useRef<boolean>(false)
+  const getModels = useCallback(
+    async (params: { projectName: string }, signal?: AbortSignal) => {
+      const response = await fetch(`/api/models`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal,
+        body: JSON.stringify({
+          projectName: params.projectName,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch models')
+      }
+
+      return response.json()
+    },
+    [],
+  )
+
+  const serverSidePluginKeysSet = true
+
+  // Context with initial state
+  const contextValue = useCreateReducer<HomeInitialState>({
+    initialState,
+  })
+
+  const {
+    state: {
+      apiKey,
+      folders,
+      conversations,
+      selectedConversation,
+      llmProviders,
+      documentGroups,
+      tools,
+    },
+    dispatch,
+  } = contextValue
+
+  const updateConversationMutation = useUpdateConversation(
+    current_email as string,
+    queryClient,
+    course_name,
+  )
+  // Use effects for setting up the course metadata and models depending on the course/project
+  useEffect(() => {
+    // Set model after we fetch available models
+    if (Object.keys(llmProviders).length == 0) return
+    const model = selectBestModel(llmProviders)
+
+    dispatch({
+      field: 'defaultModelId',
+      value: model.id,
+    })
+
+    // Ensure current convo has a valid model
+    if (selectedConversation) {
+      const convo_with_valid_model = selectedConversation
+      convo_with_valid_model.model = model
+      dispatch({
+        field: 'selectedConversation',
+        value: convo_with_valid_model,
+      })
+    }
+  }, [llmProviders])
+
+  // ---- Set OpenAI API Key (either course-wide or from storage) ----
+  useEffect(() => {
+    // console.log("In useEffect for apiKey, home.tsx, apiKey: ", apiKey)
+    if (!course_metadata) return
+    const local_api_key = localStorage.getItem('apiKey')
+    let key = ''
+
+    if (course_metadata && course_metadata.openai_api_key) {
+      // console.log(
+      //   'Using key from course_metadata',
+      //   course_metadata.openai_api_key,
+      // )
+      key = course_metadata.openai_api_key
+      // setServerSideApiKeyIsSet(true)
+      dispatch({
+        field: 'serverSideApiKeyIsSet',
+        value: true,
+      })
+      dispatch({ field: 'apiKey', value: '' })
+    } else if (local_api_key) {
+      if (local_api_key.startsWith('sk-')) {
+        console.log(
+          'No openai_api_key found in course_metadata, but found one in client localStorage',
+        )
+        key = local_api_key
+
+        dispatch({ field: 'apiKey', value: local_api_key })
+      } else {
+        console.error(
+          'you have entered an API key that does not start with \'sk-\', which indicates it\'s invalid. Please enter just the key from OpenAI starting with \'sk-\'. You entered',
+          apiKey,
+        )
+      }
+    }
+
+    const setOpenaiModel = async () => {
+      // Get models available to users
+      try {
+        if (!course_metadata) return
+
+        const models = await getModels({
+          projectName: course_name,
+        })
+        dispatch({ field: 'llmProviders', value: models })
+      } catch (error) {
+        console.error('Error fetching models user has access to: ', error)
+        dispatch({ field: 'modelError', value: getModelsError(error) })
+      }
+    }
+
+    setOpenaiModel()
+    setIsLoading(false)
+  }, [course_metadata, apiKey])
+
+  useEffect(() => {
+    if (isFoldersFetched && !isLoadingFolders) {
+      // console.log('foldersData: ', foldersData)
+      dispatch({ field: 'folders', value: foldersData })
+      // localStorage.setItem('folders', JSON.stringify(foldersData))
+    }
+  }, [foldersData])
+
+  // FOLDER OPERATIONS  --------------------------------------------
+  const handleCreateFolder = (name: string, type: FolderType) => {
+    if (current_email == undefined) {
+      console.error('current_email is undefined')
+      return
+    }
+
+    const newFolder: FolderWithConversation = {
+      id: uuidv4(),
+      name,
+      type,
+    }
+
+    createFolderMutation.mutate(newFolder)
+  }
+
+  const handleDeleteFolder = (folderId: string) => {
+    if (current_email == undefined) {
+      console.error('current_email is undefined')
+      return
+    }
+    const deletedFolder = folders.find(
+      (f) => f.id === folderId,
+    ) as FolderWithConversation
+
+    deleteFolderMutation.mutate(deletedFolder)
+  }
+
+  const handleUpdateFolder = (folderId: string, name: string) => {
+    if (current_email == undefined) {
+      console.error('current_email is undefined')
+      return
+    }
+
+    const updatedFolder = folders.find(
+      (f) => f.id === folderId,
+    ) as FolderWithConversation
+    updatedFolder.name = name
+
+    updateFolderMutation.mutate(updatedFolder)
+  }
+
+  // CONVERSATION OPERATIONS  --------------------------------------------
+  const handleSelectConversation = async (conversation: Conversation) => {
+    dispatch({
+      field: 'selectedConversation',
+      value: conversation,
+    })
+
+    try {
+      localStorage.setItem('selectedConversation', JSON.stringify(conversation))
+    } catch (error) {
+      // Handle localStorage quota exceeded error
+      if (
+        error instanceof DOMException &&
+        (error.name === 'QuotaExceededError' ||
+          error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+          error.code === 22 ||
+          error.code === 1014)
+      ) {
+        console.warn(
+          'localStorage quota exceeded in handleSelectConversation, saving minimal conversation data instead',
+        )
+
+        // Create a minimal version of the conversation with just essential data
+        const minimalConversation = {
+          id: conversation.id,
+          name: conversation.name,
+          model: conversation.model,
+          temperature: conversation.temperature,
+          folderId: conversation.folderId,
+          userEmail: conversation.userEmail,
+          projectName: conversation.projectName,
+          createdAt: conversation.createdAt,
+          updatedAt: conversation.updatedAt,
+        }
+
+        try {
+          // Try to save the minimal version
+          localStorage.setItem(
+            'selectedConversation',
+            JSON.stringify(minimalConversation),
+          )
+        } catch (minimalError) {
+          // If even minimal version fails, just log the error
+          console.error(
+            'Failed to save even minimal conversation data to localStorage',
+            minimalError,
+          )
+        }
+      } else {
+        // Some other error occurred
+        console.error('Error saving conversation to localStorage:', error)
+      }
+    }
+    // await saveConversationToServer(conversation)
+  }
+
+  // This will ONLY update the react context and not the server
+  const handleDuplicateRequest = () => {
+    if (selectedConversation?.messages.length === 0) return
+  }
+
+  const handleNewConversation = () => {
+    // If we're already in an empty conversation, don't create a new one
+    if (selectedConversation && selectedConversation.messages.length === 0) {
+      return
+    }
+
+    // Determine the model to use for the new conversation
+    const model = selectBestModel(llmProviders)
+
+    // Ensure link parameters are properly set
+    const newLinkParameters = {
+      guidedLearning: link_parameters.guidedLearning || false,
+      documentsOnly: link_parameters.documentsOnly || false,
+      systemPromptOnly: link_parameters.systemPromptOnly || false,
+    }
+
+    const newConversation: Conversation = {
+      id: uuidv4(),
+      name: '',
+      messages: [],
+      model: model,
+      prompt: DEFAULT_SYSTEM_PROMPT,
+      temperature: selectBestTemperature(
+        lastConversation,
+        selectedConversation,
+        llmProviders,
+      ),
+      folderId: null,
+      userEmail: current_email,
+      projectName: course_name,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      linkParameters: newLinkParameters,
+    }
+
+    // Only update selectedConversation, don't add to conversations list yet
+    dispatch({ field: 'selectedConversation', value: newConversation })
+    dispatch({ field: 'loading', value: false })
+
+    try {
+      localStorage.setItem(
+        'selectedConversation',
+        JSON.stringify(newConversation),
+      )
+    } catch (error) {
+      // Since this is a new conversation, it should be small enough to fit in localStorage
+      // But we'll handle the error just in case
+      console.error('Error saving new conversation to localStorage:', error)
+    }
+  }
+
+  const handleUpdateConversation = (
+    conversation: Conversation,
+    data: KeyValuePair,
+  ) => {
+    const updatedConversation = {
+      ...conversation,
+      [data.key]: data.value,
+    }
+
+    // Save to localStorage with error handling
+    try {
+      localStorage.setItem(
+        'selectedConversation',
+        JSON.stringify(updatedConversation),
+      )
+    } catch (error) {
+      // Handle localStorage quota exceeded error
+      if (
+        error instanceof DOMException &&
+        (error.name === 'QuotaExceededError' ||
+          error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+          error.code === 22 ||
+          error.code === 1014)
+      ) {
+        console.warn(
+          'localStorage quota exceeded, saving minimal conversation data instead',
+        )
+
+        // Create a minimal version of the conversation with just essential data
+        const minimalConversation = {
+          id: updatedConversation.id,
+          name: updatedConversation.name,
+          model: updatedConversation.model,
+          temperature: updatedConversation.temperature,
+          folderId: updatedConversation.folderId,
+          userEmail: updatedConversation.userEmail,
+          projectName: updatedConversation.projectName,
+          createdAt: updatedConversation.createdAt,
+          updatedAt: updatedConversation.updatedAt,
+          // Don't include messages or contexts which are likely the largest parts
+        }
+
+        try {
+          // Try to save the minimal version
+          localStorage.setItem(
+            'selectedConversation',
+            JSON.stringify(minimalConversation),
+          )
+        } catch (minimalError) {
+          // If even minimal version fails, just log the error
+          console.error(
+            'Failed to save even minimal conversation data to localStorage',
+            minimalError,
+          )
+        }
+      } else {
+        // Some other error occurred
+        console.error('Error saving conversation to localStorage:', error)
+      }
+    }
+
+    dispatch({ field: 'selectedConversation', value: updatedConversation })
+
+    let updatedConversations
+
+    const existingConversationIndex = conversations.findIndex(
+      (c) => c.id === updatedConversation.id,
+    )
+
+    if (existingConversationIndex >= 0) {
+      // Update existing conversation
+      updatedConversations = conversations.map((c) => {
+        if (c.id === updatedConversation.id) {
+          return updatedConversation
+        }
+        return c
+      })
+    } else {
+      // Add new conversation to the list
+      updatedConversations = [updatedConversation, ...conversations]
+    }
+    updateConversationMutation.mutate(updatedConversation)
+    dispatch({ field: 'conversations', value: updatedConversations })
+  }
+
+  const handleFeedbackUpdate = (
+    conversation: Conversation,
+    data: KeyValuePair,
+  ) => {
+    if (!conversation?.messages) return
+
+    // Create updated conversation object
+    const updatedConversation = {
+      ...conversation,
+      [data.key]: data.value,
+    }
+
+    // Update state
+    dispatch({ field: 'selectedConversation', value: updatedConversation })
+
+    // Update conversations list
+    const updatedConversations = conversations.map((c) =>
+      c.id === conversation.id ? updatedConversation : c,
+    )
+
+    dispatch({ field: 'conversations', value: updatedConversations })
+  }
+
+  // Other context actions --------------------------------------------
+
+  // Image to Text
+  const setIsImg2TextLoading = (isImg2TextLoading: boolean) => {
+    dispatch({ field: 'isImg2TextLoading', value: isImg2TextLoading })
+  }
+
+  // Routing
+  const setIsRouting = (isRouting: boolean) => {
+    dispatch({ field: 'isRouting', value: isRouting })
+  }
+
+  // Retrieval
+  const setIsRetrievalLoading = (isRetrievalLoading: boolean) => {
+    dispatch({ field: 'isRetrievalLoading', value: isRetrievalLoading })
+  }
+
+  // Update actions for a prompt
+  const handleUpdateDocumentGroups = (id: string) => {
+    documentGroups.map((documentGroup) =>
+      documentGroup.id === id
+        ? { ...documentGroup, checked: !documentGroup.checked }
+        : documentGroup,
+    )
+    dispatch({ field: 'documentGroups', value: documentGroups })
+  }
+
+  // Update actions for a prompt
+  // Fetch n8nWorkflow instead of OpenAI Compatible tools.
+  const handleUpdateTools = (id: string) => {
+    tools.map((tool) =>
+      tool.id === id ? { ...tool, checked: !tool.enabled } : tool,
+    )
+    dispatch({ field: 'tools', value: tools })
+  }
+  const [isDragging, setIsDragging] = useState<boolean>(false)
+  const [dragEnterCounter, setDragEnterCounter] = useState(0)
+
+  const GradientIconPhoto = () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="icon icon-tabler icon-tabler-photo"
+      width="256"
+      height="256"
+      viewBox="0 0 24 24"
+      strokeWidth="1.5"
+      stroke="var(--foreground)"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <defs>
+        <linearGradient id="gradient" x1="100%" y1="100%" x2="0%" y2="0%">
+          <stop offset="0%" stopColor="#8A3FFC" />
+          <stop offset="100%" stopColor="#E94057" />
+        </linearGradient>
+      </defs>
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <line x1="15" y1="8" x2="15.01" y2="8" />
+      <rect x="4" y="4" width="16" height="16" rx="3" />
+      <path d="M4 15l4 -4a3 5 0 0 1 3 0l 4 4" />
+      <path d="M14 14l1 -1a3 5 0 0 1 3 0l2 2" />
+    </svg>
+  )
+
+  // EFFECTS for file drag and drop --------------------------------------------
+  useEffect(() => {
+    const handleDocumentDragOver = (e: DragEvent) => {
+      e.preventDefault()
+    }
+
+    const handleDocumentDragEnter = (e: DragEvent) => {
+      setDragEnterCounter((prev) => prev + 1)
+      setIsDragging(true)
+    }
+
+    const handleDocumentDragLeave = (e: DragEvent) => {
+      e.preventDefault()
+      setDragEnterCounter((prev) => prev - 1)
+      if (dragEnterCounter === 1 || e.relatedTarget === null) {
+        setIsDragging(false)
+      }
+    }
+
+    const handleDocumentDrop = (e: DragEvent) => {
+      e.preventDefault()
+      setIsDragging(false)
+      setDragEnterCounter(0)
+    }
+
+    const handleDocumentKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsDragging(false)
+        setDragEnterCounter(0)
+      }
+    }
+
+    const handleMouseOut = (e: MouseEvent) => {
+      if (!e.relatedTarget) {
+        setIsDragging(false)
+        setDragEnterCounter(0)
+      }
+    }
+
+    document.addEventListener('dragover', handleDocumentDragOver)
+    document.addEventListener('dragenter', handleDocumentDragEnter)
+    document.addEventListener('dragleave', handleDocumentDragLeave)
+    document.addEventListener('drop', handleDocumentDrop)
+    document.addEventListener('keydown', handleDocumentKeyDown)
+    window.addEventListener('mouseout', handleMouseOut)
+
+    return () => {
+      document.removeEventListener('dragover', handleDocumentDragOver)
+      document.removeEventListener('dragenter', handleDocumentDragEnter)
+      document.removeEventListener('dragleave', handleDocumentDragLeave)
+      document.removeEventListener('drop', handleDocumentDrop)
+      document.removeEventListener('keydown', handleDocumentKeyDown)
+      window.removeEventListener('mouseout', handleMouseOut)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (window.innerWidth < 640) {
+      dispatch({ field: 'showChatbar', value: false })
+    }
+  }, [selectedConversation])
+
+  useEffect(() => {
+    // defaultModelId &&
+    //   dispatch({ field: 'defaultModelId', value: defaultModelId })
+    serverSidePluginKeysSet &&
+    dispatch({
+      field: 'serverSidePluginKeysSet',
+      value: serverSidePluginKeysSet,
+    })
+  }, [serverSidePluginKeysSet]) // defaultModelId,
+
+  // ON LOAD --------------------------------------------
+
+  useEffect(() => {
+    const initialSetup = async () => {
+      // Don't run initial setup until conversation history is loaded into context
+      if (!isLastConversationFetched || isLastConversationLoading) return
+      if (isInitialSetupDone) return
+
+      if (window.innerWidth < 640) {
+        dispatch({ field: 'showChatbar', value: false })
+      }
+
+      const showChatbar = localStorage.getItem('showChatbar')
+      if (showChatbar) {
+        dispatch({ field: 'showChatbar', value: showChatbar === 'true' })
+      }
+
+      const selectedConversationString = localStorage.getItem(
+        'selectedConversation',
+      )
+      if (selectedConversationString) {
+        const parsedSelectedConversation: Conversation = JSON.parse(
+          selectedConversationString,
+        )
+        if (parsedSelectedConversation.projectName === course_name) {
+          const cleanedSelectedConversation = cleanSelectedConversation(
+            parsedSelectedConversation,
+            current_email,
+          )
+          const oneHourAgo = new Date(Date.now() - 3600 * 1000).toISOString()
+          if (
+            cleanedSelectedConversation &&
+            cleanedSelectedConversation.updatedAt &&
+            cleanedSelectedConversation.updatedAt > oneHourAgo
+          ) {
+            dispatch({
+              field: 'selectedConversation',
+              value: cleanedSelectedConversation,
+            })
+          } else {
+            handleNewConversation()
+          }
+        } else {
+          handleNewConversation()
+        }
+      } else {
+        if (!llmProviders || Object.keys(llmProviders).length === 0) return
+        handleNewConversation()
+      }
+      // handleNewConversation()
+      setIsInitialSetupDone(true)
+    }
+
+    if (!isInitialSetupDone) {
+      initialSetup()
+    }
+  }, [
+    dispatch,
+    llmProviders,
+    current_email,
+    isLastConversationFetched,
+    isLastConversationLoading
+  ]) // ! serverSidePluginKeysSet, removed
+  // }, [defaultModelId, dispatch, serverSidePluginKeysSet, models, conversations]) // original!
+
+  if (isLoading || !isInitialSetupDone) {
+    // show blank page during loading
+    return (
+      <>
+        <MainPageBackground>
+          <div
+            className={`flex items-center justify-center font-montserratHeading ${montserrat_heading.variable}`}
+          >
+            <span className="mr-2">Warming up the knowledge engines...</span>
+            <LoadingSpinner size="sm" />
+          </div>
+        </MainPageBackground>
+      </>
+    )
+  }
+  return (
+    <div>
+      <HomeContext.Provider
+        value={{
+          ...contextValue,
+          handleNewConversation,
+          handleCreateFolder,
+          handleDeleteFolder,
+          handleUpdateFolder,
+          handleSelectConversation,
+          handleUpdateConversation,
+          handleFeedbackUpdate,
+          setIsImg2TextLoading,
+          setIsRouting,
+          // setRoutingResponse,
+          // setIsRunningTool,
+          setIsRetrievalLoading,
+          handleUpdateDocumentGroups,
+          handleUpdateTools,
+          setIsQueryRewriting,
+          setQueryRewriteResult,
+        }}
+      >
+        <Head>
+          <title>UIUC.chat</title>
+          <meta name="description" content="ChatGPT but better." />
+          <meta
+            name="viewport"
+            content="height=device-height ,width=device-width, initial-scale=1, user-scalable=no"
+          />
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+        {selectedConversation && (
+          <main
+            className={`flex h-screen w-screen flex-col pt-20  text-sm text-white dark:text-white`}
+          >
+            <Navbar isPlain={false} />
+
+            <div className="flex h-full w-full overflow-y-auto sm:pt-0">
+              {isDragging &&
+                VisionCapableModels.has(
+                  selectedConversation?.model.id as OpenAIModelID,
+                ) && (
+                  <div
+                    className="absolute inset-0 z-10 flex h-full w-full flex-col items-center justify-center bg-[--background-dark] opacity-90">
+                    <GradientIconPhoto />
+                    <span className="text-3xl font-extrabold text-[--foreground]">
+                      Drop your image here!
+                    </span>
+                  </div>
+                )}
+
+              <Chatbar
+                current_email={current_email}
+                courseName={course_name}
+                courseMetadata={course_metadata}
+              />
+
+              {course_metadata && (
+                <Chat
+                  stopConversationRef={stopConversationRef}
+                  courseMetadata={course_metadata}
+                  courseName={course_name}
+                  currentEmail={current_email}
+                  documentCount={document_count}
+                />
+              )}
+            </div>
+          </main>
+        )}
+      </HomeContext.Provider>
+    </div>
+  )
+}
+export default Home
