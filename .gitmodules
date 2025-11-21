@@ -1,12 +1,18 @@
-[submodule "supabase"]
-	path = supabase
-	url = https://github.com/supabase/supabase.git
+# To update all submodules to their latest commits on the specified branches:
+# git submodule update --init --recursive --remote
+#
+# To check submodule status:
+# git submodule status
+#
 [submodule "ic_crawlee"]
 	path = ic_crawlee
 	url = https://github.com/Center-for-AI-Innovation/crawlee.git
+	branch = main
 [submodule "uiuc-chat-frontend"]
 	path = uiuc-chat-frontend
 	url = https://github.com/Center-for-AI-Innovation/uiuc-chat-frontend.git
+	branch = illinois-chat
 [submodule "uiuc-chat-backend"]
 	path = uiuc-chat-backend
 	url = https://github.com/Center-for-AI-Innovation/ai-ta-backend.git
+	branch = illinois-chat
