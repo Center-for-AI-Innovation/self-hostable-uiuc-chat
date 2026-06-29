@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-COMPOSE=(docker compose --project-directory . -f infra/docker/docker-compose.dev.yaml)
+COMPOSE=(docker compose --project-directory . -f infra/docker/docker-compose.dev.yaml -f infra/docker/docker-compose.sim.yaml)
 QDRANT_COLLECTION_NAME="${QDRANT_COLLECTION_NAME:-illinois_chat}"
 QDRANT_VECTOR_SIZE="${QDRANT_VECTOR_SIZE:-4096}"
 
@@ -322,6 +322,9 @@ fi
 ensure_local_app_envs
 
 # Start Docker Compose services
+print_status "Pulling Sim AI images..."
+"${COMPOSE[@]}" pull simstudio sim-realtime sim-migrations
+
 print_status "Starting Docker Compose services..."
 "${COMPOSE[@]}" up -d
 
@@ -345,12 +348,51 @@ wait_for_healthy() {
 	print_success "✓ ${service} is healthy"
 }
 
+wait_for_completed() {
+	local service="$1"
+	local timeout="${2:-240}"
+	local elapsed=0
+
+	print_status "Waiting for ${service} to complete..."
+	while true; do
+		local container_id state exit_code
+		container_id="$("${COMPOSE[@]}" ps -aq "$service")"
+		if [ -n "$container_id" ]; then
+			state="$(docker inspect -f '{{.State.Status}}' "$container_id")"
+			exit_code="$(docker inspect -f '{{.State.ExitCode}}' "$container_id")"
+			if [ "$state" = "exited" ] && [ "$exit_code" = "0" ]; then
+				print_success "✓ ${service} completed"
+				return
+			fi
+			if [ "$state" = "exited" ]; then
+				print_error "✗ ${service} exited with code ${exit_code}"
+				"${COMPOSE[@]}" logs "$service"
+				exit 1
+			fi
+		fi
+
+		if [ "$elapsed" -ge "$timeout" ]; then
+			print_error "✗ ${service} did not complete within ${timeout}s"
+			"${COMPOSE[@]}" logs "$service"
+			exit 1
+		fi
+		sleep 3
+		elapsed=$((elapsed + 3))
+	done
+}
+
 wait_for_healthy postgres-illinois-chat
 wait_for_healthy postgres-keycloak
 wait_for_healthy qdrant
 wait_for_healthy minio
 wait_for_healthy rabbitmq
 wait_for_healthy keycloak 240
+wait_for_healthy sim-db
+wait_for_completed sim-migrations 300
+wait_for_completed sim-keycloak-setup 180
+wait_for_completed sim-sso-setup 180
+wait_for_healthy sim-realtime
+wait_for_healthy simstudio 300
 
 print_success "All essential containers are running and healthy!"
 
@@ -546,6 +588,9 @@ echo "   - MinIO Console: localhost:${PUBLIC_MINIO_DASHBOARD_PORT:-9001}"
 echo "   - RabbitMQ: localhost:5672"
 echo "   - RabbitMQ Management: localhost:15672"
 echo "   - Keycloak: localhost:8080"
+echo "   - Sim AI: localhost:${SIM_APP_PORT:-3010}"
+echo "   - Sim realtime: localhost:${SIM_REALTIME_PORT:-3011}"
+echo "   - Sim pgvector: localhost:${SIM_POSTGRES_PORT:-55432}"
 echo ""
 echo "📚 Development infrastructure ready:"
 echo "   - Qdrant collection '${QDRANT_COLLECTION_NAME}' ready"
