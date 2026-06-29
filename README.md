@@ -86,6 +86,17 @@ bash infra/scripts/stop-dev.sh
 bash infra/scripts/stop-dev.sh --volumes
 ```
 
+### Sim AI Local Stack
+
+The full and dev Docker stacks also start Sim AI against the same local Keycloak realm for SSO testing while keeping Sim's pgvector database isolated. No separate Sim checkout is required; the stack uses the upstream Sim container images.
+
+- Sim app: `http://localhost:3010`
+- Sim realtime: `http://localhost:3011`
+- Sim pgvector Postgres: `localhost:55432`
+- Shared Keycloak: `http://localhost:8080`
+
+The default SSO test account is `simai@illinois.edu` / `simai-local-password`. Override `SIM_*` values in the root `.env` if those ports, credentials, or Sim image tag need to change.
+
 ## Configuration
 
 There are two environment modes:
