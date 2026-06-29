@@ -1,0 +1,324 @@
+services:
+  simstudio:
+    image: ghcr.io/simstudioai/simstudio:${SIM_IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "${SIM_APP_PORT:-3010}:3000"
+    networks:
+      - uiuc-chat-network
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${SIM_POSTGRES_USER:-postgres}:${SIM_POSTGRES_PASSWORD}@sim-db:5432/${SIM_POSTGRES_DB:-simstudio}
+      BETTER_AUTH_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+      NEXT_PUBLIC_APP_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+      BETTER_AUTH_SECRET: ${SIM_BETTER_AUTH_SECRET:-sim-dev-secret-at-least-32-characters}
+      ENCRYPTION_KEY: ${SIM_ENCRYPTION_KEY:-sim-dev-encryption-key-at-least-32-chars}
+      API_ENCRYPTION_KEY: ${SIM_API_ENCRYPTION_KEY:-sim-dev-api-encryption-key-32-chars}
+      INTERNAL_API_SECRET: ${SIM_INTERNAL_API_SECRET:-sim-dev-internal-api-secret-32-chars}
+      REDIS_URL: ${SIM_REDIS_URL:-}
+      SOCKET_SERVER_URL: http://sim-realtime:3002
+      NEXT_PUBLIC_SOCKET_URL: ${SIM_NEXT_PUBLIC_SOCKET_URL:-http://localhost:3011}
+      SSO_ENABLED: "true"
+      NEXT_PUBLIC_SSO_ENABLED: "true"
+      SSO_PROVIDER_ID: ${SIM_SSO_PROVIDER_ID:-uiuc-keycloak}
+      SSO_TRUSTED_PROVIDER_IDS: ${SIM_SSO_PROVIDER_ID:-uiuc-keycloak}
+      TRUSTED_ORIGINS: ${SIM_TRUSTED_ORIGINS:-http://localhost:3010,http://localhost:3011}
+    depends_on:
+      sim-db:
+        condition: service_healthy
+      sim-migrations:
+        condition: service_completed_successfully
+      sim-keycloak-setup:
+        condition: service_completed_successfully
+      sim-sso-setup:
+        condition: service_completed_successfully
+      sim-realtime:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'bun -e "const response = await fetch(''http://127.0.0.1:3000/api/auth/get-session''); process.exit(response.ok ? 0 : 1)"',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
+  sim-realtime:
+    image: ghcr.io/simstudioai/realtime:${SIM_IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "${SIM_REALTIME_PORT:-3011}:3002"
+    networks:
+      - uiuc-chat-network
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${SIM_POSTGRES_USER:-postgres}:${SIM_POSTGRES_PASSWORD}@sim-db:5432/${SIM_POSTGRES_DB:-simstudio}
+      NEXT_PUBLIC_APP_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+      BETTER_AUTH_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+      BETTER_AUTH_SECRET: ${SIM_BETTER_AUTH_SECRET:-sim-dev-secret-at-least-32-characters}
+      INTERNAL_API_SECRET: ${SIM_INTERNAL_API_SECRET:-sim-dev-internal-api-secret-32-chars}
+      REDIS_URL: ${SIM_REDIS_URL:-}
+    depends_on:
+      sim-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3002/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  sim-migrations:
+    image: ghcr.io/simstudioai/migrations:${SIM_IMAGE_TAG:-latest}
+    networks:
+      - uiuc-chat-network
+    working_dir: /app/packages/db
+    environment:
+      DATABASE_URL: postgresql://${SIM_POSTGRES_USER:-postgres}:${SIM_POSTGRES_PASSWORD}@sim-db:5432/${SIM_POSTGRES_DB:-simstudio}
+    depends_on:
+      sim-db:
+        condition: service_healthy
+    command: ["bun", "run", "db:migrate"]
+    restart: "no"
+
+  sim-keycloak-setup:
+    image: quay.io/keycloak/keycloak:26.1
+    entrypoint: /bin/bash
+    networks:
+      - uiuc-chat-network
+    environment:
+      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      SIM_APP_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+      SIM_KEYCLOAK_CLIENT_ID: ${SIM_KEYCLOAK_CLIENT_ID:-simai}
+      SIM_KEYCLOAK_CLIENT_SECRET: ${SIM_KEYCLOAK_CLIENT_SECRET:-simai-local-secret}
+      SIM_SSO_PROVIDER_ID: ${SIM_SSO_PROVIDER_ID:-uiuc-keycloak}
+      SIM_TEST_USERNAME: ${SIM_TEST_USERNAME:-simai@illinois.edu}
+      SIM_TEST_EMAIL: ${SIM_TEST_EMAIL:-simai@illinois.edu}
+      SIM_TEST_PASSWORD: ${SIM_TEST_PASSWORD:-simai-local-password}
+      NEXT_PUBLIC_KEYCLOAK_REALM: ${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    command:
+      - -lc
+      - |
+        set -euo pipefail
+
+        realm="$${NEXT_PUBLIC_KEYCLOAK_REALM}"
+        app_url="$${SIM_APP_URL}"
+        callback_url="$${app_url}/api/auth/sso/callback/$${SIM_SSO_PROVIDER_ID}"
+
+        /opt/keycloak/bin/kcadm.sh config credentials \
+          --server http://keycloak:8080 \
+          --realm master \
+          --user "$${KEYCLOAK_ADMIN_USERNAME}" \
+          --password "$${KEYCLOAK_ADMIN_PASSWORD}" >/dev/null
+
+        client_uuid="$$(/opt/keycloak/bin/kcadm.sh get clients -r "$${realm}" -q "clientId=$${SIM_KEYCLOAK_CLIENT_ID}" --fields id --format csv --noquotes | tail -n 1 | tr -d '\r')"
+        if [ -z "$${client_uuid}" ]; then
+          /opt/keycloak/bin/kcadm.sh create clients -r "$${realm}" \
+            -s "clientId=$${SIM_KEYCLOAK_CLIENT_ID}" \
+            -s enabled=true \
+            -s protocol=openid-connect \
+            -s publicClient=false \
+            -s "secret=$${SIM_KEYCLOAK_CLIENT_SECRET}" \
+            -s standardFlowEnabled=true \
+            -s directAccessGrantsEnabled=true \
+            -s 'redirectUris=["'"$${callback_url}"'"]' \
+            -s 'webOrigins=["'"$${app_url}"'"]' >/dev/null
+        else
+          /opt/keycloak/bin/kcadm.sh update "clients/$${client_uuid}" -r "$${realm}" \
+            -s enabled=true \
+            -s publicClient=false \
+            -s "secret=$${SIM_KEYCLOAK_CLIENT_SECRET}" \
+            -s standardFlowEnabled=true \
+            -s directAccessGrantsEnabled=true \
+            -s 'redirectUris=["'"$${callback_url}"'"]' \
+            -s 'webOrigins=["'"$${app_url}"'"]' >/dev/null
+        fi
+
+        user_uuid="$$(/opt/keycloak/bin/kcadm.sh get users -r "$${realm}" -q "username=$${SIM_TEST_USERNAME}" --fields id --format csv --noquotes | tail -n 1 | tr -d '\r')"
+        if [ -z "$${user_uuid}" ]; then
+          user_uuid="$$(/opt/keycloak/bin/kcadm.sh get users -r "$${realm}" -q "email=$${SIM_TEST_EMAIL}" --fields id --format csv --noquotes | tail -n 1 | tr -d '\r')"
+        fi
+        if [ -z "$${user_uuid}" ]; then
+          /opt/keycloak/bin/kcadm.sh create users -r "$${realm}" \
+            -s "username=$${SIM_TEST_USERNAME}" \
+            -s "email=$${SIM_TEST_EMAIL}" \
+            -s firstName=Sim \
+            -s lastName=Tester \
+            -s enabled=true \
+            -s emailVerified=true \
+            -s 'requiredActions=[]' >/dev/null
+          user_uuid="$$(/opt/keycloak/bin/kcadm.sh get users -r "$${realm}" -q "username=$${SIM_TEST_USERNAME}" --fields id --format csv --noquotes | tail -n 1 | tr -d '\r')"
+          if [ -z "$${user_uuid}" ]; then
+            user_uuid="$$(/opt/keycloak/bin/kcadm.sh get users -r "$${realm}" -q "email=$${SIM_TEST_EMAIL}" --fields id --format csv --noquotes | tail -n 1 | tr -d '\r')"
+          fi
+        else
+          /opt/keycloak/bin/kcadm.sh update "users/$${user_uuid}" -r "$${realm}" \
+            -s "username=$${SIM_TEST_USERNAME}" \
+            -s "email=$${SIM_TEST_EMAIL}" \
+            -s firstName=Sim \
+            -s lastName=Tester \
+            -s enabled=true \
+            -s emailVerified=true \
+            -s 'requiredActions=[]' >/dev/null
+        fi
+
+        /opt/keycloak/bin/kcadm.sh set-password -r "$${realm}" --userid "$${user_uuid}" --new-password "$${SIM_TEST_PASSWORD}" >/dev/null
+        /opt/keycloak/bin/kcadm.sh update "users/$${user_uuid}" -r "$${realm}" -s 'requiredActions=[]' >/dev/null
+    restart: "no"
+
+  sim-sso-setup:
+    image: ghcr.io/simstudioai/migrations:${SIM_IMAGE_TAG:-latest}
+    networks:
+      - uiuc-chat-network
+    working_dir: /app
+    environment:
+      DATABASE_URL: postgresql://${SIM_POSTGRES_USER:-postgres}:${SIM_POSTGRES_PASSWORD}@sim-db:5432/${SIM_POSTGRES_DB:-simstudio}
+      NEXT_PUBLIC_APP_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+      BETTER_AUTH_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+      SSO_ENABLED: "true"
+      SSO_PROVIDER_TYPE: oidc
+      SSO_PROVIDER_ID: ${SIM_SSO_PROVIDER_ID:-uiuc-keycloak}
+      SSO_ISSUER: http://localhost:8080/realms/${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}
+      SSO_DOMAIN: ${SIM_SSO_DOMAIN:-illinois.edu}
+      SSO_USER_EMAIL: ${SIM_SSO_ADMIN_EMAIL:-simai@illinois.edu}
+      SSO_OIDC_CLIENT_ID: ${SIM_KEYCLOAK_CLIENT_ID:-simai}
+      SSO_OIDC_CLIENT_SECRET: ${SIM_KEYCLOAK_CLIENT_SECRET:-simai-local-secret}
+      SSO_OIDC_SCOPES: openid,profile,email
+      SSO_OIDC_PKCE: "false"
+      SSO_OIDC_TOKEN_ENDPOINT_AUTH: client_secret_post
+      SSO_OIDC_AUTHORIZATION_ENDPOINT: http://localhost:8080/realms/${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}/protocol/openid-connect/auth
+      SSO_OIDC_TOKEN_ENDPOINT: http://keycloak:8080/realms/${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}/protocol/openid-connect/token
+      SSO_OIDC_USERINFO_ENDPOINT: http://keycloak:8080/realms/${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}/protocol/openid-connect/userinfo
+      SSO_OIDC_JWKS_ENDPOINT: http://keycloak:8080/realms/${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}/protocol/openid-connect/certs
+      SSO_OIDC_DISCOVERY_ENDPOINT: http://keycloak:8080/realms/${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}/.well-known/openid-configuration
+      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      NEXT_PUBLIC_KEYCLOAK_REALM: ${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}
+      SIM_KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+    depends_on:
+      sim-migrations:
+        condition: service_completed_successfully
+      sim-keycloak-setup:
+        condition: service_completed_successfully
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        set -e
+        bun -e '
+          import postgres from "postgres";
+          const sql = postgres(process.env.DATABASE_URL, { prepare: false });
+          const email = process.env.SSO_USER_EMAIL;
+          const providerId = process.env.SSO_PROVIDER_ID;
+          const now = new Date();
+          const keycloakBase = process.env.SIM_KEYCLOAK_INTERNAL_URL;
+          const realm = process.env.NEXT_PUBLIC_KEYCLOAK_REALM;
+          const tokenResponse = await fetch(keycloakBase + "/realms/master/protocol/openid-connect/token", {
+            method: "POST",
+            headers: { "content-type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              client_id: "admin-cli",
+              grant_type: "password",
+              username: process.env.KEYCLOAK_ADMIN_USERNAME,
+              password: process.env.KEYCLOAK_ADMIN_PASSWORD,
+            }),
+          });
+          if (!tokenResponse.ok) {
+            throw new Error("Keycloak admin token request failed: " + tokenResponse.status);
+          }
+          const { access_token: adminToken } = await tokenResponse.json();
+          const usersResponse = await fetch(
+            keycloakBase + "/admin/realms/" + realm + "/users?email=" + encodeURIComponent(email) + "&exact=true",
+            { headers: { authorization: "Bearer " + adminToken } }
+          );
+          if (!usersResponse.ok) {
+            throw new Error("Keycloak user lookup failed: " + usersResponse.status);
+          }
+          const users = await usersResponse.json();
+          const keycloakUser = users.find((user) => user.email === email) ?? users[0];
+          if (!keycloakUser?.id) {
+            throw new Error("No Keycloak user found for " + email);
+          }
+          await sql.unsafe(
+            `
+            insert into "user" (id, name, email, normalized_email, email_verified, created_at, updated_at, role)
+            values ($1, $2, $3, $4, true, $5, $6, $7)
+            on conflict (email) do update set
+              name = excluded.name,
+              normalized_email = excluded.normalized_email,
+              email_verified = true,
+              updated_at = excluded.updated_at,
+              role = excluded.role
+            `,
+            ["sim-local-sso-admin", "Sim Local SSO Admin", email, email.toLowerCase(), now, now, "admin"]
+          );
+          await sql.unsafe(
+            `
+            insert into account (id, account_id, provider_id, user_id, created_at, updated_at)
+            values ($1, $2, $3, $4, $5, $6)
+            on conflict (id) do update set
+              account_id = excluded.account_id,
+              provider_id = excluded.provider_id,
+              user_id = excluded.user_id,
+              updated_at = excluded.updated_at
+            `,
+            ["sim-local-sso-account", keycloakUser.id, providerId, "sim-local-sso-admin", now, now]
+          );
+          await sql.unsafe(
+            `
+            insert into workspace (id, name, owner_id, billed_account_user_id, color, allow_personal_api_keys, created_at, updated_at)
+            values ($1, $2, $3, $4, $5, true, $6, $7)
+            on conflict (id) do update set
+              name = excluded.name,
+              owner_id = excluded.owner_id,
+              billed_account_user_id = excluded.billed_account_user_id,
+              updated_at = excluded.updated_at
+            `,
+            ["sim-local-workspace", "Sim Local Workspace", "sim-local-sso-admin", "sim-local-sso-admin", "#33C482", now, now]
+          );
+          await sql.unsafe(
+            `
+            insert into permissions (id, user_id, entity_type, entity_id, permission_type, created_at, updated_at)
+            values ($1, $2, $3, $4, $5, $6, $7)
+            on conflict (user_id, entity_type, entity_id) do update set
+              permission_type = excluded.permission_type,
+              updated_at = excluded.updated_at
+            `,
+            ["sim-local-workspace-admin", "sim-local-sso-admin", "workspace", "sim-local-workspace", "admin", now, now]
+          );
+          await sql.end();
+        '
+        bun run packages/db/scripts/register-sso-provider.ts
+    restart: "no"
+
+  sim-db:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    ports:
+      - "${SIM_POSTGRES_PORT:-55432}:5432"
+    networks:
+      - uiuc-chat-network
+    environment:
+      POSTGRES_USER: ${SIM_POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${SIM_POSTGRES_PASSWORD:?}
+      POSTGRES_DB: ${SIM_POSTGRES_DB:-simstudio}
+    volumes:
+      - sim-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${SIM_POSTGRES_USER:-postgres} -d ${SIM_POSTGRES_DB:-simstudio}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  sim-postgres-data: {}
