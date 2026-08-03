@@ -13,7 +13,7 @@ services:
       NEXT_PUBLIC_APP_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
       BETTER_AUTH_SECRET: ${SIM_BETTER_AUTH_SECRET:-sim-dev-secret-at-least-32-characters}
       ENCRYPTION_KEY: ${SIM_ENCRYPTION_KEY:-sim-dev-encryption-key-at-least-32-chars}
-      API_ENCRYPTION_KEY: ${SIM_API_ENCRYPTION_KEY:-sim-dev-api-encryption-key-32-chars}
+      API_ENCRYPTION_KEY: ${SIM_API_ENCRYPTION_KEY:-}
       INTERNAL_API_SECRET: ${SIM_INTERNAL_API_SECRET:-sim-dev-internal-api-secret-32-chars}
       REDIS_URL: ${SIM_REDIS_URL:-}
       SOCKET_SERVER_URL: http://sim-realtime:3002
