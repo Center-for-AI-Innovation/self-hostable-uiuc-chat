@@ -170,6 +170,12 @@ for table_name in documents conversations messages; do
 		exit 1
 	fi
 done
+log "Ensuring Sim AI project config columns exist"
+psql_main -v ON_ERROR_STOP=1 <<'SQL'
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS sim_api_key text;
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS sim_base_url text;
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS sim_workspace_id text;
+SQL
 success "PostgreSQL schema verified"
 
 qdrant_headers=(-H "Content-Type: application/json")

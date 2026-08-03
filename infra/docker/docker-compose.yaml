@@ -252,6 +252,9 @@ services:
       QDRANT_API_KEY: ${QDRANT_API_KEY}
       QDRANT_COLLECTION_NAME: ${QDRANT_COLLECTION_NAME:-illinois_chat}
       QDRANT_URL: http://qdrant:6333
+      # Sim AI
+      SIM_API_BASE_URL: ${SIM_API_BASE_URL:-http://simstudio:3000}
+      NEXT_PUBLIC_SIM_STORAGE: ${NEXT_PUBLIC_SIM_STORAGE:-local}
       # llms
       OLLAMA_SERVER_URL: ${OLLAMA_SERVER_URL:-}
       NCSA_HOSTED_VLM_BASE_URL: ${NCSA_HOSTED_VLM_BASE_URL:-}

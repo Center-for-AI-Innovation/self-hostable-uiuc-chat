@@ -163,6 +163,8 @@ ensure_local_app_envs() {
 	append_env_if_missing "$frontend_env" "NEXT_PUBLIC_KEYCLOAK_REALM" "illinois_chat_realm"
 	append_env_if_missing "$frontend_env" "NEXT_PUBLIC_KEYCLOAK_CLIENT_ID" "illinois_chat"
 	append_env_if_missing "$frontend_env" "NEXT_PUBLIC_USE_ILLINOIS_CHAT_CONFIG" "True"
+	append_env_if_missing "$frontend_env" "SIM_API_BASE_URL" "http://localhost:3010"
+	append_env_if_missing "$frontend_env" "NEXT_PUBLIC_SIM_STORAGE" "local"
 	append_env_if_missing "$frontend_env" "NEXT_PUBLIC_SIGNING_KEY" ""
 	append_env_if_missing "$frontend_env" "EMBEDDING_MODEL" ""
 	append_env_if_missing "$frontend_env" "EMBEDDING_API_BASE" ""
@@ -457,6 +459,13 @@ if [ "$verify_ok" != true ]; then
 	print_error "Database schema verification failed. See errors above."
 	exit 1
 fi
+
+print_status "Ensuring Sim AI project config columns exist..."
+psql_main -v ON_ERROR_STOP=1 <<'SQL'
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS sim_api_key text;
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS sim_base_url text;
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS sim_workspace_id text;
+SQL
 
 print_success "PostgreSQL schema initialized and verified."
 
