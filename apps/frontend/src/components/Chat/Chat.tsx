@@ -994,7 +994,7 @@ export const Chat = memo(
             if (uiucToolsToRun.length > 0) {
               homeDispatch({ field: 'isRunningTool', value: true })
 
-              // Execute N8N tools
+              // Execute Sim tools
               await handleToolCall(
                 uiucToolsToRun,
                 updatedConversation,

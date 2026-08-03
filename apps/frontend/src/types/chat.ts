@@ -3,7 +3,7 @@ import {
   type AnySupportedModel,
 } from '@/utils/modelProviders/LLMProvider'
 import { type CourseMetadata } from './courseMetadata'
-import { type N8NParameter } from './tools'
+import { type ToolParameter } from './tools'
 
 export interface ConversationPage {
   conversations: Conversation[]
@@ -123,14 +123,14 @@ export interface AgentEvent {
 }
 
 export interface UIUCTool {
-  id: string // This is the N8N workflow ID
+  id: string // This is the workflow ID
   invocationId?: string // This is the unique ID for a specific tool *call* from OpenAI
   name: string // Openai uses this
-  readableName: string // N8N uses this
+  readableName: string
   description: string
   inputParameters?: {
     type: 'object'
-    properties: Record<string, N8NParameter>
+    properties: Record<string, ToolParameter>
     required: string[]
   }
   aiGeneratedArgumentValues?: Record<string, string>

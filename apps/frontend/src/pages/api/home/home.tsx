@@ -437,7 +437,7 @@ const Home = ({
   }
 
   // Update actions for a prompt
-  // Fetch n8nWorkflow instead of OpenAI Compatible tools.
+  // Fetch workflow tools instead of OpenAI-compatible tools.
   const handleUpdateTools = (id: string) => {
     tools.map((tool) =>
       tool.id === id ? { ...tool, checked: !tool.enabled } : tool,
