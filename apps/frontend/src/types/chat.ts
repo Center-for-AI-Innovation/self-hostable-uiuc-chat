@@ -220,10 +220,15 @@ export interface ChatApiBody {
   course_name: string
   stream?: boolean
   api_key: string
+  retrieval_only?: boolean
+  conversation_id?: string
+  doc_groups?: string[]
 }
 
 export interface Action {
   id: string
   name: string
   checked: boolean
+  /** Project admin disabled this doc group; user cannot enable it for retrieval */
+  adminDisabled?: boolean
 }

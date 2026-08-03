@@ -20,15 +20,13 @@ describe('getBedrockModels', () => {
       accessKeyId: 'a',
       secretAccessKey: 's',
       region: 'us-east-1',
-      models: [
-        { id: BedrockModelID.Claude_3_Opus, enabled: false, default: true },
-      ],
+      models: [{ id: BedrockModelID.Nova_Lite, enabled: false, default: true }],
     }
 
     const result = await getBedrockModels(provider)
-    expect(result.models?.[0]?.id).toBe(BedrockModelID.Claude_3_5_Sonnet_Latest)
+    expect(result.models?.[0]?.id).toBe(BedrockModelID.Nova_Pro)
     const models = result.models ?? []
-    const opus = models.find((m: any) => m.id === BedrockModelID.Claude_3_Opus)
-    expect(opus).toMatchObject({ enabled: false, default: true })
+    const lite = models.find((m: any) => m.id === BedrockModelID.Nova_Lite)
+    expect(lite).toMatchObject({ enabled: false, default: true })
   })
 })

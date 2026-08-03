@@ -8,9 +8,6 @@ export interface BedrockModel {
 }
 
 export enum BedrockModelID {
-  Claude_3_Opus = 'us.anthropic.claude-3-opus-20240229-v1:0',
-  Claude_3_5_Sonnet_Latest = 'us.anthropic.claude-3-5-sonnet-20241022-v2:0',
-  Claude_3_5_Haiku = 'us.anthropic.claude-3-5-haiku-20241022-v1:0',
   Nova_Pro = 'us.amazon.nova-pro-v1:0',
   Nova_Lite = 'us.amazon.nova-lite-v1:0',
   Nova_Micro = 'us.amazon.nova-micro-v1:0',
@@ -25,24 +22,6 @@ export enum BedrockModelID {
 }
 
 export const BedrockModels: Record<BedrockModelID, BedrockModel> = {
-  [BedrockModelID.Claude_3_Opus]: {
-    id: BedrockModelID.Claude_3_Opus,
-    name: 'Claude 3 Opus (Bedrock)',
-    tokenLimit: 200000,
-    enabled: true,
-  },
-  [BedrockModelID.Claude_3_5_Sonnet_Latest]: {
-    id: BedrockModelID.Claude_3_5_Sonnet_Latest,
-    name: 'Claude 3.5 Sonnet Latest (Bedrock)',
-    tokenLimit: 200000,
-    enabled: true,
-  },
-  [BedrockModelID.Claude_3_5_Haiku]: {
-    id: BedrockModelID.Claude_3_5_Haiku,
-    name: 'Claude 3.5 Haiku (Bedrock)',
-    tokenLimit: 200000,
-    enabled: true,
-  },
   [BedrockModelID.Nova_Pro]: {
     id: BedrockModelID.Nova_Pro,
     name: 'Amazon Nova Pro (Bedrock)',

@@ -24,6 +24,7 @@ next-env.d.ts
 # misc
 .DS_Store
 *.pem
+*.code-workspace
 
 # debug
 npm-debug.log*
@@ -50,6 +51,9 @@ tests_output/
 
 # IDE
 .idea
+
+# Cursor workspace files
+*.code-workspace
 
 # create a drafts directory to store draft code/docs for later use
 drafts/

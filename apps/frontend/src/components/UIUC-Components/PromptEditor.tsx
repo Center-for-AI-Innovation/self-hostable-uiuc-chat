@@ -48,6 +48,8 @@ import { type ChatBody } from '~/types/chat'
 import { type CourseMetadata } from '~/types/courseMetadata'
 import { callSetCourseMetadata, fetchCourseMetadata } from '~/utils/apiUtils'
 import {
+  CITATION_DISABLED_PROMPT,
+  CITATION_GUIDELINES_PROMPT,
   DEFAULT_SYSTEM_PROMPT,
   DOCUMENT_FOCUS_PROMPT,
   GUIDED_LEARNING_PROMPT,
@@ -275,6 +277,7 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
   // Toggle states
   const [guidedLearning, setGuidedLearning] = useState(false)
   const [documentsOnly, setDocumentsOnly] = useState(false)
+  const [disableCitations, setDisableCitations] = useState(false)
   const [systemPromptOnly, setSystemPromptOnly] = useState(false)
   const [vectorSearchRewrite, setVectorSearchRewrite] = useState(false)
   const [agentModeFeatureEnabled, setAgentModeFeatureEnabled] = useState(false)
@@ -283,12 +286,14 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
   const initialSwitchStateRef = useRef<{
     guidedLearning: boolean
     documentsOnly: boolean
+    disableCitations: boolean
     systemPromptOnly: boolean
     vectorSearchRewrite: boolean
     agentModeFeatureEnabled: boolean
   }>({
     guidedLearning: false,
     documentsOnly: false,
+    disableCitations: false,
     systemPromptOnly: false,
     vectorSearchRewrite: false,
     agentModeFeatureEnabled: false,
@@ -366,6 +371,7 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
           )
           setGuidedLearning(metadata.guidedLearning || false)
           setDocumentsOnly(metadata.documentsOnly || false)
+          setDisableCitations(metadata.disableCitations || false)
           setSystemPromptOnly(metadata.systemPromptOnly || false)
           setVectorSearchRewrite(!metadata.vector_search_rewrite_disabled)
           setAgentModeFeatureEnabled(metadata.agent_mode_enabled ?? false)
@@ -373,6 +379,7 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
           initialSwitchStateRef.current = {
             guidedLearning: metadata.guidedLearning || false,
             documentsOnly: metadata.documentsOnly || false,
+            disableCitations: metadata.disableCitations || false,
             systemPromptOnly: metadata.systemPromptOnly || false,
             vectorSearchRewrite: !metadata.vector_search_rewrite_disabled,
             agentModeFeatureEnabled: metadata.agent_mode_enabled ?? false,
@@ -415,6 +422,7 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
       initialSwitchStateRef.current = {
         guidedLearning: courseMetadata.guidedLearning || false,
         documentsOnly: courseMetadata.documentsOnly || false,
+        disableCitations: courseMetadata.disableCitations || false,
         systemPromptOnly: courseMetadata.systemPromptOnly || false,
         vectorSearchRewrite: !courseMetadata.vector_search_rewrite_disabled,
         agentModeFeatureEnabled: courseMetadata.agent_mode_enabled ?? false,
@@ -433,6 +441,7 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
         system_prompt: newSystemPrompt,
         guidedLearning,
         documentsOnly,
+        disableCitations,
         systemPromptOnly,
         agent_mode_enabled: agentModeFeatureEnabled,
       }
@@ -457,6 +466,7 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
         system_prompt: null,
         guidedLearning: false,
         documentsOnly: false,
+        disableCitations: false,
         systemPromptOnly: false,
       }
       const success = await callSetCourseMetadata(
@@ -471,6 +481,7 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
         setCourseMetadata(updatedCourseMetadata)
         setGuidedLearning(false)
         setDocumentsOnly(false)
+        setDisableCitations(false)
         setSystemPromptOnly(false)
         showToastOnPromptUpdate(theme, false, true)
       }
@@ -505,6 +516,25 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
       }
     }
 
+    // Handle Disable citations prompt
+    if (updatedFields.disableCitations !== undefined) {
+      if (updatedFields.disableCitations) {
+        if (!newPrompt.includes(CITATION_GUIDELINES_PROMPT)) {
+          newPrompt = newPrompt.replace(CITATION_GUIDELINES_PROMPT, '')
+        }
+        if (!newPrompt.includes(CITATION_DISABLED_PROMPT)) {
+          newPrompt += CITATION_DISABLED_PROMPT
+        }
+      } else {
+        if (!newPrompt.includes(CITATION_DISABLED_PROMPT)) {
+          newPrompt = newPrompt.replace(CITATION_DISABLED_PROMPT, '')
+        }
+        if (!newPrompt.includes(CITATION_GUIDELINES_PROMPT)) {
+          newPrompt += CITATION_GUIDELINES_PROMPT
+        }
+      }
+    }
+
     return newPrompt
   }
 
@@ -515,6 +545,7 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
     const currentSwitchState = {
       guidedLearning,
       documentsOnly,
+      disableCitations,
       systemPromptOnly,
       vectorSearchRewrite,
       agentModeFeatureEnabled,
@@ -534,6 +565,7 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
       ...courseMetadataRef.current,
       guidedLearning,
       documentsOnly,
+      disableCitations,
       systemPromptOnly,
       vector_search_rewrite_disabled: !vectorSearchRewrite,
       agent_mode_enabled: agentModeFeatureEnabled,
@@ -575,6 +607,16 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
         changes.push(
           `Document-Based References Only ${
             currentSwitchState.documentsOnly ? 'enabled' : 'disabled'
+          }`,
+        )
+      }
+      if (
+        initialSwitchState.disableCitations !==
+        currentSwitchState.disableCitations
+      ) {
+        changes.push(
+          `Hide citations in chat responses ${
+            currentSwitchState.disableCitations ? 'enabled' : 'disabled'
           }`,
         )
       }
@@ -625,6 +667,8 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
       setGuidedLearning(updatedFields.guidedLearning!)
     if ('documentsOnly' in updatedFields)
       setDocumentsOnly(updatedFields.documentsOnly!)
+    if ('disableCitations' in updatedFields)
+      setDisableCitations(updatedFields.disableCitations!)
     if ('systemPromptOnly' in updatedFields)
       setSystemPromptOnly(updatedFields.systemPromptOnly!)
 
@@ -833,11 +877,11 @@ CRITICAL: The optimized prompt must:
             },
           ],
           model: {
-            id: selectedModel || 'gpt-4',
+            id: selectedModel || 'gpt-5.4-mini',
             name:
               modelOptions.find((opt) => opt.value === selectedModel)?.label ||
-              'GPT-4',
-            tokenLimit: 8192,
+              'GPT-5.4 Mini',
+            tokenLimit: 400000,
             enabled: true,
             extendedThinking:
               modelOptions.find((opt) => opt.value === selectedModel)
@@ -1753,6 +1797,19 @@ CRITICAL: The optimized prompt must:
                     variant="labeled"
                     showLabels
                     showThumbIcon
+                    label="Hide citations in chat responses"
+                    tooltip="Disables the display of citations and sources on the chat screen."
+                    checked={disableCitations}
+                    onCheckedChange={(value: boolean) =>
+                      handleCheckboxChange({ disableCitations: value })
+                    }
+                  />
+
+                  <Switch
+                    size="lg"
+                    variant="labeled"
+                    showLabels
+                    showThumbIcon
                     label="Bypass Illinois Chat's internal prompting"
                     tooltip="Full control over bot behavior without internal prompting."
                     checked={systemPromptOnly}
@@ -2142,6 +2199,18 @@ CRITICAL: The optimized prompt must:
                     checked={documentsOnly}
                     onCheckedChange={(value: boolean) =>
                       handleCheckboxChange({ documentsOnly: value })
+                    }
+                  />
+
+                  <Switch
+                    variant="labeled"
+                    showLabels
+                    showThumbIcon
+                    label="Hide citations in chat responses"
+                    tooltip="Disables the display of citations and sources on the chat screen."
+                    checked={disableCitations}
+                    onCheckedChange={(value: boolean) =>
+                      handleCheckboxChange({ disableCitations: value })
                     }
                   />
 

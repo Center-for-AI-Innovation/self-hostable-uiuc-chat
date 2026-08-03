@@ -1,6 +1,7 @@
 // src/pages/api/chat-api/chat.ts
 
 import {
+  type ChatApiBody,
   type ChatBody,
   type Content,
   type Conversation,
@@ -66,7 +67,7 @@ export default async function chat(
   }
 
   // Parse and validate the request body
-  const body = req.body
+  const body: ChatApiBody = req.body
   try {
     await validateRequestBody(body)
   } catch (error: any) {
@@ -93,16 +94,7 @@ export default async function chat(
     api_key,
     retrieval_only,
     conversation_id,
-  }: {
-    model: string
-    messages: Message[]
-    openai_key: string
-    temperature: number
-    course_name: string
-    stream: boolean
-    api_key: string
-    retrieval_only: boolean
-    conversation_id?: string
+    doc_groups: requestedDocGroups,
   } = body
 
   // Validate the API key and retrieve user data
@@ -192,9 +184,15 @@ export default async function chat(
     }
   }
 
-  // Fetch document groups
-  // We can fetch custom doc groups here instead, but for now we'll just use the default
-  const doc_groups = ['All Documents']
+  // Preserve caller-provided groups; filter for non-empty strings; default to all-documents only when absent.
+  let doc_groups = Array.isArray(requestedDocGroups)
+    ? requestedDocGroups.filter(
+        (group) => typeof group === 'string' && group.trim() !== '',
+      )
+    : []
+  if (doc_groups.length === 0) {
+    doc_groups = ['All Documents']
+  }
 
   const controller = new AbortController()
   // Construct the search query
@@ -327,7 +325,7 @@ export default async function chat(
     conversation: updatedConversation,
     key: llmProviders[ProviderNames.OpenAI]?.apiKey as string,
     course_name,
-    stream,
+    stream: stream || false,
     courseMetadata,
     llmProviders,
     mode: 'chat',

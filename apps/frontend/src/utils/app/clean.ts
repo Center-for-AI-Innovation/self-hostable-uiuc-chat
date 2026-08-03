@@ -22,7 +22,8 @@ export const cleanSelectedConversation = (
   if (!updatedConversation.model) {
     updatedConversation = {
       ...updatedConversation,
-      model: updatedConversation.model || OpenAIModels[OpenAIModelID.GPT_4], // ! the default fallback was causing inf loop issues
+      model:
+        updatedConversation.model || OpenAIModels[OpenAIModelID.GPT_5_4_mini],
     }
   }
 
@@ -86,7 +87,7 @@ export const cleanConversationHistory = (history: any[]): ConversationPage => {
   for (const conversation of history) {
     try {
       if (!conversation.model) {
-        conversation.model = OpenAIModels[OpenAIModelID.GPT_4]
+        conversation.model = OpenAIModels[OpenAIModelID.GPT_5_4_mini]
       }
 
       if (!conversation.prompt) {

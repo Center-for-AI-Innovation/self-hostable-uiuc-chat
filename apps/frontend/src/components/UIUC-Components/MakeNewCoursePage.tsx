@@ -252,6 +252,7 @@ const MakeNewCoursePage = ({
             disabled_models: undefined,
             project_description,
             documentsOnly: undefined,
+            disableCitations: undefined,
             guidedLearning: undefined,
             systemPromptOnly: undefined,
             vector_search_rewrite_disabled: undefined,

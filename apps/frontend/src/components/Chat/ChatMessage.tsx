@@ -382,6 +382,7 @@ export interface Props {
   contentRenderer?: (message: Message) => JSX.Element
   onImageUrlsUpdate?: (message: Message, messageIndex: number) => void
   courseName: string
+  disableCitations: boolean
 }
 
 // Add this helper function before the ChatMessage component
@@ -485,6 +486,7 @@ export const ChatMessage = memo(
     onFeedback,
     onImageUrlsUpdate,
     courseName,
+    disableCitations = false,
   }: Props) => {
     const { t } = useTranslation('chat')
     const { activeSidebarMessageId, setActiveSidebarMessageId } =
@@ -987,6 +989,8 @@ export const ChatMessage = memo(
 
     // Add this useEffect for loading thumbnails
     useEffect(() => {
+      if (disableCitations) return
+
       let isMounted = true
 
       const loadThumbnails = async () => {
@@ -1048,7 +1052,7 @@ export const ChatMessage = memo(
       return () => {
         isMounted = false
       }
-    }, [displayContexts, courseName])
+    }, [displayContexts, courseName, disableCitations])
 
     // Add new function to replace expired links in text
     async function replaceExpiredLinksInText(
@@ -1277,7 +1281,7 @@ export const ChatMessage = memo(
                   ? `${thoughtsContent} ▍`
                   : thoughtsContent
               }
-              isStreaming={
+              isReasoningStreaming={
                 messageIsStreaming &&
                 messageIndex ===
                   (selectedConversation?.messages.length ?? 0) - 1 &&
@@ -1604,6 +1608,8 @@ export const ChatMessage = memo(
       }
 
       if (isValidCitation) {
+        if (disableCitations) return null
+
         // Determine tooltip class based on streaming state
         const tooltipClass = `citation-tooltip-container ${
           tooltipAlignment === 'left'
@@ -1776,7 +1782,10 @@ export const ChatMessage = memo(
       messageIndex === (selectedConversation?.messages.length ?? 0) - 1
 
     const shouldShowSources =
-      condHasContexts && !condIsStreamingAndLastMsg && !condLoadingAndLastMsg
+      !disableCitations &&
+      condHasContexts &&
+      !condIsStreamingAndLastMsg &&
+      !condLoadingAndLastMsg
 
     return (
       <>
@@ -1871,40 +1880,41 @@ export const ChatMessage = memo(
                                   }
                                 }
                               })}
-                              {/* File cards for all messages */}
-                              {message.content.some(
-                                (item) => item.type === 'file',
-                              ) && (
-                                <div className="-m-1 flex w-full flex-wrap justify-start">
-                                  {message.content
-                                    .filter((item) => item.type === 'file')
-                                    .map((content, index) => {
-                                      const fileName =
-                                        content.fileName || 'Unknown file'
-                                      const isPreviewable = isFilePreviewable(
-                                        fileName,
-                                        content.fileType,
-                                      )
-                                      return (
-                                        <div key={index} className="mb-2">
-                                          <FileCard
-                                            fileName={fileName}
-                                            fileType={content.fileType}
-                                            fileUrl={content.fileUrl}
-                                            isPreviewable={isPreviewable}
-                                            onClick={() =>
-                                              handleFileAction(
-                                                fileName,
-                                                content.fileUrl,
-                                                content.fileType,
-                                              )
-                                            }
-                                          />
-                                        </div>
-                                      )
-                                    })}
-                                </div>
-                              )}
+                              {/* File cards for all messages if citations enabled else only for user messages */}
+                              {(!disableCitations || message.role === 'user') &&
+                                message.content.some(
+                                  (item) => item.type === 'file',
+                                ) && (
+                                  <div className="-m-1 flex w-full flex-wrap justify-start">
+                                    {message.content
+                                      .filter((item) => item.type === 'file')
+                                      .map((content, index) => {
+                                        const fileName =
+                                          content.fileName || 'Unknown file'
+                                        const isPreviewable = isFilePreviewable(
+                                          fileName,
+                                          content.fileType,
+                                        )
+                                        return (
+                                          <div key={index} className="mb-2">
+                                            <FileCard
+                                              fileName={fileName}
+                                              fileType={content.fileType}
+                                              fileUrl={content.fileUrl}
+                                              isPreviewable={isPreviewable}
+                                              onClick={() =>
+                                                handleFileAction(
+                                                  fileName,
+                                                  content.fileUrl,
+                                                  content.fileType,
+                                                )
+                                              }
+                                            />
+                                          </div>
+                                        )
+                                      })}
+                                  </div>
+                                )}
 
                               {/* Image previews for all messages */}
                               {message.content.some(

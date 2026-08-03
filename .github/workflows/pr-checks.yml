@@ -19,7 +19,7 @@ jobs:
       - name: Install Trunk
         uses: trunk-io/trunk-action@v1
         with:
-          check-mode: true
+          check-mode: all
 
       # Backend tests placeholder
       - name: Backend tests

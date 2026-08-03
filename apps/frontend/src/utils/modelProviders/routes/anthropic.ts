@@ -37,18 +37,24 @@ export const getAnthropicModels = async (
   anthropicProvider.models = anthropicProvider.models || []
 
   const preferredAnthropicModelIds = [
-    // Prefer newest/best first
-    AnthropicModelID.Claude_Sonnet_4,
-    AnthropicModelID.Claude_Sonnet_4_Thinking,
+    AnthropicModelID.Claude_Sonnet_4_6,
+    AnthropicModelID.Claude_Sonnet_4_6_Thinking,
+    AnthropicModelID.Claude_Opus_4_6,
+    AnthropicModelID.Claude_Opus_4_6_Thinking,
+    AnthropicModelID.Claude_Haiku_4_5,
+    AnthropicModelID.Claude_Haiku_4_5_Thinking,
+    AnthropicModelID.Claude_Sonnet_4_5,
+    AnthropicModelID.Claude_Sonnet_4_5_Thinking,
+    AnthropicModelID.Claude_Opus_4_5,
+    AnthropicModelID.Claude_Opus_4_5_Thinking,
     AnthropicModelID.Claude_Opus_4_1,
     AnthropicModelID.Claude_Opus_4_1_Thinking,
+    AnthropicModelID.Claude_Sonnet_4,
+    AnthropicModelID.Claude_Sonnet_4_Thinking,
     AnthropicModelID.Claude_Opus_4,
     AnthropicModelID.Claude_Opus_4_Thinking,
     AnthropicModelID.Claude_3_7_Sonnet,
     AnthropicModelID.Claude_3_7_Sonnet_Thinking,
-    AnthropicModelID.Claude_3_5_Sonnet,
-    AnthropicModelID.Claude_3_5_Haiku,
-    AnthropicModelID.Claude_3_Opus,
   ]
 
   // Get all available models from AnthropicModels and preserve their states

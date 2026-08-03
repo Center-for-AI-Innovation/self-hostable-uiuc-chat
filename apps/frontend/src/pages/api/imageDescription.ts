@@ -16,15 +16,6 @@ const handler = async (req: AuthenticatedRequest, res: NextApiResponse) => {
     const systemPrompt = getImageDescriptionSystemPrompt()
 
     const messages: OpenAIChatMessage[] = [
-      {
-        role: 'system',
-        content: [
-          {
-            type: 'text',
-            text: systemPrompt,
-          },
-        ],
-      },
       { role: 'user', content: [...contentArray] },
     ]
 

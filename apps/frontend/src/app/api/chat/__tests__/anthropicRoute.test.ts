@@ -38,7 +38,7 @@ function makeConversation(overrides: any = {}) {
     id: 'c1',
     name: 'n',
     model: {
-      id: 'claude-3-5-sonnet',
+      id: 'claude-3-7-sonnet-latest',
       name: 'Claude',
       extendedThinking: false,
     },

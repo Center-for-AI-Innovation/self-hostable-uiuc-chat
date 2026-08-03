@@ -19,7 +19,7 @@ describe('cleanSelectedConversation', () => {
     })
 
     const cleaned = cleanSelectedConversation(conversation, 'me@illinois.edu')
-    expect(cleaned.model).toEqual(OpenAIModels[OpenAIModelID.GPT_4])
+    expect(cleaned.model).toEqual(OpenAIModels[OpenAIModelID.GPT_5_4_mini])
     expect(cleaned.prompt).toBe(DEFAULT_SYSTEM_PROMPT)
     expect(cleaned.temperature).toBe(DEFAULT_TEMPERATURE)
     expect(cleaned.folderId).toBeNull()
@@ -49,7 +49,7 @@ describe('cleanConversationHistory', () => {
     expect(cleaned.conversations[0]).toMatchObject({
       id: '1',
       name: 'One',
-      model: OpenAIModels[OpenAIModelID.GPT_4],
+      model: OpenAIModels[OpenAIModelID.GPT_5_4_mini],
       prompt: DEFAULT_SYSTEM_PROMPT,
       temperature: DEFAULT_TEMPERATURE,
       folderId: null,

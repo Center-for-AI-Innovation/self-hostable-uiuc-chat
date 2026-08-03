@@ -250,9 +250,10 @@ export const Chat = memo(
         const documentGroupActions = [
           DEFAULT_DOCUMENT_GROUP,
           ...(documentGroupsHook?.map((docGroup, index) => ({
-            id: `DocGroup-${index}`,
+            id: docGroup.id != null ? String(docGroup.id) : `DocGroup-${index}`,
             name: docGroup.name,
             checked: false,
+            adminDisabled: docGroup.enabled === false,
             onTrigger: () => console.log(`${docGroup.name} triggered`),
           })) || []),
         ]
@@ -267,7 +268,7 @@ export const Chat = memo(
     useEffect(() => {
       setEnabledDocumentGroups(
         documentGroups
-          .filter((action) => action.checked)
+          .filter((action) => action.checked && !action.adminDisabled)
           .map((action) => action.name),
       )
     }, [documentGroups])
@@ -874,7 +875,7 @@ export const Chat = memo(
               courseName,
               selectedConversation,
               rewrittenQuery,
-              enabledDocumentGroups,
+              documentGroups,
             )
 
             homeDispatch({ field: 'isRetrievalLoading', value: false })
@@ -949,7 +950,7 @@ export const Chat = memo(
               abortAgent,
               conversations,
               courseName,
-              enabledDocumentGroups,
+              enabledDocumentGroups: documentGroups,
               errorToast,
               homeDispatch,
               message,
@@ -2145,6 +2146,9 @@ export const Chat = memo(
                               onRegenerate={() => handleRegenerate(index)}
                               onFeedback={handleFeedback}
                               courseName={courseName}
+                              disableCitations={
+                                courseMetadata?.disableCitations || false
+                              }
                             />
                           ),
                         )}

@@ -60,8 +60,8 @@ export async function runAnthropicChat(
       providerOptions: {
         anthropic: {
           thinking: {
-            type: 'enabled',
-            budgetTokens: 16000, // Default budget for extended thinking
+            type: 'enabled' as const,
+            budgetTokens: 16000,
           },
         },
       },

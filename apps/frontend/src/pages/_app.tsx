@@ -90,7 +90,22 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
     return <Maintenance />
   } else {
     return (
-      <>
+      <div
+        onKeyDownCapture={(event) => {
+          if (event.key === 'Tab') {
+            document.documentElement.dataset.inputModality = 'keyboard'
+          }
+        }}
+        onPointerDownCapture={() => {
+          document.documentElement.dataset.inputModality = 'pointer'
+        }}
+        onMouseDownCapture={() => {
+          document.documentElement.dataset.inputModality = 'pointer'
+        }}
+        onTouchStartCapture={() => {
+          document.documentElement.dataset.inputModality = 'pointer'
+        }}
+      >
         <nav aria-label="Skip navigation">
           <a
             href="#main-content"
@@ -167,7 +182,7 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
             </PostHogProvider>
           </QueryClientProvider>
         </KeycloakProvider>
-      </>
+      </div>
     )
   }
 }

@@ -24,9 +24,12 @@ import {
   GeminiModels,
 } from '~/utils/modelProviders/types/gemini'
 import {
+  findAvailableNCSAFallbackModel,
+  LEGACY_NCSA_DEFAULT_MODEL_IDS,
   type NCSAHostedVLMModel,
   NCSAHostedVLMModelID,
   NCSAHostedVLMModels,
+  resolveStoredNCSADefaultModelId,
 } from '~/utils/modelProviders/types/NCSAHostedVLM'
 import {
   type OpenAIModel,
@@ -99,7 +102,6 @@ export const VisionCapableModels: Set<
   // OpenAI models
   OpenAIModelID.o3,
   OpenAIModelID.o4_mini,
-  OpenAIModelID.GPT_4_Turbo,
   OpenAIModelID.GPT_4o,
   OpenAIModelID.GPT_4o_mini,
   OpenAIModelID.GPT_4_1,
@@ -110,11 +112,22 @@ export const VisionCapableModels: Set<
   OpenAIModelID.GPT_5_mini,
   OpenAIModelID.GPT_5_nano,
   OpenAIModelID.GPT_5_thinking,
+  OpenAIModelID.GPT_5_5,
+  OpenAIModelID.GPT_5_4,
+  OpenAIModelID.GPT_5_4_pro,
+  OpenAIModelID.GPT_5_4_mini,
+  OpenAIModelID.GPT_5_4_nano,
+  OpenAIModelID.GPT_5_3_chat_latest,
+  OpenAIModelID.GPT_5_2,
+  OpenAIModelID.GPT_5_2_codex,
+  OpenAIModelID.GPT_5_1,
+  OpenAIModelID.GPT_5_1_chat_latest,
+  OpenAIModelID.GPT_5_1_codex,
+  OpenAIModelID.GPT_5_1_codex_mini,
 
   // Azure models
   AzureModelID.o3,
   AzureModelID.o4_mini,
-  AzureModelID.GPT_4_Turbo,
   AzureModelID.GPT_4o,
   AzureModelID.GPT_4o_mini,
   AzureModelID.GPT_4_1,
@@ -124,12 +137,39 @@ export const VisionCapableModels: Set<
   AzureModelID.GPT_5,
   AzureModelID.GPT_5_mini,
   AzureModelID.GPT_5_nano,
+  AzureModelID.GPT_5_thinking,
+  AzureModelID.GPT_5_5,
+  AzureModelID.GPT_5_4,
+  AzureModelID.GPT_5_4_pro,
+  AzureModelID.GPT_5_4_mini,
+  AzureModelID.GPT_5_4_nano,
+  AzureModelID.GPT_5_3_chat_latest,
+  AzureModelID.GPT_5_2,
+  AzureModelID.GPT_5_2_codex,
+  AzureModelID.GPT_5_1,
+  AzureModelID.GPT_5_1_chat_latest,
+  AzureModelID.GPT_5_1_codex,
+  AzureModelID.GPT_5_1_codex_mini,
 
-  // claude-3.5....
+  // Anthropic (multimodal)
   AnthropicModelID.Claude_3_7_Sonnet,
   AnthropicModelID.Claude_3_7_Sonnet_Thinking,
-  AnthropicModelID.Claude_3_5_Sonnet,
-  AnthropicModelID.Claude_3_5_Haiku,
+  AnthropicModelID.Claude_Sonnet_4_6,
+  AnthropicModelID.Claude_Sonnet_4_6_Thinking,
+  AnthropicModelID.Claude_Opus_4_6,
+  AnthropicModelID.Claude_Opus_4_6_Thinking,
+  AnthropicModelID.Claude_Haiku_4_5,
+  AnthropicModelID.Claude_Haiku_4_5_Thinking,
+  AnthropicModelID.Claude_Sonnet_4_5,
+  AnthropicModelID.Claude_Sonnet_4_5_Thinking,
+  AnthropicModelID.Claude_Opus_4_5,
+  AnthropicModelID.Claude_Opus_4_5_Thinking,
+  AnthropicModelID.Claude_Sonnet_4,
+  AnthropicModelID.Claude_Sonnet_4_Thinking,
+  AnthropicModelID.Claude_Opus_4,
+  AnthropicModelID.Claude_Opus_4_Thinking,
+  AnthropicModelID.Claude_Opus_4_1,
+  AnthropicModelID.Claude_Opus_4_1_Thinking,
 
   // VLM
   NCSAHostedVLMModelID.Llama_3_2_11B_Vision_Instruct,
@@ -137,16 +177,18 @@ export const VisionCapableModels: Set<
   NCSAHostedVLMModelID.QWEN2_VL_72B_INSTRUCT,
   NCSAHostedVLMModelID.QWEN2_5VL_72B_INSTRUCT,
   NCSAHostedVLMModelID.QWEN2_5VL_32B_INSTRUCT,
+  NCSAHostedVLMModelID.QWEN3_5_27B,
+  NCSAHostedVLMModelID.QWEN3_6_27B,
 
   // Gemini
-  GeminiModelID.Gemini_2_5_Pro_Exp_03_25,
-  GeminiModelID.Gemini_2_0_Pro_Exp_02_05,
-  GeminiModelID.Gemini_2_0_Flash,
-  GeminiModelID.Gemini_2_0_Flash_Lite,
+  GeminiModelID.Gemini_3_1_Pro_Preview,
+  GeminiModelID.Gemini_3_Flash_Preview,
+  GeminiModelID.Gemini_3_1_Flash_Lite,
+  GeminiModelID.Gemini_Pro_Latest,
+  GeminiModelID.Gemini_Flash_Latest,
+  GeminiModelID.Gemini_Flash_Lite_Latest,
 
   // Bedrock
-  BedrockModelID.Claude_3_Opus,
-  BedrockModelID.Claude_3_5_Sonnet_Latest,
   BedrockModelID.Nova_Pro,
   BedrockModelID.Nova_Lite,
   BedrockModelID.Llama3_2_11B_Instruct,
@@ -166,7 +208,16 @@ export const VisionCapableModels: Set<
   OpenAICompatibleModelID.GPT_4_1,
   OpenAICompatibleModelID.GPT_4o,
   OpenAICompatibleModelID.GPT_5,
+  OpenAICompatibleModelID.GPT_5_5,
+  OpenAICompatibleModelID.GPT_5_4,
+  OpenAICompatibleModelID.GPT_5_4_pro,
+  OpenAICompatibleModelID.GPT_5_4_mini,
+  OpenAICompatibleModelID.GPT_5_4_nano,
+  OpenAICompatibleModelID.GPT_5_2,
+  OpenAICompatibleModelID.GPT_5_2_Codex,
+  OpenAICompatibleModelID.GPT_5_3_Chat_Latest,
   OpenAICompatibleModelID.GPT_5_1,
+  OpenAICompatibleModelID.GPT_5_1_chat_latest,
   OpenAICompatibleModelID.GPT_5_1_Chat,
   OpenAICompatibleModelID.GPT_5_1_Codex,
   OpenAICompatibleModelID.GPT_5_1_Codex_Mini,
@@ -187,8 +238,20 @@ export const VisionCapableModels: Set<
  * These models can process <think> tags and have extended thinking enabled
  */
 export const ReasoningCapableModels: Set<
-  AnthropicModelID | OpenAIModelID | OllamaModelIDs | OpenAICompatibleModelID
+  | AnthropicModelID
+  | OpenAIModelID
+  | OllamaModelIDs
+  | OpenAICompatibleModelID
+  | NCSAHostedVLMModelID
 > = new Set([
+  AnthropicModelID.Claude_Sonnet_4_6_Thinking,
+  AnthropicModelID.Claude_Opus_4_6_Thinking,
+  AnthropicModelID.Claude_Haiku_4_5_Thinking,
+  AnthropicModelID.Claude_Sonnet_4_5_Thinking,
+  AnthropicModelID.Claude_Opus_4_5_Thinking,
+  AnthropicModelID.Claude_Sonnet_4_Thinking,
+  AnthropicModelID.Claude_Opus_4_Thinking,
+  AnthropicModelID.Claude_Opus_4_1_Thinking,
   AnthropicModelID.Claude_3_7_Sonnet_Thinking,
   OpenAIModelID.o3,
   OpenAIModelID.o3_mini,
@@ -196,10 +259,27 @@ export const ReasoningCapableModels: Set<
   // OpenAIModelID.GPT_4_1,
   // Add GPT-5 family
   OpenAIModelID.GPT_5_thinking,
+  OpenAIModelID.GPT_5_5,
+  OpenAIModelID.GPT_5_4_pro,
+  OpenAIModelID.GPT_5_4,
+  OpenAIModelID.GPT_5_4_mini,
+  OpenAIModelID.GPT_5_4_nano,
+  OpenAIModelID.GPT_5_1,
+  OpenAIModelID.GPT_5_1_codex,
+  OpenAIModelID.GPT_5_1_codex_mini,
+  OpenAIModelID.GPT_5_2,
+  OpenAIModelID.GPT_5_2_codex,
   OllamaModelIDs.DEEPSEEK_R1_14b_qwen_fp16,
   // OpenAI-compatible reasoning models
   // GPT-5 family (all have reasoning capabilities)
   OpenAICompatibleModelID.GPT_5,
+  OpenAICompatibleModelID.GPT_5_5,
+  OpenAICompatibleModelID.GPT_5_4,
+  OpenAICompatibleModelID.GPT_5_4_pro,
+  OpenAICompatibleModelID.GPT_5_4_mini,
+  OpenAICompatibleModelID.GPT_5_4_nano,
+  OpenAICompatibleModelID.GPT_5_2,
+  OpenAICompatibleModelID.GPT_5_2_Codex,
   OpenAICompatibleModelID.GPT_5_1,
   OpenAICompatibleModelID.GPT_5_1_Chat,
   OpenAICompatibleModelID.GPT_5_1_Codex,
@@ -247,6 +327,9 @@ export const ReasoningCapableModels: Set<
   OpenAICompatibleModelID.Ollama_DeepSeek_R1_32B,
   OpenAICompatibleModelID.Ollama_DeepSeek_R1_14B,
   OpenAICompatibleModelID.Ollama_Qwen3_32B,
+  // NCSA-hosted reasoning models
+  NCSAHostedVLMModelID.QWEN3_5_27B,
+  NCSAHostedVLMModelID.QWEN3_6_27B,
   // Add other reasoning-capable models as they become available
 ])
 
@@ -387,51 +470,103 @@ export type AllLLMProviders = {
 
 // Ordered list of preferred model IDs -- the first available model will be used as default
 export const preferredModelIds = [
-  // Prefer GPT-5 family next when available
+  OpenAIModelID.GPT_5_5,
+  AzureModelID.GPT_5_5,
+  OpenAIModelID.GPT_5_4_pro,
+  AzureModelID.GPT_5_4_pro,
+  OpenAIModelID.GPT_5_4,
+  AzureModelID.GPT_5_4,
+  OpenAIModelID.GPT_5_4_mini,
+  AzureModelID.GPT_5_4_mini,
+  OpenAIModelID.GPT_5_4_nano,
+  AzureModelID.GPT_5_4_nano,
+  OpenAIModelID.GPT_5_3_chat_latest,
+  AzureModelID.GPT_5_3_chat_latest,
+  OpenAIModelID.GPT_5_2,
+  AzureModelID.GPT_5_2,
+  OpenAIModelID.GPT_5_2_codex,
+  AzureModelID.GPT_5_2_codex,
+  OpenAIModelID.GPT_5_1,
+  AzureModelID.GPT_5_1,
+  OpenAIModelID.GPT_5_1_codex,
+  AzureModelID.GPT_5_1_codex,
+  OpenAIModelID.GPT_5_1_codex_mini,
+  AzureModelID.GPT_5_1_codex_mini,
+  OpenAIModelID.GPT_5_1_chat_latest,
+  AzureModelID.GPT_5_1_chat_latest,
   OpenAIModelID.GPT_5_thinking,
+  AzureModelID.GPT_5_thinking,
   OpenAIModelID.GPT_5,
+  AzureModelID.GPT_5,
   OpenAIModelID.GPT_5_mini,
+  AzureModelID.GPT_5_mini,
   OpenAIModelID.GPT_5_nano,
+  AzureModelID.GPT_5_nano,
   OpenAIModelID.GPT_4_1,
+  AzureModelID.GPT_4_1,
   OpenAIModelID.GPT_4_1_mini,
-  // Prefer GPT-5 family next when available
-  OpenAIModelID.GPT_5,
-  OpenAIModelID.GPT_5_mini,
-  OpenAIModelID.GPT_5_nano,
-  OpenAIModelID.o3,
-  OpenAIModelID.o4_mini,
-  AnthropicModelID.Claude_3_5_Sonnet,
-  OpenAIModelID.GPT_4o_mini,
-  AzureModelID.GPT_4o_mini,
-  AnthropicModelID.Claude_3_5_Haiku,
+  AzureModelID.GPT_4_1_mini,
   OpenAIModelID.GPT_4_1_nano,
+  AzureModelID.GPT_4_1_nano,
+  OpenAIModelID.o3,
+  AzureModelID.o3,
+  OpenAIModelID.o3_mini,
+  OpenAIModelID.o4_mini,
+  AzureModelID.o4_mini,
+  AnthropicModelID.Claude_Sonnet_4_6,
+  AnthropicModelID.Claude_Sonnet_4_6_Thinking,
+  AnthropicModelID.Claude_Opus_4_6,
+  AnthropicModelID.Claude_Opus_4_6_Thinking,
+  AnthropicModelID.Claude_Haiku_4_5,
+  AnthropicModelID.Claude_Haiku_4_5_Thinking,
+  AnthropicModelID.Claude_Sonnet_4_5,
+  AnthropicModelID.Claude_Sonnet_4_5_Thinking,
+  AnthropicModelID.Claude_Opus_4_5,
+  AnthropicModelID.Claude_Opus_4_5_Thinking,
+  AnthropicModelID.Claude_Opus_4_1,
+  AnthropicModelID.Claude_Opus_4_1_Thinking,
+  AnthropicModelID.Claude_Sonnet_4,
+  AnthropicModelID.Claude_Sonnet_4_Thinking,
+  AnthropicModelID.Claude_Opus_4,
+  AnthropicModelID.Claude_Opus_4_Thinking,
+  AnthropicModelID.Claude_3_7_Sonnet,
+  AnthropicModelID.Claude_3_7_Sonnet_Thinking,
   OpenAIModelID.GPT_4o,
   AzureModelID.GPT_4o,
-  OpenAIModelID.GPT_4_Turbo,
-  AzureModelID.GPT_4_Turbo,
-  AnthropicModelID.Claude_3_Opus,
-  OpenAIModelID.GPT_4,
-  AzureModelID.GPT_4,
-  OpenAIModelID.GPT_3_5,
-  // NCSAHostedVLMModelID.QWEN2_5VL_32B_INSTRUCT,
-  NCSAHostedVLMModelID.QWEN2_VL_72B_INSTRUCT,
+  OpenAIModelID.GPT_4o_mini,
+  AzureModelID.GPT_4o_mini,
+  NCSAHostedVLMModelID.QWEN3_5_27B,
+  NCSAHostedVLMModelID.QWEN3_6_27B,
 ]
 
 export const selectBestModel = (
-  allLLMProviders: AllLLMProviders,
+  allLLMProviders: Partial<AllLLMProviders>,
 ): GenericSupportedModel => {
   // Find default model from the local Storage
   // Currently, if the user ever specified a default model in local storage, this will ALWAYS override the default model specified by the admin,
   // especially for the creation of new chats.
-  const allModels = Object.values(allLLMProviders)
-    .filter((provider) => provider!.enabled)
-    .flatMap((provider) => provider!.models || [])
+  const enabledProviders = LLM_PROVIDER_ORDER.map(
+    (providerName) => allLLMProviders[providerName],
+  ).filter((provider): provider is LLMProvider => Boolean(provider?.enabled))
+
+  const allModels = enabledProviders
+    .flatMap((provider) => provider.models || [])
     .filter((model) => model.enabled)
 
-  const defaultModelId = localStorage.getItem('defaultModel')
+  const storedDefaultModelId = localStorage.getItem('defaultModel')
+  const availableModelIds = allModels.map((model) => model.id)
+  const defaultModelId = resolveStoredNCSADefaultModelId(
+    storedDefaultModelId,
+    availableModelIds,
+  )
 
-  if (defaultModelId === NCSAHostedVLMModelID.QWEN2_5VL_32B_INSTRUCT) {
-    return NCSAHostedVLMModels[NCSAHostedVLMModelID.QWEN2_5VL_72B_INSTRUCT]
+  if (
+    storedDefaultModelId &&
+    LEGACY_NCSA_DEFAULT_MODEL_IDS.has(storedDefaultModelId) &&
+    defaultModelId &&
+    defaultModelId !== storedDefaultModelId
+  ) {
+    localStorage.setItem('defaultModel', defaultModelId)
   }
 
   if (defaultModelId && allModels.find((m) => m.id === defaultModelId)) {
@@ -443,9 +578,8 @@ export const selectBestModel = (
     }
   }
   // If the default model that a user specifies is not available, fall back to the admin selected default model.
-  const globalDefaultModel = Object.values(allLLMProviders)
-    .filter((provider) => provider!.enabled)
-    .flatMap((provider) => provider!.models || [])
+  const globalDefaultModel = enabledProviders
+    .flatMap((provider) => provider.models || [])
     .filter((model) => model.default)
   if (globalDefaultModel[0]) {
     // This will always return one record since the default model is unique. If there are two default models (that means default model functionality is broken), this will return the first one.
@@ -462,6 +596,15 @@ export const selectBestModel = (
     }
   }
 
-  // If no preferred models are available, fallback to Qwen2.5-VL-72B-Instruct
-  return NCSAHostedVLMModels[NCSAHostedVLMModelID.QWEN2_5VL_72B_INSTRUCT]
+  const ncsaFallbackModel = findAvailableNCSAFallbackModel(allModels)
+  if (ncsaFallbackModel) {
+    return ncsaFallbackModel
+  }
+
+  if (allModels[0]) {
+    return allModels[0]
+  }
+
+  // If no enabled models are available, fallback to the static Qwen 3.5 27B descriptor.
+  return NCSAHostedVLMModels[NCSAHostedVLMModelID.QWEN3_5_27B]
 }

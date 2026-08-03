@@ -402,6 +402,13 @@
   outline: none !important;
 }
 
+html[data-input-modality='keyboard']
+  .chat_input_container:has(textarea.chat-input:focus) {
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--illinois-orange);
+}
+
 /* use existing formulas dark/light as described above as much as possible and only change the primary colors as needed */
 .dark {
   --foreground: var(--illinois-white);
@@ -1113,11 +1120,26 @@ button.css-s37qmw {
   transform-origin: top;
   transform: translateY(-4px);
   will-change: transform, opacity, max-height;
+}
+
+.think-tag-content.no-animate {
+  transition: none;
+}
+
+.think-tag-content.animate-manual {
   transition:
-    max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    visibility 0s linear 0.5s;
+    max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 0.28s;
+}
+
+.think-tag-content.animate-auto {
+  transition:
+    max-height 0.95s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 0.95s;
 }
 
 .think-tag-content > div {
@@ -1133,11 +1155,17 @@ button.css-s37qmw {
   /* Ensure it inherits the background color */
 }
 
+.think-tag-content.closing {
+  visibility: visible;
+}
+
+.think-tag-content.closing > div {
+  position: relative;
+}
+
 .think-tag-content.expanded {
   position: relative;
   visibility: visible;
-  max-height: 500px;
-  /* Reduced from 1000px to a more reasonable height */
   opacity: 1;
   transform: translateY(0);
   cursor: default;
@@ -1150,10 +1178,21 @@ button.css-s37qmw {
   /* For Firefox */
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
   /* For Firefox - thumb and track colors */
+}
+
+.think-tag-content.animate-manual.expanded {
   transition:
-    max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear;
+}
+
+.think-tag-content.animate-auto.expanded {
+  transition:
+    max-height 0.95s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.55s cubic-bezier(0.4, 0, 0.2, 1),
     visibility 0s linear;
 }
 

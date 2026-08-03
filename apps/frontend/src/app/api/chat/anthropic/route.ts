@@ -27,7 +27,7 @@ function getAnthropicRequestConfig(conversation: Conversation) {
         anthropic: {
           thinking: {
             type: 'enabled' as const,
-            budget_tokens: 16000,
+            budgetTokens: 16000,
           },
         },
       }

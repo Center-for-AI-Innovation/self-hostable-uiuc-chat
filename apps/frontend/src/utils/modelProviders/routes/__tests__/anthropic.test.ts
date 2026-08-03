@@ -15,7 +15,7 @@ describe('getAnthropicModels', () => {
       apiKey: 'k',
       models: [
         {
-          id: AnthropicModelID.Claude_3_5_Sonnet,
+          id: AnthropicModelID.Claude_3_7_Sonnet,
           enabled: false,
           default: true,
           temperature: 0.7,
@@ -24,10 +24,10 @@ describe('getAnthropicModels', () => {
     }
 
     const result = await getAnthropicModels(provider)
-    expect(result.models?.[0]?.id).toBe(AnthropicModelID.Claude_Sonnet_4)
+    expect(result.models?.[0]?.id).toBe(AnthropicModelID.Claude_Sonnet_4_6)
     const models = result.models ?? []
     const existing = models.find(
-      (m: any) => m.id === AnthropicModelID.Claude_3_5_Sonnet,
+      (m: any) => m.id === AnthropicModelID.Claude_3_7_Sonnet,
     )
     expect(existing).toMatchObject({
       enabled: false,

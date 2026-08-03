@@ -13,7 +13,7 @@ import {
   type ToolOutput,
 } from '~/types/chat'
 import { decryptKeyIfNeeded } from '~/utils/crypto'
-import fetchContextsFromBackend from '~/pages/util/fetchContexts'
+import { fetchContextsByVectorEngine } from '~/utils/fetchContexts'
 import { generatePresignedUrl } from '~/pages/api/download'
 import {
   getOpenAIToolFromUIUCTool,
@@ -407,12 +407,13 @@ export async function fetchContextsServer(
         return []
       }
 
-      const contexts = await fetchContextsFromBackend(
+      const contexts = await fetchContextsByVectorEngine(
         courseName,
         searchQuery,
         tokenLimit,
         docGroups,
         conversationId,
+        100,
         signal,
       )
 

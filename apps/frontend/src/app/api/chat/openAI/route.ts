@@ -25,7 +25,7 @@ async function handler(req: AuthenticatedRequest): Promise<NextResponse> {
     }
 
     let apiKey = authHeader.substring(7)
-    const { messages, model = 'gpt-4', stream = true } = await req.json()
+    const { messages, model = 'gpt-5.4-mini', stream = true } = await req.json()
 
     if (
       !apiKey ||

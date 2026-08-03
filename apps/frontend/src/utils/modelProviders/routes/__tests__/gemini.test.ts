@@ -34,7 +34,7 @@ describe('getGeminiModels', () => {
     const provider: any = {
       enabled: false,
       apiKey: 'k',
-      models: [{ id: GeminiModelID.Gemini_2_0_Flash, enabled: false }],
+      models: [{ id: GeminiModelID.Gemini_3_1_Flash_Lite, enabled: false }],
     }
     const result = await getGeminiModels(provider)
     expect(result.models).toEqual([])
@@ -45,14 +45,18 @@ describe('getGeminiModels', () => {
       enabled: true,
       apiKey: 'k',
       models: [
-        { id: GeminiModelID.Gemini_2_0_Flash, enabled: false, default: true },
+        {
+          id: GeminiModelID.Gemini_3_1_Flash_Lite,
+          enabled: false,
+          default: true,
+        },
       ],
     }
 
     const result = await getGeminiModels(provider)
     const models = result.models ?? []
     const preserved = models.find(
-      (m: any) => m.id === GeminiModelID.Gemini_2_0_Flash,
+      (m: any) => m.id === GeminiModelID.Gemini_3_1_Flash_Lite,
     )
     expect(preserved).toMatchObject({ enabled: false, default: true })
     expect(models.length).toBeGreaterThan(0)
@@ -91,7 +95,7 @@ describe('runGeminiChat', () => {
     })
 
     const conversation: any = {
-      model: { id: GeminiModelID.Gemini_2_0_Flash, tokenLimit: 10 },
+      model: { id: GeminiModelID.Gemini_3_1_Flash_Lite, tokenLimit: 10 },
       temperature: 0.2,
       messages: [
         { id: 'u1', role: 'user', content: 'hi', latestSystemMessage: 'sys' },
@@ -109,7 +113,7 @@ describe('runGeminiChat', () => {
     })
 
     const conversation: any = {
-      model: { id: GeminiModelID.Gemini_2_0_Flash, tokenLimit: 10 },
+      model: { id: GeminiModelID.Gemini_3_1_Flash_Lite, tokenLimit: 10 },
       temperature: 0.2,
       messages: [
         { id: 's1', role: 'system', content: 'ignored' },
@@ -145,7 +149,7 @@ describe('runGeminiChat', () => {
     aiHoisted.generateText.mockResolvedValueOnce({ text: 'hello' })
 
     const conversation: any = {
-      model: { id: GeminiModelID.Gemini_2_0_Flash, tokenLimit: 10 },
+      model: { id: GeminiModelID.Gemini_3_1_Flash_Lite, tokenLimit: 10 },
       temperature: 0.2,
       messages: [
         { id: 'u1', role: 'user', content: 'hi', latestSystemMessage: 'sys' },
@@ -165,7 +169,7 @@ describe('runGeminiChat', () => {
     )
 
     const conversation: any = {
-      model: { id: GeminiModelID.Gemini_2_0_Flash, tokenLimit: 10 },
+      model: { id: GeminiModelID.Gemini_3_1_Flash_Lite, tokenLimit: 10 },
       temperature: 0.2,
       messages: [
         { id: 'u1', role: 'user', content: 'hi', latestSystemMessage: 'sys' },
@@ -181,7 +185,7 @@ describe('runGeminiChat', () => {
     aiHoisted.streamText.mockRejectedValueOnce(new Error('boom'))
 
     const conversation: any = {
-      model: { id: GeminiModelID.Gemini_2_0_Flash, tokenLimit: 10 },
+      model: { id: GeminiModelID.Gemini_3_1_Flash_Lite, tokenLimit: 10 },
       temperature: 0.2,
       messages: [
         { id: 'u1', role: 'user', content: 'hi', latestSystemMessage: 'sys' },
