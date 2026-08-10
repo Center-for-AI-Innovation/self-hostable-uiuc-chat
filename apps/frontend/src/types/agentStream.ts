@@ -159,6 +159,7 @@ export interface ClientUIUCTool {
   output?: {
     text?: string
     imageUrls?: string[]
+    s3Paths?: string[] // Raw keys; the client re-signs these when links expire
     // Note: `data` field is stripped for client - too large
     hasData?: boolean // Indicates if there was data (without sending it)
   }
@@ -256,6 +257,7 @@ export function toClientUIUCTool(tool: UIUCTool): ClientUIUCTool {
       ? {
           text: tool.output.text,
           imageUrls: tool.output.imageUrls,
+          s3Paths: tool.output.s3Paths,
           hasData: !!tool.output.data,
         }
       : undefined,

@@ -101,7 +101,9 @@ services:
         condition: service_completed_successfully
 
   postgres-illinois-chat:
-    image: postgres
+    # pgvector-enabled Postgres — required by the embeddings table and the
+    # external-connections feature (init-schema.sql runs CREATE EXTENSION vector).
+    image: pgvector/pgvector:pg17
     restart: unless-stopped
     networks:
       - uiuc-chat-network
@@ -242,16 +244,13 @@ services:
       S3_BUCKET_NAME: ${S3_BUCKET_NAME:-uiuc-chat}
       MINIO_ENDPOINT: http://minio:9000
       MINIO_PUBLIC_ENDPOINT: http://localhost:9000
-      # Vyriad MinIO configuration
-      VYRIAD_MINIO_ENDPOINT: http://minio:9000
-      VYRIAD_MINIO_PUBLIC_ENDPOINT: http://localhost:9000
-      VYRIAD_MINIO_REGION: ${AWS_REGION:-us-east-1}
-      VYRIAD_MINIO_KEY: ${AWS_ACCESS_KEY_ID}
-      VYRIAD_MINIO_SECRET: ${AWS_SECRET_ACCESS_KEY}
       # qdrant
       QDRANT_API_KEY: ${QDRANT_API_KEY}
       QDRANT_COLLECTION_NAME: ${QDRANT_COLLECTION_NAME:-illinois_chat}
       QDRANT_URL: http://qdrant:6333
+      # project external connections (per-project S3/Postgres/Qdrant/embeddings)
+      ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:-}
+      ALLOWED_EMBEDDING_PROVIDERS: ${ALLOWED_EMBEDDING_PROVIDERS:-openai,ollama}
       # Sim AI
       SIM_API_BASE_URL: ${SIM_API_BASE_URL:-http://simstudio:3000}
       NEXT_PUBLIC_SIM_STORAGE: ${NEXT_PUBLIC_SIM_STORAGE:-local}
@@ -299,10 +298,6 @@ services:
       QDRANT_API_KEY: ${QDRANT_API_KEY}
       QDRANT_COLLECTION_NAME: ${QDRANT_COLLECTION_NAME:-illinois_chat}
       QDRANT_URL: http://qdrant:6333
-      # Not being used for self hosted. Need to avoid run time errors.
-      VYRIAD_QDRANT_URL: "http://qdrant:6333"
-      VYRIAD_QDRANT_PORT: "6333"
-      VYRIAD_QDRANT_API_KEY: ${QDRANT_API_KEY}
       # MinIO configuration
       LOCAL_MINIO: true
       AWS_REGION: ${AWS_REGION:-us-east-1}
@@ -311,12 +306,9 @@ services:
       S3_BUCKET_NAME: ${S3_BUCKET_NAME:-uiuc-chat}
       MINIO_ENDPOINT: http://minio:9000
       MINIO_PUBLIC_ENDPOINT: http://localhost:9000
-      # Vyriad MinIO configuration
-      VYRIAD_MINIO_ENDPOINT: http://minio:9000
-      VYRIAD_MINIO_PUBLIC_ENDPOINT: http://localhost:9000
-      VYRIAD_MINIO_REGION: ${AWS_REGION:-us-east-1}
-      VYRIAD_MINIO_KEY: ${AWS_ACCESS_KEY_ID}
-      VYRIAD_MINIO_SECRET: ${AWS_SECRET_ACCESS_KEY}
+      # project external connections (per-project S3/Postgres/Qdrant/embeddings)
+      ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:-}
+      ALLOWED_EMBEDDING_PROVIDERS: ${ALLOWED_EMBEDDING_PROVIDERS:-openai,ollama}
       # llm
       OLLAMA_SERVER_URL: ${OLLAMA_SERVER_URL}
       NCSA_HOSTED_VLM_BASE_URL: ${NCSA_HOSTED_VLM_BASE_URL}
@@ -356,6 +348,9 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       S3_BUCKET_NAME: ${S3_BUCKET_NAME:-uiuc-chat}
       MINIO_PUBLIC_ENDPOINT: http://localhost:9000
+      # project external connections (per-project S3/Postgres/Qdrant/embeddings)
+      ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:-}
+      ALLOWED_EMBEDDING_PROVIDERS: ${ALLOWED_EMBEDDING_PROVIDERS:-openai,ollama}
       # llm
       EMBEDDING_API_BASE: ${EMBEDDING_API_BASE:-http://host.docker.internal:11434/v1}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-Qwen/Qwen3-Embedding-8B}

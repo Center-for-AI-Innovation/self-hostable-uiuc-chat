@@ -60,6 +60,30 @@ EOF
 	fi
 }
 
+# ENCRYPTION_MASTER_KEY encrypts/decrypts project_external_connections configs.
+# The backend, worker, and frontend must all share the SAME value — a mismatch
+# makes decryption fail and per-project overrides silently fall back to defaults.
+# Generate once into the root .env, then sync into the app-local .env files.
+ensure_encryption_master_key() {
+	if [ -n "${ENCRYPTION_MASTER_KEY:-}" ]; then
+		return
+	fi
+	print_status "Generating ENCRYPTION_MASTER_KEY (shared by backend, worker, and frontend)..."
+	if command -v python3 >/dev/null 2>&1; then
+		ENCRYPTION_MASTER_KEY="$(python3 -c 'import os, base64; print(base64.urlsafe_b64encode(os.urandom(32)).decode())')"
+	else
+		ENCRYPTION_MASTER_KEY="$(openssl rand -base64 32 | tr '+/' '-_')"
+	fi
+	export ENCRYPTION_MASTER_KEY
+	if grep -q '^ENCRYPTION_MASTER_KEY=' .env; then
+		sed -i.bak "s|^ENCRYPTION_MASTER_KEY=.*|ENCRYPTION_MASTER_KEY=\"${ENCRYPTION_MASTER_KEY}\"|" .env
+		rm -f .env.bak
+	else
+		printf 'ENCRYPTION_MASTER_KEY="%s"\n' "$ENCRYPTION_MASTER_KEY" >>.env
+	fi
+	print_success "ENCRYPTION_MASTER_KEY written to .env"
+}
+
 ensure_local_app_envs() {
 	print_status "Ensuring app-local .env files exist..."
 
@@ -77,6 +101,8 @@ ensure_local_app_envs() {
 	local aws_region="${AWS_REGION:-us-east-1}"
 	local keycloak_admin="${KEYCLOAK_ADMIN_USERNAME:-admin}"
 	local keycloak_password="${KEYCLOAK_ADMIN_PASSWORD:-admin}"
+	local encryption_master_key="${ENCRYPTION_MASTER_KEY:-}"
+	local allowed_embedding_providers="${ALLOWED_EMBEDDING_PROVIDERS:-openai,ollama}"
 
 	local backend_env="apps/backend/.env"
 	ensure_env_file "$backend_env" "Backend and worker local development env"
@@ -125,6 +151,8 @@ ensure_local_app_envs() {
 	append_env_if_missing "$backend_env" "POSTHOG_API_KEY" ""
 	append_env_if_missing "$backend_env" "NOMIC_API_KEY" ""
 	append_env_if_missing "$backend_env" "SENTRY_DSN" ""
+	append_env_if_missing "$backend_env" "ENCRYPTION_MASTER_KEY" "$encryption_master_key"
+	append_env_if_missing "$backend_env" "ALLOWED_EMBEDDING_PROVIDERS" "$allowed_embedding_providers"
 
 	local frontend_env="apps/frontend/.env"
 	ensure_env_file "$frontend_env" "Frontend local development env"
@@ -166,6 +194,8 @@ ensure_local_app_envs() {
 	append_env_if_missing "${frontend_env}" "SIM_API_BASE_URL" "http://localhost:3010"
 	append_env_if_missing "${frontend_env}" "NEXT_PUBLIC_SIM_STORAGE" "local"
 	append_env_if_missing "$frontend_env" "NEXT_PUBLIC_SIGNING_KEY" ""
+	append_env_if_missing "$frontend_env" "SUPER_ADMIN_EMAILS" ""
+	append_env_if_missing "$frontend_env" "NEXT_PUBLIC_SUPER_ADMIN_EMAILS" ""
 	append_env_if_missing "$frontend_env" "EMBEDDING_MODEL" ""
 	append_env_if_missing "$frontend_env" "EMBEDDING_API_BASE" ""
 	append_env_if_missing "$frontend_env" "NCSA_HOSTED_API_KEY" ""
@@ -176,6 +206,8 @@ ensure_local_app_envs() {
 	append_env_if_missing "$frontend_env" "NEXT_PUBLIC_POSTHOG_HOST" ""
 	append_env_if_missing "$frontend_env" "NEXT_PUBLIC_POSTHOG_KEY" ""
 	append_env_if_missing "$frontend_env" "POSTHOG_API_KEY" ""
+	append_env_if_missing "$frontend_env" "ENCRYPTION_MASTER_KEY" "$encryption_master_key"
+	append_env_if_missing "$frontend_env" "ALLOWED_EMBEDDING_PROVIDERS" "$allowed_embedding_providers"
 
 	local crawlee_env="apps/crawlee/.env"
 	ensure_env_file "$crawlee_env" "Crawlee local development env"
@@ -204,21 +236,30 @@ show_usage() {
 	echo "Usage: $0 [OPTIONS]"
 	echo ""
 	echo "Options:"
-	echo "  --clean    Clear existing containers, volumes, and data before startup"
-	echo "  --help     Show this help message"
+	echo "  --clean           Clear existing containers, volumes, and data before startup"
+	echo "                    (recreates the database schema as part of the reset)"
+	echo "  --create-schema   Create the database schema on an empty database"
+	echo "                    (required on first run; reruns never need it)"
+	echo "  --help            Show this help message"
 	echo ""
 	echo "Examples:"
-	echo "  $0              # Start development infrastructure"
-	echo "  $0 --clean      # Clear everything and start fresh"
+	echo "  $0                  # Start/restart dev infrastructure (schema untouched)"
+	echo "  $0 --create-schema  # First run: also create the database schema"
+	echo "  $0 --clean          # Clear everything and start fresh"
 }
 
 # Parse command line arguments
 CLEAN_MODE=false
+CREATE_SCHEMA=false
 
 while [[ $# -gt 0 ]]; do
 	case $1 in
 	--clean)
 		CLEAN_MODE=true
+		shift
+		;;
+	--create-schema)
+		CREATE_SCHEMA=true
 		shift
 		;;
 	--help | -h)
@@ -232,6 +273,11 @@ while [[ $# -gt 0 ]]; do
 		;;
 	esac
 done
+
+if [ "$CLEAN_MODE" = true ] && [ "$CREATE_SCHEMA" = true ]; then
+	print_error "--clean and --create-schema cannot be used together (--clean already recreates the schema on the fresh database)."
+	exit 1
+fi
 
 echo "Starting UIUC.chat Development Environment"
 echo "=================================================="
@@ -321,6 +367,7 @@ else
 	print_warning "No .env file found"
 fi
 
+ensure_encryption_master_key
 ensure_local_app_envs
 
 # Start Docker Compose services
@@ -408,15 +455,37 @@ psql_main() {
 	"${COMPOSE[@]}" exec -T postgres-illinois-chat psql -U "$DB_USER" -d "$DB_NAME" "$@"
 }
 
-print_status "Applying database schema from infra/db/migrations..."
-if [ -f infra/db/migrations/20250328_remote_schema.sql ]; then
-	print_status "Note: This Supabase schema dump will generate many non-critical errors for missing extensions/roles"
-	psql_main -f - <infra/db/migrations/20250328_remote_schema.sql 2>/dev/null || {
-		print_warning "Schema migration completed with some expected errors (Supabase-specific components)"
-	}
-	print_success "Core application tables created successfully"
+# init-schema.sql is derived from the frontend Drizzle schema
+# (apps/frontend/src/db/schema.ts) and is only safe on a fresh database —
+# gate on the `documents` table before applying.
+table_exists() {
+	psql_main -tAc \
+		"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='$1')" |
+		tr -d '[:space:]'
+}
+
+if [ ! -f infra/db/init-schema.sql ]; then
+	print_error "infra/db/init-schema.sql not found; cannot initialize the database"
+	exit 1
+fi
+
+if [ "$(table_exists documents)" != "t" ]; then
+	if [ "$CLEAN_MODE" = true ] || [ "$CREATE_SCHEMA" = true ]; then
+		print_status "Applying clean schema from infra/db/init-schema.sql..."
+		psql_main -v ON_ERROR_STOP=1 -f - <infra/db/init-schema.sql >/dev/null
+		print_success "Database schema created successfully"
+	else
+		print_error "Database is empty. Re-run with --create-schema to create the schema from infra/db/init-schema.sql."
+		exit 1
+	fi
+elif [ "$(table_exists project_external_connections)" != "t" ]; then
+	print_warning "Existing database predates the external-connections schema."
+	print_warning "Re-run with --clean to recreate it from infra/db/init-schema.sql."
+	exit 1
+elif [ "$CREATE_SCHEMA" = true ]; then
+	print_success "Database schema already initialized; nothing to create"
 else
-	print_warning "infra/db/migrations/20250328_remote_schema.sql not found; skipping apply"
+	print_success "Database schema already initialized; skipping apply"
 fi
 
 print_status "Verifying PostgreSQL schema..."
@@ -454,6 +523,11 @@ check_table documents || verify_ok=false
 # Add more if desired; these are common in this project
 check_table conversations || verify_ok=false
 check_table messages || verify_ok=false
+# pgvector + external-connections schema
+check_table embeddings || verify_ok=false
+check_table project_external_connections || verify_ok=false
+check_table project_connection_audit_log || verify_ok=false
+check_function add_document_to_group || verify_ok=false
 
 if [ "$verify_ok" != true ]; then
 	print_error "Database schema verification failed. See errors above."
@@ -475,7 +549,7 @@ print_success "PostgreSQL schema initialized and verified."
 print_status "Creating Qdrant collection..."
 
 # Ensure QDRANT_URL is defined
-if [[ -z $QDRANT_URL ]]; then
+if [[ -z ${QDRANT_URL:-} ]]; then
 	QDRANT_URL="http://localhost:6333"
 	print_warning "QDRANT_URL not set, using default: $QDRANT_URL"
 fi
@@ -497,7 +571,7 @@ print_status "Creating Qdrant collection..."
 print_status "Checking if Qdrant collection exists..."
 # Build headers (optionally include API key if provided)
 CURL_HEADERS=("-H" "Content-Type: application/json")
-if [[ -n $QDRANT_API_KEY ]]; then
+if [[ -n ${QDRANT_API_KEY:-} ]]; then
 	CURL_HEADERS+=("-H" "api-key: $QDRANT_API_KEY")
 fi
 
@@ -561,12 +635,12 @@ print_success "Qdrant collection ready!"
 print_status "Setting up MinIO bucket..."
 
 # Ensure MinIO environment variables are set
-if [[ -z $AWS_ACCESS_KEY_ID ]]; then
+if [[ -z ${AWS_ACCESS_KEY_ID:-} ]]; then
 	AWS_ACCESS_KEY_ID="minioadmin"
 	print_warning "AWS_ACCESS_KEY_ID not set, using default: $AWS_ACCESS_KEY_ID"
 fi
 
-if [[ -z $AWS_SECRET_ACCESS_KEY ]]; then
+if [[ -z ${AWS_SECRET_ACCESS_KEY:-} ]]; then
 	AWS_SECRET_ACCESS_KEY="minioadmin"
 	print_warning "AWS_SECRET_ACCESS_KEY not set, using default: $AWS_SECRET_ACCESS_KEY"
 fi

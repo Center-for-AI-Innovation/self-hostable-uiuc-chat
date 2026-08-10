@@ -11,13 +11,17 @@ QDRANT_COLLECTION_NAME="${QDRANT_COLLECTION_NAME:-illinois_chat}"
 QDRANT_VECTOR_SIZE="${QDRANT_VECTOR_SIZE:-4096}"
 
 wipe_data=false
+create_schema=false
 rebuild_services=""
 
 show_usage() {
-	echo "Usage: $0 [--wipe_data] [--rebuild=service1,service2]"
+	echo "Usage: $0 [--wipe_data] [--create-schema] [--rebuild=service1,service2]"
 	echo ""
 	echo "Options:"
 	echo "  --wipe_data          Factory reset Docker containers and volumes before startup"
+	echo "                       (recreates the database schema as part of the reset)"
+	echo "  --create-schema      Create the database schema on an empty database"
+	echo "                       (required on first run; reruns never need it)"
 	echo "  --rebuild=SERVICES   Rebuild only selected full-stack services"
 	echo "  --help               Show this help message"
 }
@@ -25,6 +29,7 @@ show_usage() {
 for arg in "$@"; do
 	case "$arg" in
 	--wipe_data) wipe_data=true ;;
+	--create-schema) create_schema=true ;;
 	--rebuild=*) rebuild_services="${arg#*=}" ;;
 	--help | -h)
 		show_usage
@@ -36,6 +41,11 @@ for arg in "$@"; do
 		;;
 	esac
 done
+
+if [ "$wipe_data" = true ] && [ "$create_schema" = true ]; then
+	echo "[ERROR] --wipe_data and --create-schema cannot be used together (--wipe_data already recreates the schema on the fresh database)."
+	exit 1
+fi
 
 log() {
 	echo "[INFO] $1"
@@ -155,16 +165,29 @@ table_exists() {
 }
 
 log "Initializing PostgreSQL schema"
+# init-schema.sql is derived from the frontend Drizzle schema and is only
+# safe on a fresh database — gate on the `documents` table before applying.
 if [ "$(table_exists documents)" = "t" ]; then
+	if [ "$(table_exists project_external_connections)" != "t" ]; then
+		echo "[ERROR] Existing database predates the external-connections schema."
+		echo "[ERROR] Re-run with --wipe_data to recreate it from infra/db/init-schema.sql."
+		exit 1
+	fi
 	success "PostgreSQL schema already exists"
-elif [ -f infra/db/migrations/20250328_remote_schema.sql ]; then
-	warn "Applying Supabase schema dump; some Supabase-specific errors may be non-critical"
-	psql_main -f - <infra/db/migrations/20250328_remote_schema.sql || warn "Schema migration completed with warnings"
+elif [ "$wipe_data" = true ] || [ "$create_schema" = true ]; then
+	if [ ! -f infra/db/init-schema.sql ]; then
+		echo "[ERROR] infra/db/init-schema.sql not found; cannot initialize the database"
+		exit 1
+	fi
+	log "Applying clean schema from infra/db/init-schema.sql"
+	psql_main -v ON_ERROR_STOP=1 -f - <infra/db/init-schema.sql >/dev/null
+	success "Database schema created successfully"
 else
-	warn "infra/db/migrations/20250328_remote_schema.sql not found; skipping schema import"
+	echo "[ERROR] Database is empty. Re-run with --create-schema to create the schema from infra/db/init-schema.sql."
+	exit 1
 fi
 
-for table_name in documents conversations messages; do
+for table_name in documents conversations messages embeddings project_external_connections project_connection_audit_log; do
 	if [ "$(table_exists "$table_name")" != "t" ]; then
 		echo "[ERROR] Expected table '$table_name' is missing"
 		exit 1

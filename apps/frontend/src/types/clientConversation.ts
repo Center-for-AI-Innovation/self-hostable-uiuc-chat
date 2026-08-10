@@ -153,6 +153,7 @@ export function fromClientConversation(
               ? {
                   text: clientTool.output.text,
                   imageUrls: clientTool.output.imageUrls,
+                  s3Paths: clientTool.output.s3Paths,
                   // Note: data is not available on client
                 }
               : undefined,

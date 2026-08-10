@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { type CourseMetadata } from '~/types/courseMetadata'
 import { ensureRedisConnected } from '~/utils/redisClient'
 import { withCourseOwnerOrAdminAccess } from '~/pages/api/authorization'
+import { superAdmins } from '~/utils/superAdmins'
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -21,7 +22,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const is_private = JSON.parse((req.query.is_private as string) || 'false')
   const is_frozen = JSON.parse((req.query.is_frozen as string) || 'false')
   const course_admins = JSON.parse(
-    (req.query.course_admins as string) || '["rohan13@illinois.edu"]',
+    (req.query.course_admins as string) || JSON.stringify(superAdmins),
   )
   const approved_emails_list = JSON.parse(
     (req.query.approved_emails_list as string) || '[]',

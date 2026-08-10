@@ -171,3 +171,9 @@ pip-selfcheck.json
 
 # IDE
 .idea
+
+# Claude Code
+.claude/
+
+# macOS
+.DS_Store

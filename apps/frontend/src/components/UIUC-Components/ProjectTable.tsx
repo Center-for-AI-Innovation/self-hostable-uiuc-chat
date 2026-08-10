@@ -2,6 +2,7 @@ import { useAuth } from 'react-oidc-context'
 import { Table, Text } from '@mantine/core'
 import { useMemo, useState } from 'react'
 import { type CourseMetadata } from '~/types/courseMetadata'
+import { isSuperAdmin } from '~/utils/superAdmins'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
@@ -166,10 +167,10 @@ const ListProjectTable: React.FC = () => {
           break
         case 'admins':
           const adminsA = metadataA.course_admins
-            .filter((admin: string) => admin !== 'rohan13@illinois.edu')
+            .filter((admin: string) => !isSuperAdmin(admin))
             .join(', ')
           const adminsB = metadataB.course_admins
-            .filter((admin: string) => admin !== 'rohan13@illinois.edu')
+            .filter((admin: string) => !isSuperAdmin(admin))
             .join(', ')
           comparison = adminsA
             .toLowerCase()
@@ -189,7 +190,7 @@ const ListProjectTable: React.FC = () => {
         if (!courseMetadata) return null
 
         const filteredAdmins = courseMetadata.course_admins.filter(
-          (admin: string) => admin !== 'rohan13@illinois.edu',
+          (admin: string) => !isSuperAdmin(admin),
         )
 
         return (

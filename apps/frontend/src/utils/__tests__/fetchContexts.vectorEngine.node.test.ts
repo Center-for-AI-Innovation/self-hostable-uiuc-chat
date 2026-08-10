@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const hoisted = vi.hoisted(() => ({
   fetchContextsViaDrizzleVectorSearch: vi.fn(),
   getBackendUrl: vi.fn(() => 'https://backend.example'),
+  resolveVectorEngine: vi.fn(),
 }))
 
 vi.mock('~/server/fetchContextsForVectorSearch', () => ({
@@ -16,38 +17,28 @@ vi.mock('~/utils/apiUtils', () => ({
   getBackendUrl: hoisted.getBackendUrl,
 }))
 
+vi.mock('~/utils/connectionManager', () => ({
+  connectionManager: {
+    resolveVectorEngine: hoisted.resolveVectorEngine,
+  },
+}))
+
 import {
   fetchContexts,
   fetchContextsByVectorEngine,
-  isQdrantVectorEngine,
 } from '~/utils/fetchContexts'
 
-describe('fetchContextsByVectorEngine / VECTOR_ENGINE routing', () => {
-  const originalEngine = process.env.VECTOR_ENGINE
-
+describe('fetchContextsByVectorEngine / per-project engine routing', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    delete process.env.VECTOR_ENGINE
+    hoisted.resolveVectorEngine.mockResolvedValue({ kind: 'pgvector' })
   })
 
   afterEach(() => {
-    if (originalEngine === undefined) {
-      delete process.env.VECTOR_ENGINE
-    } else {
-      process.env.VECTOR_ENGINE = originalEngine
-    }
+    vi.restoreAllMocks()
   })
 
-  it('isQdrantVectorEngine is false when VECTOR_ENGINE is unset', () => {
-    expect(isQdrantVectorEngine()).toBe(false)
-  })
-
-  it('isQdrantVectorEngine is true only when VECTOR_ENGINE=qdrant', () => {
-    process.env.VECTOR_ENGINE = 'qdrant'
-    expect(isQdrantVectorEngine()).toBe(true)
-  })
-
-  it('defaults to Drizzle/pgvector when VECTOR_ENGINE is unset', async () => {
+  it('defaults to Drizzle/pgvector when the project has no qdrant_config', async () => {
     const data = [{ id: 1 }]
     hoisted.fetchContextsViaDrizzleVectorSearch.mockResolvedValueOnce(data)
 
@@ -60,6 +51,7 @@ describe('fetchContextsByVectorEngine / VECTOR_ENGINE routing', () => {
       100,
     )
 
+    expect(hoisted.resolveVectorEngine).toHaveBeenCalledWith('cardiology')
     expect(hoisted.fetchContextsViaDrizzleVectorSearch).toHaveBeenCalledWith(
       'cardiology',
       'FAI cutoff',
@@ -70,8 +62,12 @@ describe('fetchContextsByVectorEngine / VECTOR_ENGINE routing', () => {
     expect(result).toEqual(data)
   })
 
-  it('calls Qdrant backend when VECTOR_ENGINE=qdrant', async () => {
-    process.env.VECTOR_ENGINE = 'qdrant'
+  it('calls the Python backend when the project resolves to Qdrant', async () => {
+    hoisted.resolveVectorEngine.mockResolvedValueOnce({
+      kind: 'qdrant',
+      client: {},
+      collection: 'proj-collection',
+    })
     const data = [{ id: 2 }]
     const fetchSpy = vi
       .spyOn(globalThis, 'fetch')
@@ -96,7 +92,20 @@ describe('fetchContextsByVectorEngine / VECTOR_ENGINE routing', () => {
     expect(result).toEqual(data)
   })
 
-  it('server-side fetchContexts uses VECTOR_ENGINE routing (pgvector by default)', async () => {
+  it('falls back to Drizzle/pgvector when engine resolution fails', async () => {
+    hoisted.resolveVectorEngine.mockRejectedValueOnce(
+      new Error('host db unreachable'),
+    )
+    const data = [{ id: 4 }]
+    hoisted.fetchContextsViaDrizzleVectorSearch.mockResolvedValueOnce(data)
+
+    const result = await fetchContextsByVectorEngine('cardiology', 'FAI cutoff')
+
+    expect(hoisted.fetchContextsViaDrizzleVectorSearch).toHaveBeenCalled()
+    expect(result).toEqual(data)
+  })
+
+  it('server-side fetchContexts uses per-project routing (pgvector by default)', async () => {
     const data = [{ id: 3 }]
     hoisted.fetchContextsViaDrizzleVectorSearch.mockResolvedValueOnce(data)
 

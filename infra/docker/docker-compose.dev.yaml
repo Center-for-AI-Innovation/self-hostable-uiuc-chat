@@ -82,7 +82,9 @@ services:
   #     - redis
 
   postgres-illinois-chat:
-    image: postgres
+    # pgvector-enabled Postgres — required by the embeddings table and the
+    # external-connections feature (init-schema.sql runs CREATE EXTENSION vector).
+    image: pgvector/pgvector:pg17
     networks:
       - uiuc-chat-network
     volumes:

@@ -328,6 +328,13 @@ export async function executeToolServer(
       toolOutput = {}
     }
 
+    // Raw object keys, re-signed from scratch each render. Prefer these over
+    // image_urls for anything that must outlive the 1h presign: recovering a key
+    // from an expired URL depends on the URL style, but a key needs no parsing.
+    if (Array.isArray(jsonData['s3_paths'])) {
+      toolOutput = { ...toolOutput, s3Paths: jsonData['s3_paths'] }
+    }
+
     toolCopy.output = toolOutput
     return toolCopy
   } catch (error: unknown) {

@@ -12,7 +12,17 @@ This guide will help you set up the UIUC.chat development environment for local 
 
 ### 1. Start Infrastructure Services
 
-First, start the required infrastructure services:
+First, start the required infrastructure services. On the very first run
+(or any time the database volume is empty), pass `--create-schema` so the
+database schema gets created:
+
+```bash
+bash infra/scripts/start-dev.sh --create-schema
+```
+
+On later runs — including after `stop-dev.sh`, which stops containers but
+keeps volumes (and therefore the database) unless you pass `--volumes` —
+just run it without flags; the schema is left untouched:
 
 ```bash
 bash infra/scripts/start-dev.sh
@@ -23,7 +33,7 @@ This script will:
 - Create a repository-root `.env` file from `.env.template` if needed
 - Create or update app-local env files for backend, frontend, and Crawlee without overwriting existing values
 - Start shared development infrastructure from `infra/docker/docker-compose.dev.yaml`
-- Apply the Postgres schema from `infra/db/migrations/20250328_remote_schema.sql`
+- With `--create-schema` (or `--clean`): apply the Postgres schema from `infra/db/init-schema.sql` to the empty database (derived from the frontend Drizzle schema; includes pgvector and the external-connections tables). Without a flag, an already-initialized schema is verified and left untouched.
 - Create the MinIO `uiuc-chat` bucket
 - Ensure the configured Qdrant collection exists with 4096-dimensional cosine vectors
 
@@ -33,7 +43,14 @@ To start from a clean local data state:
 bash infra/scripts/start-dev.sh --clean
 ```
 
-This removes the dev Compose containers and volumes before starting them again.
+This removes the dev Compose containers and volumes before starting them
+again, and recreates the database schema on the fresh database —
+`--clean` and `--create-schema` are therefore mutually exclusive.
+
+Note: the `postgres-illinois-chat` service runs the pgvector-enabled
+`pgvector/pgvector:pg17` image (the schema needs the `vector` extension).
+If your volumes were created by the previous stock `postgres` image, the
+data directory is incompatible — run once with `--clean` to recreate them.
 
 ### 2. Configure Environment Variables
 

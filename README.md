@@ -26,16 +26,22 @@ This repository contains the full monorepo needed to run Illinois Chat locally o
 Use the full Docker stack when you want the closest self-hosted or e2e environment. It starts the application services and all required infrastructure.
 
 ```bash
+# First run (empty database): create the schema too
+bash infra/scripts/start-all.sh --create-schema
+
+# Later runs (database already initialized)
 bash infra/scripts/start-all.sh
 ```
 
-The script creates a repository-root `.env` from `.env.template` if needed, starts the frontend, backend, ingest worker, Crawlee, Postgres, Redis, RabbitMQ, MinIO, Qdrant, and Keycloak, then initializes the database and Qdrant collection.
+The script creates a repository-root `.env` from `.env.template` if needed, starts the frontend, backend, ingest worker, Crawlee, Postgres (pgvector-enabled `pgvector/pgvector:pg17`), Redis, RabbitMQ, MinIO, Qdrant, and Keycloak, then initializes the database (with `--create-schema` or `--wipe_data`) and Qdrant collection. Stopping the stack with `infra/scripts/stop-all.sh` keeps the volumes, so the database survives stop/start cycles without recreating the schema.
 
 To reset local Docker data before starting:
 
 ```bash
 bash infra/scripts/start-all.sh --wipe_data
 ```
+
+`--wipe_data` recreates the database schema on the fresh volumes, so it cannot be combined with `--create-schema`.
 
 To stop the full stack:
 
@@ -129,6 +135,10 @@ bash infra/scripts/start-all.sh --rebuild=frontend,backend
 ## Documentation
 
 See `DEV_SETUP.md` for local development details. Published docs are available at https://docs.uiuc.chat.
+
+Projects can bring their own S3, PostgreSQL/pgvector, Qdrant, and embedding
+provider — see [`docs/external-connections-setup.md`](docs/external-connections-setup.md)
+for provisioning an external database and registering per-project connections.
 
 ## License
 

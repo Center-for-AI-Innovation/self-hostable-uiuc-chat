@@ -2,10 +2,8 @@
 import { type NextApiResponse } from 'next'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post'
-import {
-  getPresignedUrlClient,
-  getPresignedUrlVyriadClient,
-} from '~/utils/s3Client'
+import { connectionManager } from '~/utils/connectionManager'
+import { getPresignedUrlClient } from '~/utils/s3Client'
 import { withCourseAccessFromRequest } from '~/pages/api/authorization'
 
 const handler = async (req: AuthenticatedRequest, res: NextApiResponse) => {
@@ -30,42 +28,36 @@ const handler = async (req: AuthenticatedRequest, res: NextApiResponse) => {
       uploadType === 'chat'
         ? `users/${user_id}/${uniqueFileName}`
         : `courses/${courseName}/${uniqueFileName}`
-    let post
-    if (courseName === 'vyriad') {
-      const presignedClient = getPresignedUrlVyriadClient()
-      if (!presignedClient) {
-        throw new Error(
-          'MinIO client not configured - missing required environment variables',
-        )
-      }
-      post = await createPresignedPost(presignedClient, {
-        Bucket: process.env.S3_BUCKET_NAME!,
-        Key: s3_filepath,
-        Expires: 60 * 60, // 1 hour
-      })
-    } else {
-      const presignedClient = getPresignedUrlClient()
-      if (!presignedClient) {
-        throw new Error(
-          'S3 client not configured - missing required environment variables',
-        )
-      }
-      post = await createPresignedPost(presignedClient, {
-        Bucket: process.env.S3_BUCKET_NAME!,
-        Key: s3_filepath,
-        Expires: 60 * 60, // 1 hour
-      })
+
+    const { client, bucket, isOverride } = await connectionManager.getS3Client(
+      courseName,
+    )
+    if (!bucket) {
+      throw new Error(
+        `S3 bucket not configured for project '${courseName}' (no s3_config.bucket_name and S3_BUCKET_NAME unset)`,
+      )
     }
+
+    // Default path: sign against the browser-reachable MinIO endpoint.
+    const signingClient = isOverride
+      ? client
+      : getPresignedUrlClient() ?? client
+
+    const post = await createPresignedPost(signingClient, {
+      Bucket: bucket,
+      Key: s3_filepath,
+      Expires: 60 * 60, // 1 hour
+    })
 
     res
       .status(200)
       .json({ message: 'Presigned URL generated successfully', post })
   } catch (error) {
     console.error('Error generating presigned URL:', error)
-    res.status(500).json({ message: 'Error generating presigned URL', error })
+    res
+      .status(500)
+      .json({ message: 'Error generating presigned URL', error: error })
   }
 }
 
-// Allow public chatbot uploads (unauthenticated) based on course metadata
-// and fall back to auth checks for private courses via the shared middleware.
 export default withCourseAccessFromRequest('any')(handler)

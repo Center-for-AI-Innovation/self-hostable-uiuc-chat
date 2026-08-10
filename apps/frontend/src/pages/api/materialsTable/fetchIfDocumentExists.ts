@@ -1,8 +1,8 @@
-import { db } from '~/db/dbClient'
 import { type NextApiResponse } from 'next'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
 import { eq } from 'drizzle-orm'
 import { documents } from '~/db/schema'
+import { connectionManager } from '~/utils/connectionManager'
 import { withCourseAccessFromRequest } from '~/pages/api/authorization'
 
 type FetchIfDocumentExistsResponse = {
@@ -35,6 +35,7 @@ async function fetchIfDocumentExists(
 
   try {
     // Check if at least one document exists for this course_name
+    const db = await connectionManager.getDocumentsDb(course_name)
     const existsQuery = await db
       .select({ id: documents.id })
       .from(documents)

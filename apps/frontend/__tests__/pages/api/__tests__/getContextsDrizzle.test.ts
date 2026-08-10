@@ -110,7 +110,7 @@ describe('getContextsDrizzle API', () => {
       res as any,
     )
 
-    expect(hoisted.vectorSearchWithDrizzle).toHaveBeenCalledWith({
+    expect(hoisted.vectorSearchWithDrizzle).toHaveBeenCalledWith('CS225', {
       queryEmbedding: [0.1, 0.2, 0.3],
       course_name: 'CS225',
       doc_groups: ['g1'],
@@ -138,7 +138,7 @@ describe('getContextsDrizzle API', () => {
       res as any,
     )
 
-    expect(hoisted.vectorSearchWithDrizzle).toHaveBeenCalledWith({
+    expect(hoisted.vectorSearchWithDrizzle).toHaveBeenCalledWith('CS101', {
       queryEmbedding: [0.1],
       course_name: 'CS101',
       doc_groups: [],

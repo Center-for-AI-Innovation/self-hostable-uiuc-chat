@@ -1,11 +1,6 @@
 import { type ContextWithMetadata } from '~/types/chat'
 import { getBackendUrl } from '~/utils/apiUtils'
 
-/** True when VECTOR_ENGINE is explicitly set to qdrant; otherwise use pgvector (Drizzle). */
-export function isQdrantVectorEngine(): boolean {
-  return process.env.VECTOR_ENGINE === 'qdrant'
-}
-
 // Common function to fetch contexts from backend - can be used anywhere
 export default async function fetchContextsFromBackend(
   course_name: string,
@@ -13,17 +8,19 @@ export default async function fetchContextsFromBackend(
   token_limit = 4000,
   doc_groups: string[] = [],
   conversation_id?: string,
+  top_n?: number,
   signal?: AbortSignal,
 ): Promise<ContextWithMetadata[]> {
   const backendUrl = getBackendUrl()
 
-  const requestBody = {
+  const requestBody: Record<string, unknown> = {
     course_name: course_name,
     search_query: search_query,
     token_limit: token_limit,
     doc_groups: doc_groups,
     conversation_id: conversation_id,
   }
+  if (top_n !== undefined) requestBody.top_n = top_n
 
   const response = await fetch(`${backendUrl}/getTopContexts`, {
     method: 'POST',
@@ -43,11 +40,15 @@ export default async function fetchContextsFromBackend(
 }
 
 /**
- * Server-side retrieval routed by VECTOR_ENGINE.
- * - VECTOR_ENGINE=qdrant → Python /getTopContexts (Qdrant)
- * - unset / anything else → frontend Drizzle + pgvector
+ * Server-side retrieval routed per project by the ConnectionManager.
+ * - Projects with an active `qdrant_config` → Python /getTopContexts (the
+ *   backend owns the Qdrant client + multi-collection fan-out).
+ * - Everything else → frontend Drizzle + pgvector on whatever documents DB
+ *   the project is bound to.
+ * If engine resolution fails (e.g. host DB unreachable) we fall back to the
+ * local Drizzle path with a warning rather than failing the request.
  *
- * Used by /api/getContexts, chat-api (via fetchContexts), and agent mode.
+ * Used by /api/getContexts and agent mode. Server-side only.
  */
 export async function fetchContextsByVectorEngine(
   course_name: string,
@@ -58,13 +59,25 @@ export async function fetchContextsByVectorEngine(
   top_n = 100,
   signal?: AbortSignal,
 ): Promise<ContextWithMetadata[]> {
-  if (isQdrantVectorEngine()) {
+  let engineKind: 'qdrant' | 'pgvector' = 'pgvector'
+  try {
+    const { connectionManager } = await import('~/utils/connectionManager')
+    engineKind = (await connectionManager.resolveVectorEngine(course_name)).kind
+  } catch (err) {
+    console.warn(
+      `[fetchContextsByVectorEngine] resolveVectorEngine failed for ${course_name}; defaulting to pgvector:`,
+      err,
+    )
+  }
+
+  if (engineKind === 'qdrant') {
     return fetchContextsFromBackend(
       course_name,
       search_query,
       token_limit,
       doc_groups,
       conversation_id,
+      top_n,
       signal,
     )
   }
@@ -94,7 +107,7 @@ export const fetchContexts = async (
 
   try {
     if (isClientSide) {
-      // Client-side: use our API route (which also respects VECTOR_ENGINE)
+      // Client-side: use our API route
       const response = await fetch(
         `${window.location.origin}/api/getContexts`,
         {
@@ -120,7 +133,7 @@ export const fetchContexts = async (
       const data: ContextWithMetadata[] = await response.json()
       return data
     } else {
-      // Server-side (e.g. chat-api): same VECTOR_ENGINE routing as /api/getContexts
+      // Server-side: dispatch by the project's resolved vector engine
       return await fetchContextsByVectorEngine(
         course_name,
         search_query,

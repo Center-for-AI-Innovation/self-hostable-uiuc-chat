@@ -108,9 +108,10 @@ def generate_schema_from_project_description(project_name: str, project_descript
         """
 
     prompt = prompt.format(project_name=project_name, project_description=project_description) + json_schema
-    response = OLLAMA_CLIENT.generate(prompt=prompt, model=LLM)
-
-    json_schema_string = response['response'].strip()
+    # Stream so bytes flow continuously and Cloudflare's 120s proxy read
+    # timeout (error 524) doesn't kill long generations.
+    stream = OLLAMA_CLIENT.generate(prompt=prompt, model=LLM, stream=True)
+    json_schema_string = "".join(chunk['response'] for chunk in stream).strip()
     print("Raw JSON Schema: ", json_schema_string)
 
     if '```' in json_schema_string:

@@ -1,11 +1,12 @@
 // Generated schema.ts based on PostgreSQL database
-import { relations } from 'drizzle-orm'
+import { relations, sql } from 'drizzle-orm'
 import {
   bigint,
   bigserial,
   boolean,
   date,
   doublePrecision,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -19,25 +20,41 @@ import {
 } from 'drizzle-orm/pg-core'
 
 // Embeddings table (pgvector) — see migrations 0006_pgvector_extension.sql, 0007_embeddings_table.sql. Used for frontend vector search via Drizzle.
-export const embeddings = pgTable('embeddings', {
-  id: bigserial('id', { mode: 'number' }).primaryKey(),
-  qdrant_id: uuid('qdrant_id').unique(),
-  embedding: vector('embedding', { dimensions: 4096 }).notNull(),
-  page_content: text('page_content'),
-  course_name: text('course_name'),
-  s3_path: text('s3_path'),
-  readable_filename: text('readable_filename'),
-  url: text('url'),
-  base_url: text('base_url'),
-  doc_groups: jsonb('doc_groups').default([]).$type<string[]>(),
-  chunk_index: integer('chunk_index'),
-  pagenumber: text('pagenumber'),
-  timestamp: text('timestamp'),
-  conversation_id: text('conversation_id'),
-  metadata: jsonb('metadata').default({}),
-  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
-  updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
-})
+export const embeddings = pgTable(
+  'embeddings',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    qdrant_id: uuid('qdrant_id').unique(),
+    embedding: vector('embedding', { dimensions: 4096 }).notNull(),
+    page_content: text('page_content'),
+    course_name: text('course_name'),
+    s3_path: text('s3_path'),
+    readable_filename: text('readable_filename'),
+    url: text('url'),
+    base_url: text('base_url'),
+    doc_groups: jsonb('doc_groups').default([]).$type<string[]>(),
+    chunk_index: integer('chunk_index'),
+    pagenumber: text('pagenumber'),
+    timestamp: text('timestamp'),
+    conversation_id: text('conversation_id'),
+    metadata: jsonb('metadata').default({}),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  },
+  (table) => [
+    // ANN index for vector search. pgvector cannot index `vector` columns above
+    // 2000 dims, so we index the leading 1536 dims (Qwen3-Embedding is
+    // Matryoshka-trained, so truncation preserves ranking quality). The
+    // expression MUST stay identical to the ORDER BY in vectorSearch.ts
+    // (EMBEDDING_SEARCH_DIM) or the planner falls back to a sequential scan.
+    index('embeddings_embedding_1536_hnsw_idx')
+      .using(
+        'hnsw',
+        sql`(subvector(${table.embedding}, 1, 1536)::vector(1536)) vector_cosine_ops`,
+      )
+      .with({ m: 16, ef_construction: 64 }),
+  ],
+)
 
 // API keys table
 export const apiKeys = pgTable('api_keys', {
@@ -434,6 +451,58 @@ export const projectStats = pgTable('project_stats', {
   model_usage_counts: jsonb('model_usage_counts'),
 })
 
+// Project External Connections table
+export const projectExternalConnections = pgTable(
+  'project_external_connections',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    project_id: bigint('project_id', { mode: 'number' })
+      .unique()
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    project_name: text('project_name').unique().notNull(),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+    s3_config: jsonb('s3_config'),
+    database_config: jsonb('database_config'),
+    qdrant_config: jsonb('qdrant_config'),
+    embedding_config: jsonb('embedding_config'),
+    is_active: boolean('is_active').default(true),
+  },
+)
+
+// Append-only audit trail for super-admin CRUD on project_external_connections.
+// Never store values from the configs themselves — only field NAMES go in
+// `changed_fields`. See docs/external-connections.md.
+//
+// `project_name` is nullable so the test endpoint can write audit rows that
+// are not tied to a specific project (probes happen before a config is saved).
+export const projectConnectionAuditLog = pgTable(
+  'project_connection_audit_log',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    occurred_at: timestamp('occurred_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    actor_email: text('actor_email').notNull(),
+    action: text('action').notNull(), // 'upsert' | 'delete' | 'set_active' | 'test'
+    project_name: text('project_name'),
+    kind: text('kind'), // 's3' | 'database' | 'qdrant' | 'embedding' | null
+    outcome: text('outcome').notNull(), // 'success' | 'failure'
+    failure_reason: text('failure_reason'),
+    changed_fields: text('changed_fields').array(),
+    source_ip: text('source_ip'),
+    user_agent: text('user_agent'),
+    request_id: text('request_id'),
+  },
+  (t) => ({
+    projectIdx: index('project_connection_audit_log_project_idx').on(
+      t.project_name,
+      sql`${t.occurred_at} DESC`,
+    ),
+  }),
+)
+
 // PubMed Daily Update (from schema.sql)
 export const pubmedDailyUpdate = pgTable('pubmed_daily_update', {
   id: serial('id').primaryKey(),
@@ -518,7 +587,21 @@ export const projectsRelations = relations(projects, ({ many, one }) => ({
     fields: [projects.id],
     references: [projectStats.project_id],
   }),
+  externalConnections: one(projectExternalConnections, {
+    fields: [projects.id],
+    references: [projectExternalConnections.project_id],
+  }),
 }))
+
+export const projectExternalConnectionsRelations = relations(
+  projectExternalConnections,
+  ({ one }) => ({
+    project: one(projects, {
+      fields: [projectExternalConnections.project_id],
+      references: [projects.id],
+    }),
+  }),
+)
 
 export const docGroupsRelations = relations(docGroups, ({ many }) => ({
   documentsJunction: many(documentsDocGroups),
@@ -628,6 +711,16 @@ export type NewProjectStats = typeof projectStats.$inferInsert
 
 export type PubmedDailyUpdate = typeof pubmedDailyUpdate.$inferSelect
 export type NewPubmedDailyUpdate = typeof pubmedDailyUpdate.$inferInsert
+
+export type ProjectExternalConnections =
+  typeof projectExternalConnections.$inferSelect
+export type NewProjectExternalConnections =
+  typeof projectExternalConnections.$inferInsert
+
+export type ProjectConnectionAuditLog =
+  typeof projectConnectionAuditLog.$inferSelect
+export type NewProjectConnectionAuditLog =
+  typeof projectConnectionAuditLog.$inferInsert
 
 // export types for keycloak users
 export type KeycloakUsers = typeof keycloakUsers.$inferSelect

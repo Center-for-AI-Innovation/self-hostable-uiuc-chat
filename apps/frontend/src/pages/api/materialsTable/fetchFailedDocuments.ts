@@ -1,4 +1,5 @@
-import { db, documentsFailed } from '~/db/dbClient'
+import { documentsFailed } from '~/db/dbClient'
+import { connectionManager } from '~/utils/connectionManager'
 import { eq, sql, and, gte, InferSelectModel } from 'drizzle-orm'
 import type { NextApiResponse, NextApiRequest } from 'next'
 import { AuthenticatedRequest } from '~/utils/authMiddleware'
@@ -16,7 +17,7 @@ type FetchFailedDocumentsResponse =
 
 async function fetchFailedDocuments(
   req: AuthenticatedRequest,
-  res: NextApiResponse<FetchFailedDocumentsResponse>,
+  res: NextApiResponse,
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -40,6 +41,8 @@ async function fetchFailedDocuments(
   const from = parseInt(fromStr as string)
   const to = parseInt(toStr as string)
   try {
+    const db = await connectionManager.getDocumentsDb(course_name as string)
+
     let failedDocs
     let finalError
 
@@ -115,7 +118,7 @@ async function fetchFailedDocuments(
     if (search_key && search_value) {
       try {
         const countResult = await db
-          .select({ count: sql<number>`count(*)` })
+          .select({ count: sql`count(*)` })
           .from(documentsFailed)
           .where(
             and(
@@ -135,7 +138,7 @@ async function fetchFailedDocuments(
       // Fetch the total count of documents for the selected course
       try {
         const countResult = await db
-          .select({ count: sql<number>`count(*)` })
+          .select({ count: sql`count(*)` })
           .from(documentsFailed)
           .where(eq(documentsFailed.course_name, course_name as string))
 
@@ -154,7 +157,7 @@ async function fetchFailedDocuments(
     const oneDayAgo = new Date(new Date().getTime() - 24 * 60 * 60 * 1000)
     try {
       const recentFailCountResult = await db
-        .select({ count: sql<number>`count(*)` })
+        .select({ count: sql`count(*)` })
         .from(documentsFailed)
         .where(
           and(
