@@ -22,11 +22,7 @@ describe('ChatbotsFilterPanel', () => {
 
   it('renders every category, privacy and my-bots control when open', () => {
     renderWithProviders(
-      <ChatbotsFilterPanel
-        params={baseParams}
-        onParamsChange={vi.fn()}
-        open
-      />,
+      <ChatbotsFilterPanel params={baseParams} onParamsChange={vi.fn()} open />,
     )
     expect(
       screen.getByRole('region', { name: 'Chatbot filters' }),

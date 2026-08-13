@@ -157,7 +157,10 @@ async function assertPublicHost(host: string): Promise<dns.LookupAddress[]> {
 }
 
 class TestError extends Error {
-  constructor(public code: TestErrorCode, message: string) {
+  constructor(
+    public code: TestErrorCode,
+    message: string,
+  ) {
     super(message)
   }
 }
@@ -264,8 +267,8 @@ function classifyUnknown(e: unknown): TestResult {
     cause instanceof Error
       ? cause.message
       : typeof cause === 'string'
-      ? cause
-      : ''
+        ? cause
+        : ''
   const errno = (e as { code?: string } | undefined)?.code
   // Log the raw upstream error so operators can see what actually failed.
   // The user-facing response keeps a sanitized code/message — secrets in

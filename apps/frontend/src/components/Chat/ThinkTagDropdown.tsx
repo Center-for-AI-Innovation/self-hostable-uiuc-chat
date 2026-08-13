@@ -49,8 +49,7 @@ export const ThinkTagDropdown: React.FC<ThinkTagDropdownProps> = ({
   isReasoningStreaming,
   isStreaming,
 }) => {
-  const reasoningStreaming =
-    isReasoningStreaming ?? isStreaming ?? false
+  const reasoningStreaming = isReasoningStreaming ?? isStreaming ?? false
 
   const [isExpanded, setIsExpanded] = useState(true) // open by default
   const [animationMode, setAnimationMode] = useState<AnimationMode>('none')

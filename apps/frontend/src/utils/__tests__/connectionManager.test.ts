@@ -58,9 +58,8 @@ function setupRedisFake() {
 beforeEach(() => {
   // The manager is cached on globalThis (survives vi.resetModules()); drop it
   // so every test gets a fresh instance wired to that test's mocks.
-  delete (
-    globalThis as { __illinoisChatConnectionManager?: unknown }
-  ).__illinoisChatConnectionManager
+  delete (globalThis as { __illinoisChatConnectionManager?: unknown })
+    .__illinoisChatConnectionManager
   vi.resetModules()
   vi.unstubAllEnvs()
   vi.stubEnv('ENCRYPTION_MASTER_KEY', MASTER_KEY)

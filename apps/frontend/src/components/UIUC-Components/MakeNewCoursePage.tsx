@@ -454,7 +454,7 @@ const MakeNewCoursePage = ({
             <Button
               variant="outline"
               size="sm"
-              className="border-[--foreground] text-[--foreground] hover:bg-[--foreground]/10 hover:text-[--foreground]"
+              className="hover:bg-[--foreground]/10 border-[--foreground] text-[--foreground] hover:text-[--foreground]"
               onClick={goToPreviousStep}
               disabled={isFirstStep || shouldBlockNavigation}
               aria-label="Go to previous step"
@@ -484,7 +484,7 @@ const MakeNewCoursePage = ({
             <Button
               variant="outline"
               size="sm"
-              className="border-[--foreground] text-[--foreground] hover:bg-[--foreground]/10 hover:text-[--foreground]"
+              className="hover:bg-[--foreground]/10 border-[--foreground] text-[--foreground] hover:text-[--foreground]"
               aria-label={
                 isLastStep
                   ? 'Start chatting with your new chatbot'

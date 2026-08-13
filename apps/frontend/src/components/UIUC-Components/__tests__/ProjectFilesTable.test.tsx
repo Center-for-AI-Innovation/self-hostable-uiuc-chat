@@ -64,14 +64,14 @@ vi.mock('mantine-datatable', () => ({
           ))}
         </div>
         <div>
-          {records.length === 0 ? (props.noRecordsIcon ?? null) : null}
+          {records.length === 0 ? props.noRecordsIcon ?? null : null}
           {records.map((record: any, index: number) => (
             <div key={record.id ?? record.s3_path ?? record.url ?? index}>
               {columns.map((col: any, cIdx: number) => (
                 <div key={cIdx}>
                   {col.render
                     ? col.render(record, index)
-                    : (record[col.accessor] ?? null)}
+                    : record[col.accessor] ?? null}
                 </div>
               ))}
             </div>

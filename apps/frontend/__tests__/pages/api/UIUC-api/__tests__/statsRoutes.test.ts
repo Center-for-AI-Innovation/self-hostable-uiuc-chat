@@ -98,7 +98,7 @@ describe('UIUC-api stats routes', () => {
       .spyOn(globalThis, 'fetch')
       .mockImplementation(async (input: any) => {
         const url =
-          typeof input === 'string' ? input : (input?.url ?? String(input))
+          typeof input === 'string' ? input : input?.url ?? String(input)
         if (String(url).includes('getModelUsageCounts')) {
           return new Response(
             JSON.stringify([{ model_name: 'gpt', count: 1, percentage: 100 }]),

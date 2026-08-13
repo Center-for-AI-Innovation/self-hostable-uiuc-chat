@@ -184,7 +184,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     project_name: storedProjectName,
     kind: probeBody.kind,
     outcome: result.ok ? 'success' : 'failure',
-    failure_reason: result.ok ? null : (result.code ?? 'unknown'),
+    failure_reason: result.ok ? null : result.code ?? 'unknown',
     changed_fields: null,
     ...meta,
   })

@@ -20,9 +20,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 
   try {
-    const { client, bucket, isOverride } = await connectionManager.getS3Client(
-      course_name,
-    )
+    const { client, bucket, isOverride } =
+      await connectionManager.getS3Client(course_name)
     if (!bucket) {
       throw new Error(
         `S3 bucket not configured for project '${course_name}' (no s3_config.bucket_name and S3_BUCKET_NAME unset)`,

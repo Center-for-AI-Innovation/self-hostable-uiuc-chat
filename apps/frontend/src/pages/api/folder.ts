@@ -90,7 +90,9 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
     case 'GET':
       if (!courseName) {
-        return res.status(400).json({ error: 'courseName query parameter is required' })
+        return res
+          .status(400)
+          .json({ error: 'courseName query parameter is required' })
       }
       try {
         const courseName = req.query.courseName as string

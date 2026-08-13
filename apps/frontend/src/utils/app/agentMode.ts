@@ -3,9 +3,9 @@ import type { Conversation } from '~/types/chat'
 export const deriveAgentModeEnabled = (conversation?: Conversation): boolean =>
   typeof conversation?.agentModeEnabled === 'boolean'
     ? conversation.agentModeEnabled
-    : (conversation?.messages?.some(
+    : conversation?.messages?.some(
         (msg) => Array.isArray(msg.agentEvents) && msg.agentEvents.length > 0,
-      ) ?? false)
+      ) ?? false
 
 export const shouldShowChatLoader = (
   loading: boolean,

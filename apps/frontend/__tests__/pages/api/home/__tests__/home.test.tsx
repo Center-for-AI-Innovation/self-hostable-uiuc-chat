@@ -121,7 +121,7 @@ describe('pages/api/home/home (shared Home component)', () => {
       .spyOn(globalThis, 'fetch')
       .mockImplementation(async (input: RequestInfo | URL) => {
         const url =
-          typeof input === 'string' ? input : (input?.url ?? String(input))
+          typeof input === 'string' ? input : input?.url ?? String(input)
 
         if (String(url).includes('/api/models')) {
           return new Response(

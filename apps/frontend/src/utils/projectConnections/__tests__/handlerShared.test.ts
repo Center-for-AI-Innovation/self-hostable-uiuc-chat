@@ -33,8 +33,9 @@ describe('extractRequestMeta', () => {
     // Node collapses repeated headers into an array; the proxy nearest the
     // client is still the one we want.
     expect(
-      extractRequestMeta(req({ 'x-forwarded-for': ['198.51.100.4', '10.0.0.1'] }))
-        .source_ip,
+      extractRequestMeta(
+        req({ 'x-forwarded-for': ['198.51.100.4', '10.0.0.1'] }),
+      ).source_ip,
     ).toBe('198.51.100.4')
   })
 

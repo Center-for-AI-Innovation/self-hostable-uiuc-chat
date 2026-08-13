@@ -115,24 +115,12 @@ const ListProjectTable: React.FC = () => {
   const getSortIcon = (column: SortableColumn) => {
     if (sortColumn !== column)
       return (
-        <IconSelector
-          size={14}
-          color="var(--foreground)"
-          aria-hidden="true"
-        />
+        <IconSelector size={14} color="var(--foreground)" aria-hidden="true" />
       )
     return sortDirection === 'asc' ? (
-      <IconChevronUp
-        size={14}
-        color="var(--foreground)"
-        aria-hidden="true"
-      />
+      <IconChevronUp size={14} color="var(--foreground)" aria-hidden="true" />
     ) : (
-      <IconChevronDown
-        size={14}
-        color="var(--foreground)"
-        aria-hidden="true"
-      />
+      <IconChevronDown size={14} color="var(--foreground)" aria-hidden="true" />
     )
   }
 

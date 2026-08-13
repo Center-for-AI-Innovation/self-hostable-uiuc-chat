@@ -605,7 +605,9 @@ describe('testEmbedding', () => {
         api_base: 'https://api.example.com/v1/',
       }),
     ).resolves.toEqual({ ok: true })
-    expect(fetchSpy.mock.calls[0]?.[0]).toBe('https://api.example.com/v1/models')
+    expect(fetchSpy.mock.calls[0]?.[0]).toBe(
+      'https://api.example.com/v1/models',
+    )
     expect((fetchSpy.mock.calls[0]?.[1] as any).headers).toEqual({
       Authorization: 'Bearer sk-test',
     })
@@ -620,10 +622,14 @@ describe('testEmbedding', () => {
       .mockResolvedValue(new Response('{}', { status: 200 }))
 
     const { testEmbedding } = await import('../tester')
-    await expect(testEmbedding({ provider: 'openai' } as any)).resolves.toEqual({
-      ok: true,
-    })
-    expect(fetchSpy.mock.calls[0]?.[0]).toBe('https://env.example.com/v1/models')
+    await expect(testEmbedding({ provider: 'openai' } as any)).resolves.toEqual(
+      {
+        ok: true,
+      },
+    )
+    expect(fetchSpy.mock.calls[0]?.[0]).toBe(
+      'https://env.example.com/v1/models',
+    )
   })
 
   it('allows a localhost api_base without vetting (dev escape hatch)', async () => {
