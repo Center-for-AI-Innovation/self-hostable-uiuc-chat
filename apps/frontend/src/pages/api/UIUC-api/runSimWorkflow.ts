@@ -2,6 +2,7 @@ import { type NextApiResponse } from 'next'
 import { type SimExecutionResult } from '~/types/sim'
 import {
   resolveSimCredentials,
+  simConfigErrorResponse,
   SIM_DEFAULT_BASE_URL,
   validateSimBaseUrl,
 } from '~/utils/simConfig'
@@ -49,11 +50,17 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     return res.status(403).json({ error: 'Access denied' })
   }
 
-  const creds = await resolveSimCredentials(course_name, { api_key, base_url })
+  const resolved = await resolveSimCredentials(course_name, {
+    api_key,
+    base_url,
+  })
 
-  if (!creds.api_key) {
-    return res.status(400).json({ error: 'No Sim API key available' })
+  if (!resolved.ok) {
+    const { status, error } = simConfigErrorResponse(resolved.reason)
+    return res.status(status).json({ error })
   }
+
+  const creds = resolved.creds
 
   const rawBaseUrl = (creds.base_url ?? SIM_DEFAULT_BASE_URL).replace(/\/$/, '')
   const simBaseUrl = validateSimBaseUrl(rawBaseUrl)

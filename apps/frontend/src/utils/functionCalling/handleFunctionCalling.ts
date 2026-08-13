@@ -370,12 +370,10 @@ export const useFetchAllWorkflows = (course_name?: string) => {
 
   return useQuery({
     queryKey: ['tools', course_name],
-    queryFn: async (): Promise<UIUCTool[]> => {
-      return fetchSimTools(course_name).catch((err) => {
-        console.debug('[useFetchAllWorkflows] failed to load sim tools', err)
-        return [] as UIUCTool[]
-      })
-    },
+    // Errors deliberately propagate so callers can show what actually failed
+    // rather than an empty list that reads as "no tools configured".
+    queryFn: (): Promise<UIUCTool[]> => fetchSimTools(course_name),
+    retry: false,
     staleTime: 60_000,
   })
 }
@@ -458,8 +456,12 @@ export async function fetchSimTools(course_name?: string): Promise<UIUCTool[]> {
   const response = await fetch(url)
 
   if (!response.ok) {
-    console.debug('[fetchSimTools] non-ok response', response.status)
-    return []
+    // Surface the server's reason. Swallowing this renders a configuration or
+    // connectivity failure as "this project has no tools", which is false.
+    const body = (await response.json().catch(() => ({}))) as { error?: string }
+    throw new Error(
+      body.error ?? `Failed to load Sim workflows (${response.status})`,
+    )
   }
 
   const data = (await response.json()) as { workflows: SimWorkflow[] }
@@ -473,6 +475,65 @@ export async function fetchSimTools(course_name?: string): Promise<UIUCTool[]> {
     course_name,
   )
   return tools
+}
+
+/**
+ * Sim returns whatever the workflow's terminal block emitted as `output`, so
+ * there is no single result contract. When the terminal block is an HTTP/API
+ * block the value is a transport envelope — `{ data, status, headers }` — and
+ * the upstream response headers must never reach the model or the stored
+ * conversation. Unwrap to the payload when that shape is recognised; otherwise
+ * pass the value through untouched.
+ */
+export function unwrapSimOutput(output: unknown): unknown {
+  if (
+    output !== null &&
+    typeof output === 'object' &&
+    !Array.isArray(output) &&
+    'data' in output &&
+    'status' in output &&
+    'headers' in output
+  ) {
+    return (output as { data: unknown }).data
+  }
+  return output
+}
+
+/**
+ * Normalize a Sim execution result into the app's ToolOutput contract.
+ * `image_urls` / `s3_paths` are looked for on the unwrapped payload, which is
+ * the closest equivalent to where the n8n integration found them.
+ */
+export function toolOutputFromSim(output: unknown): ToolOutput {
+  const payload = unwrapSimOutput(output)
+
+  let toolOutput: ToolOutput
+  if (typeof payload === 'string') {
+    toolOutput = { text: payload }
+  } else if (payload != null) {
+    toolOutput = { data: payload as Record<string, unknown> }
+  } else {
+    toolOutput = {}
+  }
+
+  if (
+    payload !== null &&
+    typeof payload === 'object' &&
+    !Array.isArray(payload)
+  ) {
+    const record = payload as Record<string, unknown>
+    if (Array.isArray(record.image_urls)) {
+      toolOutput = { ...toolOutput, imageUrls: record.image_urls as string[] }
+    }
+    // Raw object keys, re-signed from scratch each render. Prefer these over
+    // image_urls for anything that must outlive the 1h presign: recovering a key
+    // from an expired URL depends on the URL style, but a key needs no parsing.
+    if (Array.isArray(record.s3_paths)) {
+      toolOutput = { ...toolOutput, s3Paths: record.s3_paths as string[] }
+    }
+  }
+
+  return toolOutput
 }
 
 /**
@@ -543,14 +604,7 @@ export async function callSimFunction(
     throw new Error(result.error ?? 'Sim workflow returned success=false')
   }
 
-  let toolOutput: ToolOutput
-  if (typeof result.output === 'string') {
-    toolOutput = { text: result.output }
-  } else if (result.output != null) {
-    toolOutput = { data: result.output as Record<string, unknown> }
-  } else {
-    toolOutput = {}
-  }
+  const toolOutput = toolOutputFromSim(result.output)
 
   posthog.capture('sim_tool_invoked', {
     course_name: projectName,

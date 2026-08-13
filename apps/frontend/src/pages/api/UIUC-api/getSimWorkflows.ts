@@ -6,6 +6,7 @@ import {
 } from '~/types/sim'
 import {
   resolveSimCredentials,
+  simConfigErrorResponse,
   SIM_DEFAULT_BASE_URL,
   validateSimBaseUrl,
 } from '~/utils/simConfig'
@@ -44,14 +45,27 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     return res.status(403).json({ error: 'Access denied' })
   }
 
-  const creds = await resolveSimCredentials(course_name, {
+  const resolved = await resolveSimCredentials(course_name, {
     api_key,
     workspace_id,
     base_url,
   })
 
-  if (!creds.api_key || !creds.workspace_id) {
-    return res.status(200).json({ workflows: [] })
+  if (!resolved.ok) {
+    // A project that has never been configured legitimately has no workflows.
+    // Anything else is a real failure and must not be reported as "no tools".
+    if (resolved.reason === 'not_configured') {
+      return res.status(200).json({ workflows: [] })
+    }
+    const { status, error } = simConfigErrorResponse(resolved.reason)
+    return res.status(status).json({ error })
+  }
+
+  const creds = resolved.creds
+
+  if (!creds.workspace_id) {
+    const { status, error } = simConfigErrorResponse('missing_workspace_id')
+    return res.status(status).json({ error })
   }
 
   const rawBaseUrl = (creds.base_url ?? SIM_DEFAULT_BASE_URL).replace(/\/$/, '')
@@ -136,7 +150,6 @@ function extractInputFields(detail: Record<string, unknown>): SimInputField[] {
       name: String(f.name ?? ''),
       type: String(f.type ?? 'string'),
       description: f.description ? String(f.description) : undefined,
-      required: Boolean(f.required ?? false),
     }))
   }
 

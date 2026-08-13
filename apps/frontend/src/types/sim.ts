@@ -21,12 +21,15 @@ export interface SimWorkflowListItem {
   lastRunAt?: string | null
 }
 
-/** Input field definition from GET /api/v1/workflows/{id} detail endpoint. */
+/**
+ * Input field definition from GET /api/v1/workflows/{id} detail endpoint.
+ * Sim exposes no required flag and no default value — the detail endpoint
+ * returns exactly { id, name, type, description }.
+ */
 export interface SimInputField {
   name: string
   type: string
   description?: string
-  required?: boolean
 }
 
 /** Enriched workflow with input fields — built by combining list + detail endpoints. */

@@ -1,8 +1,16 @@
-import { sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { type NextApiResponse } from 'next'
 import { withCourseOwnerOrAdminAccess } from '~/pages/api/authorization'
 import { db } from '~/db/dbClient'
+import { projects } from '~/db/schema'
+import { type SimProjectConfig } from '~/types/sim'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
+
+const EMPTY_CONFIG: SimProjectConfig = {
+  sim_api_key: null,
+  sim_base_url: null,
+  sim_workspace_id: null,
+}
 
 /**
  * GET /api/UIUC-api/tools/getSimConfig?course_name=X
@@ -17,24 +25,19 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     return res.status(400).json({ error: 'course_name is required' })
   }
 
-  const rows = await db.execute<{
-    sim_api_key: string | null
-    sim_base_url: string | null
-    sim_workspace_id: string | null
-  }>(
-    sql`SELECT sim_api_key, sim_base_url, sim_workspace_id
-        FROM projects
-        WHERE course_name = ${courseName}
-        LIMIT 1`,
-  )
+  const rows = await db
+    .select({
+      sim_api_key: projects.sim_api_key,
+      sim_base_url: projects.sim_base_url,
+      sim_workspace_id: projects.sim_workspace_id,
+    })
+    .from(projects)
+    .where(eq(projects.course_name, courseName))
+    .limit(1)
 
-  return res.status(200).json(
-    rows[0] ?? {
-      sim_api_key: null,
-      sim_base_url: null,
-      sim_workspace_id: null,
-    },
-  )
+  const config: SimProjectConfig = rows[0] ?? EMPTY_CONFIG
+
+  return res.status(200).json(config)
 }
 
 export default withCourseOwnerOrAdminAccess()(handler)

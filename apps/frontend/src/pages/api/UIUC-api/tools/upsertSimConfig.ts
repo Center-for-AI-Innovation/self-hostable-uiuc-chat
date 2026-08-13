@@ -1,7 +1,9 @@
-import { sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { type NextApiResponse } from 'next'
 import { withCourseOwnerOrAdminAccess } from '~/pages/api/authorization'
 import { db } from '~/db/dbClient'
+import { projects } from '~/db/schema'
+import { type SimProjectConfig } from '~/types/sim'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
 
 /**
@@ -21,19 +23,12 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     sim_api_key = null,
     sim_base_url = null,
     sim_workspace_id = null,
-  } = req.body as {
-    sim_api_key?: string | null
-    sim_base_url?: string | null
-    sim_workspace_id?: string | null
-  }
+  } = req.body as Partial<SimProjectConfig>
 
-  await db.execute(
-    sql`UPDATE projects
-        SET sim_api_key = ${sim_api_key},
-            sim_base_url = ${sim_base_url},
-            sim_workspace_id = ${sim_workspace_id}
-        WHERE course_name = ${courseName}`,
-  )
+  await db
+    .update(projects)
+    .set({ sim_api_key, sim_base_url, sim_workspace_id })
+    .where(eq(projects.course_name, courseName))
 
   return res.status(200).json({ success: true })
 }

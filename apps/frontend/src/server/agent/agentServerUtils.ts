@@ -18,9 +18,14 @@ import { generatePresignedUrl } from '~/pages/api/download'
 import {
   getOpenAIToolFromUIUCTool,
   getUIUCToolFromSim,
+  toolOutputFromSim,
 } from '~/utils/functionCalling/handleFunctionCalling'
 import { conversationToMessages as baseConversationToMessages } from '~/utils/functionCalling/conversationToMessages'
-import { resolveSimCredentials, validateSimBaseUrl } from '~/utils/simConfig'
+import {
+  resolveSimCredentials,
+  simConfigErrorResponse,
+  validateSimBaseUrl,
+} from '~/utils/simConfig'
 import {
   type SimWorkflow,
   type SimWorkflowListItem,
@@ -253,14 +258,16 @@ export async function executeToolServer(
   const { tool, projectName, simApiKey, signal } = params
   const toolCopy = { ...tool }
 
-  const creds = await resolveSimCredentials(projectName, {
+  const resolved = await resolveSimCredentials(projectName, {
     api_key: simApiKey,
   })
 
-  if (!creds.api_key) {
-    toolCopy.error = 'Sim API key not available'
+  if (!resolved.ok) {
+    toolCopy.error = simConfigErrorResponse(resolved.reason).error
     return toolCopy
   }
+
+  const creds = resolved.creds
 
   const rawBaseUrl = (creds.base_url ?? SIM_DEFAULT_BASE_URL).replace(/\/$/, '')
   const simBaseUrl = validateSimBaseUrl(rawBaseUrl)
@@ -319,23 +326,7 @@ export async function executeToolServer(
       return toolCopy
     }
 
-    let toolOutput: ToolOutput
-    if (typeof result.output === 'string') {
-      toolOutput = { text: result.output }
-    } else if (result.output != null) {
-      toolOutput = { data: result.output as Record<string, unknown> }
-    } else {
-      toolOutput = {}
-    }
-
-    // Raw object keys, re-signed from scratch each render. Prefer these over
-    // image_urls for anything that must outlive the 1h presign: recovering a key
-    // from an expired URL depends on the URL style, but a key needs no parsing.
-    if (Array.isArray(jsonData['s3_paths'])) {
-      toolOutput = { ...toolOutput, s3Paths: jsonData['s3_paths'] }
-    }
-
-    toolCopy.output = toolOutput
+    toolCopy.output = toolOutputFromSim(result.output)
     return toolCopy
   } catch (error: unknown) {
     clearTimeout(timeoutId)
@@ -471,11 +462,24 @@ export async function fetchToolsServer(
   _limit = 20,
   signal?: AbortSignal,
 ): Promise<UIUCTool[]> {
-  const creds = await resolveSimCredentials(courseName, {
+  const resolved = await resolveSimCredentials(courseName, {
     api_key: simApiKey,
   })
 
-  if (!creds.api_key || !creds.workspace_id) {
+  if (!resolved.ok) {
+    if (resolved.reason !== 'not_configured') {
+      console.error(
+        `[Agent] Sim credentials unavailable for ${courseName}:`,
+        resolved.reason,
+      )
+    }
+    return []
+  }
+
+  const creds = resolved.creds
+
+  if (!creds.workspace_id) {
+    console.error(`[Agent] Sim workspace ID is not set for ${courseName}`)
     return []
   }
 
@@ -547,7 +551,6 @@ function extractInputFields(detail: Record<string, unknown>): SimInputField[] {
       name: String(f.name ?? ''),
       type: String(f.type ?? 'string'),
       description: f.description ? String(f.description) : undefined,
-      required: Boolean(f.required ?? false),
     }))
   }
   return []

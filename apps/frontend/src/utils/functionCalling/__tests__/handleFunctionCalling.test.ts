@@ -9,6 +9,8 @@ import {
   handleFunctionCall,
   handleToolCall,
   handleToolsServer,
+  toolOutputFromSim,
+  unwrapSimOutput,
 } from '../handleFunctionCalling'
 
 vi.mock('posthog-js', () => ({
@@ -141,7 +143,80 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
     localStorage.clear()
   })
 
-  it('fetchSimTools returns [] on non-ok response', async () => {
+  it('unwrapSimOutput strips the HTTP envelope emitted by api terminal blocks', () => {
+    const envelope = {
+      data: { success: true, result: { mrtn_rate_lb_n_per_acre: 193 } },
+      status: 200,
+      headers: { 'set-cookie': 'session=secret', server: 'uvicorn' },
+    }
+
+    expect(unwrapSimOutput(envelope)).toEqual({
+      success: true,
+      result: { mrtn_rate_lb_n_per_acre: 193 },
+    })
+  })
+
+  it('unwrapSimOutput passes through payloads that are not HTTP envelopes', () => {
+    expect(unwrapSimOutput({ result: 'plain' })).toEqual({ result: 'plain' })
+    expect(unwrapSimOutput('a string')).toBe('a string')
+    expect(unwrapSimOutput(null)).toBeNull()
+    expect(unwrapSimOutput([1, 2])).toEqual([1, 2])
+  })
+
+  it('toolOutputFromSim keeps upstream response headers away from the model', () => {
+    const out = toolOutputFromSim({
+      data: { result: 'ok' },
+      status: 200,
+      headers: { 'set-cookie': 'session=secret' },
+    })
+
+    expect(out.data).toEqual({ result: 'ok' })
+    expect(JSON.stringify(out)).not.toContain('set-cookie')
+    expect(JSON.stringify(out)).not.toContain('secret')
+  })
+
+  it('toolOutputFromSim lifts image_urls and s3_paths off the unwrapped payload', () => {
+    const out = toolOutputFromSim({
+      data: {
+        result: 'ok',
+        image_urls: ['https://example.test/a.png'],
+        s3_paths: ['proj/a.png'],
+      },
+      status: 200,
+      headers: {},
+    })
+
+    expect(out.imageUrls).toEqual(['https://example.test/a.png'])
+    expect(out.s3Paths).toEqual(['proj/a.png'])
+  })
+
+  it('toolOutputFromSim maps string and empty outputs', () => {
+    expect(toolOutputFromSim('hello')).toEqual({ text: 'hello' })
+    expect(toolOutputFromSim(null)).toEqual({})
+    expect(toolOutputFromSim(undefined)).toEqual({})
+  })
+
+  it('fetchSimTools surfaces the server error message on non-ok response', async () => {
+    localStorage.setItem('sim_api_key_proj', 'sk-sim-test')
+    localStorage.setItem('sim_workspace_id_proj', 'ws-123')
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          error: 'Sim workspace ID is not set for this project',
+        }),
+        { status: 400, headers: { 'content-type': 'application/json' } },
+      ),
+    )
+
+    await expect(fetchSimTools('proj')).rejects.toThrow(
+      /workspace ID is not set/i,
+    )
+
+    localStorage.clear()
+  })
+
+  it('fetchSimTools throws with the status when the error body is not JSON', async () => {
     localStorage.setItem('sim_api_key_proj', 'sk-sim-test')
     localStorage.setItem('sim_workspace_id_proj', 'ws-123')
 
@@ -149,8 +224,7 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
       new Response('nope', { status: 500 }),
     )
 
-    const tools = await fetchSimTools('proj')
-    expect(tools).toEqual([])
+    await expect(fetchSimTools('proj')).rejects.toThrow(/500/)
 
     localStorage.clear()
   })

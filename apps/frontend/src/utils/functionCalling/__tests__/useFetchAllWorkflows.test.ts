@@ -49,7 +49,7 @@ describe('useFetchAllWorkflows', () => {
     expect(() => useFetchAllWorkflows()).toThrow(/course_name is required/i)
   })
 
-  it('queryFn returns [] when fetchSimTools fails', async () => {
+  it('queryFn propagates failures so callers can report the real cause', async () => {
     const { useFetchAllWorkflows } = await import('../handleFunctionCalling')
 
     localStorage.setItem('sim_api_key_proj', 'sk-sim-test')
@@ -58,8 +58,7 @@ describe('useFetchAllWorkflows', () => {
     vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('network'))
 
     const query = useFetchAllWorkflows('proj') as any
-    const data = await query.queryFn()
-    expect(data).toEqual([])
+    await expect(query.queryFn()).rejects.toThrow(/network/)
 
     localStorage.clear()
   })

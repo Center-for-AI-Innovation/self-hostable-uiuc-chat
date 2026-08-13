@@ -64,6 +64,7 @@ const SimPage = ({ course_name }: { course_name: string }) => {
     data: workflows,
     isSuccess,
     isError,
+    error: workflowsError,
     refetch: refetchWorkflows,
   } = useFetchAllWorkflows(course_name)
 
@@ -376,7 +377,9 @@ const SimPage = ({ course_name }: { course_name: string }) => {
                   className={`${montserrat_paragraph.variable} p-4 font-montserratParagraph`}
                   color="red"
                 >
-                  Failed to load workflows. Check your API key and workspace ID.
+                  {workflowsError instanceof Error && workflowsError.message
+                    ? workflowsError.message
+                    : 'Failed to load workflows. Check your API key and workspace ID.'}
                 </Text>
               )}
               {hasSavedConfig &&
