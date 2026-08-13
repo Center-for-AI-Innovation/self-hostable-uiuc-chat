@@ -17,6 +17,12 @@ vi.mock('../navbars/Navbar', () => ({
   default: () => <div data-testid="navbar" />,
 }))
 
+// MakeNewCoursePage renders ChatbotsGlobalNav instead of the old Navbar.
+// Mock it with the same testid so the existing assertion still works.
+vi.mock('../chatbots-hub/ChatbotsGlobalNav', () => ({
+  ChatbotsGlobalNav: () => <div data-testid="navbar" />,
+}))
+
 vi.mock('../UploadNotification', () => ({
   __esModule: true,
   default: ({
@@ -431,7 +437,8 @@ describe('MakeNewCoursePage', () => {
       setIllinoisConfig('True')
     })
 
-    it('creates a project and advances to the success step', async () => {
+    it('creates a private project regardless of Illinois config', async () => {
+      setIllinoisConfig('False')
       const user = userEvent.setup()
       mockFetchCourseAvailable(false)
 
@@ -463,7 +470,7 @@ describe('MakeNewCoursePage', () => {
           'NewBot',
           '',
           'owner@example.com',
-          true, // useIllinoisChatConfig = true
+          true,
         )
       })
 
@@ -577,7 +584,7 @@ describe('MakeNewCoursePage', () => {
         ]) as any
         expect(cached).toBeDefined()
         expect(cached.course_owner).toBe('owner@example.com')
-        expect(cached.is_private).toBe(true) // is_private = useIllinoisChatConfig = true
+        expect(cached.is_private).toBe(true)
       })
     })
 

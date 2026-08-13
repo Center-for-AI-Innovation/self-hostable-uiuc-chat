@@ -10,7 +10,9 @@ import { type Plugin } from '@/types/plugin'
 import { type Prompt } from '@/types/prompt'
 import { Text } from '@mantine/core'
 import {
+  IconAlertTriangle,
   IconArrowDown,
+  IconInfoCircle,
   IconPlayerStop,
   IconRepeat,
   IconSend,
@@ -28,6 +30,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react'
@@ -40,6 +43,7 @@ import { PromptList } from './PromptList'
 import { VariableModal } from './VariableModal'
 
 import { Tooltip, useMantineTheme } from '@mantine/core'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   showToast,
   showErrorToast,
@@ -67,6 +71,15 @@ import type ChatUI from '~/utils/modelProviders/WebLLM'
 import { webLLMModels } from '~/utils/modelProviders/WebLLM'
 import { ContextWithMetadata } from '~/types/chat'
 import { modelSupportsTools } from '~/utils/modelProviders/capabilities'
+import {
+  COUNTRY_OF_CONCERN_INFO_URL,
+  getCountryOfConcern,
+  getCountryOfConcernBannerLede,
+  getCountryOfConcernShortMessage,
+  isCocBannerDismissed,
+  isLocallyHostedProvider,
+  markCocBannerDismissed,
+} from '~/utils/modelProviders/countriesOfConcern'
 import posthog from 'posthog-js'
 import { deriveAgentModeEnabled } from '~/utils/app/agentMode'
 
@@ -873,18 +886,138 @@ export const ChatInput = ({
     }
   }, [handleResize])
 
+  // Country-of-concern banner.
+  //
+  // Dismissal state lives in localStorage, which is not available during a
+  // server render. Reading it inline in the JSX also made visibility
+  // non-reactive, which is why a `setCocDismissTick` counter was needed to
+  // force a re-render after dismissal. Resolving it into state via an effect
+  // covers both: no storage access during render, and dismissal updates
+  // visibility directly.
+  const cocActiveModelId =
+    selectedConversation?.model?.id ?? selectBestModel(llmProviders)?.id
+  const cocCountry = getCountryOfConcern(cocActiveModelId)
+  const [cocBannerVisible, setCocBannerVisible] = useState(false)
+
+  useEffect(() => {
+    if (!cocCountry || !cocActiveModelId || !courseName) {
+      setCocBannerVisible(false)
+      return
+    }
+    setCocBannerVisible(!isCocBannerDismissed(courseName, cocActiveModelId))
+  }, [cocCountry, cocActiveModelId, courseName])
+
+  // The locality claim in the banner is only true for models we host. Resolve
+  // which provider actually serves the active model so the copy can't promise
+  // that data stays on university infrastructure for a third-party-served
+  // model.
+  const cocLocallyHosted = useMemo(() => {
+    if (!cocActiveModelId) return false
+    const providerName = Object.entries(llmProviders ?? {}).find(
+      ([, provider]: [string, any]) =>
+        provider?.models?.some((m: any) => m?.id === cocActiveModelId),
+    )?.[0]
+    return isLocallyHostedProvider(providerName)
+  }, [llmProviders, cocActiveModelId])
+
   return (
     <div
       className={`w-full border-transparent bg-transparent pt-6 md:pt-2`}
       style={{ pointerEvents: 'none' }}
     >
+      {/* Country-of-concern banner — card sitting above the chat input. */}
+      {(() => {
+        const activeModelId = cocActiveModelId
+        const country = cocCountry
+        const showBanner = cocBannerVisible && !!country && !!activeModelId
+        return (
+          <AnimatePresence initial={false}>
+            {showBanner && (
+              <motion.div
+                key={`coc-banner-${activeModelId}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.25, ease: 'easeInOut' }}
+                className="mx-2 mb-3 md:mx-4 lg:mx-auto lg:max-w-3xl"
+                style={{ pointerEvents: 'auto' }}
+              >
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="relative rounded-2xl bg-[#FBEDE5] px-5 py-4 text-[#2A1B3D] shadow-sm"
+                >
+                  <div className="mb-2 inline-flex items-center gap-1.5 rounded-md bg-[#F5D9CC] px-2 py-0.5 text-xs font-medium text-[#7A2E1F]">
+                    <IconAlertTriangle
+                      size={12}
+                      stroke={2}
+                      aria-hidden="true"
+                    />
+                    Notice
+                  </div>
+                  <span
+                    aria-hidden="true"
+                    className="absolute right-3 top-3 inline-flex text-[#2A1B3D]/60"
+                  >
+                    <IconInfoCircle size={16} stroke={2} />
+                  </span>
+                  <div className="mb-1 flex items-center gap-2 text-base font-semibold">
+                    <span aria-hidden="true">🌐</span>
+                    LLM from Country of Concern ({country})
+                  </div>
+                  <p className="text-sm leading-snug">
+                    {getCountryOfConcernBannerLede(country, cocLocallyHosted)}{' '}
+                    Users may click{' '}
+                    <a
+                      href={COUNTRY_OF_CONCERN_INFO_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline underline-offset-2 hover:opacity-80"
+                    >
+                      here
+                    </a>{' '}
+                    for further information
+                  </p>
+                  <div className="mt-3 flex flex-wrap justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (courseName && activeModelId) {
+                          markCocBannerDismissed(courseName, activeModelId)
+                          setCocBannerVisible(false)
+                        }
+                      }}
+                      className="rounded-md border border-[#2A1B3D]/20 bg-white px-3 py-1.5 text-sm font-medium text-[#2A1B3D] transition hover:bg-[#2A1B3D]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+                    >
+                      I Understand
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        homeDispatch({
+                          field: 'showModelSettings',
+                          value: true,
+                        })
+                      }}
+                      className="rounded-md bg-[#1B1336] px-3 py-1.5 text-sm font-medium text-white transition hover:bg-[#2A1B3D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+                    >
+                      Switch Model in Use
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )
+      })()}
+
       <div
         className="stretch mx-2 mt-4 flex flex-col gap-3 last:mb-2 md:mx-4 md:mt-[52px] md:last:mb-6 lg:mx-auto lg:max-w-3xl"
         style={{ pointerEvents: 'auto' }}
       >
         <div
           ref={chatInputParentContainerRef}
-          className="chat_input_container fixed bottom-0 mx-4 flex w-[80%] flex-col self-center rounded-t-3xl bg-[--message-background] px-4 pb-8 pt-4 text-[--message] md:mx-20 md:w-[60%]"
+          className="chat_input_container fixed bottom-0 z-10 mx-4 flex w-[80%] flex-col self-center rounded-t-3xl bg-[--message-background] px-4 pb-8 pt-4 text-[--message] md:mx-20 md:w-[60%]"
           style={{ pointerEvents: 'auto', backdropFilter: 'blur(4px)' }}
         >
           {/* Stop generating and regenerate buttons */}
@@ -1307,6 +1440,39 @@ export const ChatInput = ({
               style={{ cursor: 'pointer', pointerEvents: 'auto' }}
             >
               {selectBestModel(llmProviders)?.name}
+              {(() => {
+                const activeModelId =
+                  selectedConversation?.model?.id ??
+                  selectBestModel(llmProviders)?.id
+                const country = getCountryOfConcern(activeModelId)
+                if (!country) return null
+                return (
+                  <Tooltip
+                    multiline
+                    width={280}
+                    withArrow
+                    label={getCountryOfConcernShortMessage(country)}
+                  >
+                    <span
+                      aria-label={`Country of concern warning: ${country}`}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        marginLeft: '4px',
+                        opacity: 1,
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <IconAlertTriangle
+                        size={isSmallScreen ? '12px' : '14px'}
+                        stroke={2}
+                        aria-hidden="true"
+                        style={{ color: '#f59e0b' }}
+                      />
+                    </span>
+                  </Tooltip>
+                )
+              })()}
               {selectedConversation?.model &&
                 webLLMModels.some(
                   (m) => m.name === selectedConversation?.model?.name,

@@ -72,10 +72,10 @@ describe('Conversations', () => {
       },
     )
 
-    expect(screen.getByRole('button', { name: /Conv 1/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Conv 3/i })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Conv 1/i })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Conv 3/i })).toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: /Conv 2/i }),
+      screen.queryByRole('option', { name: /Conv 2/i }),
     ).not.toBeInTheDocument()
 
     const sentinel = document.querySelector('.h-1')

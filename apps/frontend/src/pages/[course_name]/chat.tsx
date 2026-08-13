@@ -13,6 +13,7 @@ import { montserrat_heading } from 'fonts'
 import { MainPageBackground } from '~/components/UIUC-Components/MainPageBackground'
 import { fetchCourseMetadata } from '~/utils/apiUtils'
 import { PermissionGate } from '~/components/UIUC-Components/PermissionGate'
+import { getOrCreateAnonymousUserId } from '~/utils/anonymousUserId'
 
 const ChatPage: NextPage = () => {
   const auth = useAuth()
@@ -163,18 +164,7 @@ const ChatPage: NextPage = () => {
             if (auth.user?.profile.email) {
               setCurrentEmail(auth.user.profile.email)
             } else {
-              // Use PostHog ID when user is not logged in for public courses
-              const key = process.env.NEXT_PUBLIC_POSTHOG_KEY as string
-              const postHogUserObj = localStorage.getItem(
-                'ph_' + key + '_posthog',
-              )
-              if (postHogUserObj) {
-                const postHogUser = JSON.parse(postHogUserObj)
-                setCurrentEmail(postHogUser.distinct_id)
-              } else {
-                // Stay in loading state until PostHog ID is available
-                setCurrentEmail('')
-              }
+              setCurrentEmail(getOrCreateAnonymousUserId())
             }
             return
           } else {

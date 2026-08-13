@@ -1,4 +1,4 @@
-import posthog from 'posthog-js'
+import { getOrCreateAnonymousUserId } from '~/utils/anonymousUserId'
 
 export function createHeaders(userEmail?: string): HeadersInit {
   const headers: HeadersInit = {
@@ -11,18 +11,9 @@ export function createHeaders(userEmail?: string): HeadersInit {
     return headers
   }
 
-  // Fallback only to PostHog distinct id; avoid generating any custom ids
+  // Use PostHog when available, otherwise use a persisted anonymous ID.
   if (typeof window !== 'undefined') {
-    try {
-      // Try PostHog distinct id
-      const distinctId = (posthog as any)?.get_distinct_id?.()
-      if (typeof distinctId === 'string' && distinctId.trim() !== '') {
-        headers['x-posthog-id'] = distinctId
-        return headers
-      }
-    } catch (_) {
-      // ignore
-    }
+    headers['x-posthog-id'] = getOrCreateAnonymousUserId()
   }
 
   return headers

@@ -4,8 +4,6 @@ import { screen } from '@testing-library/react'
 
 import { renderWithProviders } from '~/test-utils/renderWithProviders'
 
-process.env.NEXT_PUBLIC_USE_ILLINOIS_CHAT_CONFIG = 'False'
-
 vi.mock('framer-motion', () => ({
   motion: new Proxy(
     {},

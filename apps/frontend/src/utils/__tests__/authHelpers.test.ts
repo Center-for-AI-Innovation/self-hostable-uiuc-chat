@@ -74,4 +74,24 @@ describe('keycloak base URL helpers', () => {
     )
     vi.stubEnv('KEYCLOAK_URL', '')
   })
+
+  it('getKeycloakIssuerUrl prefers NEXT_PUBLIC_KEYCLOAK_URL when set', () => {
+    vi.stubEnv('KEYCLOAK_URL', '')
+    vi.stubEnv('NEXT_PUBLIC_KEYCLOAK_URL', 'https://override.example/')
+    expect(getKeycloakIssuerUrl('example.com')).toBe(
+      'https://override.example/realms/illinois_chat_realm',
+    )
+    vi.stubEnv('NEXT_PUBLIC_KEYCLOAK_URL', '')
+  })
+
+  it('getKeycloakIssuerUrl handles known and custom hostnames', () => {
+    vi.stubEnv('KEYCLOAK_URL', '')
+    vi.stubEnv('NEXT_PUBLIC_KEYCLOAK_URL', '')
+    expect(getKeycloakIssuerUrl('uiuc.chat')).toBe(
+      'https://login.uiuc.chat/realms/illinois_chat_realm',
+    )
+    expect(getKeycloakIssuerUrl('example.com')).toBe(
+      'https://example.com/keycloak/realms/illinois_chat_realm',
+    )
+  })
 })

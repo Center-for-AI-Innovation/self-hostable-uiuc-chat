@@ -184,6 +184,10 @@ function makePinnedLookup(
     // Prefer the first vetted address; refuse if for some reason it is now
     // private (shouldn't happen — we already vetted — but defensive).
     const a = vetted[0]
+    // Belt-and-suspenders: assertPublicHost never returns an empty list and
+    // never returns a private address, so this refusal cannot be reached
+    // through the public probe entry points.
+    /* v8 ignore start */
     if (!a || isPrivateAddress(a.address, a.family)) {
       callback(
         new Error(
@@ -194,6 +198,7 @@ function makePinnedLookup(
       )
       return
     }
+    /* v8 ignore stop */
     callback(null, a.address, a.family)
   }
 }

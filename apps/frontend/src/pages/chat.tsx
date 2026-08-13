@@ -12,6 +12,7 @@ import Home from '~/pages/api/home/home'
 import { type CourseMetadata } from '~/types/courseMetadata'
 import { fetchCourseMetadata } from '~/utils/apiUtils'
 import { PermissionGate } from '~/components/UIUC-Components/PermissionGate'
+import { getOrCreateAnonymousUserId } from '~/utils/anonymousUserId'
 
 const ChatPage: NextPage = () => {
   const [metadata, setMetadata] = useState<CourseMetadata | null>()
@@ -80,15 +81,7 @@ const ChatPage: NextPage = () => {
     if (email) {
       setCurrentEmail(email)
     } else {
-      const key = process.env.NEXT_PUBLIC_POSTHOG_KEY as string
-      const postHogUserObj = localStorage.getItem('ph_' + key + '_posthog')
-      if (postHogUserObj) {
-        const postHogUser = JSON.parse(postHogUserObj)
-        setCurrentEmail(postHogUser.distinct_id)
-      } else {
-        // Stay in loading state until PostHog ID is available for public chat
-        setCurrentEmail('')
-      }
+      setCurrentEmail(getOrCreateAnonymousUserId())
     }
   }, [auth.isLoading, email, metadata?.is_private])
 

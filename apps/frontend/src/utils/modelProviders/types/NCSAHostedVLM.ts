@@ -1,4 +1,5 @@
 import { type NCSAHostedVLMProvider } from '../LLMProvider'
+import { isCountryOfConcern } from '../countriesOfConcern'
 
 export interface NCSAHostedVLMModel {
   id: string
@@ -249,7 +250,7 @@ export const getNCSAHostedVLMModels = async (
           id: model.id,
           name: knownModel ? knownModel.name : 'Experimental: ' + model.id,
           tokenLimit,
-          enabled: existingState?.enabled ?? true,
+          enabled: existingState?.enabled ?? !isCountryOfConcern(model.id),
           default: existingState?.default ?? false,
         },
       ]

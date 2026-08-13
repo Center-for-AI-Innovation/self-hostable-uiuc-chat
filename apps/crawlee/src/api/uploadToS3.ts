@@ -1,7 +1,7 @@
 // upload.ts
 import * as path from 'path';
 import axios from 'axios';
-import { S3Client, PutObjectCommand, HeadBucketCommand, CreateBucketCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, HeadObjectCommand, HeadBucketCommand, CreateBucketCommand } from '@aws-sdk/client-s3';
 
 function createS3Client(): S3Client {
   const region = process.env.AWS_REGION
@@ -30,8 +30,10 @@ if (!s3BucketName) {
   console.error('❌ Missing S3_BUCKET_NAME in environment!')
 }
 
-// Upload PDF to S3 and send the S3 path to the ingest function
-export async function uploadPdfToS3(url: string, courseName: string) {
+// Upload PDF to S3 and send the S3 path to the ingest function.
+// Returns the S3 key, or null when the URL did not actually serve a PDF (so the caller
+// can skip ingest instead of pushing a broken document into the pipeline).
+export async function uploadPdfToS3(url: string, courseName: string): Promise<string | null> {
   const s3Client = createS3Client()
 
   // Sanitize filename
@@ -39,6 +41,20 @@ export async function uploadPdfToS3(url: string, courseName: string) {
   const extension = path.extname(humanURI);
   const nameWithoutExtension = path.basename(humanURI, extension);
   const filename = nameWithoutExtension.replace(/[^a-zA-Z0-9]/g, '-') + extension;
+
+  // Download FIRST and verify it's actually a PDF before doing any S3 work. Many ".pdf"
+  // URLs now 301-redirect to an HTML page (sites migrated off PDFs); axios follows the
+  // redirect and returns HTML, which we'd otherwise upload as a broken "PDF" that the
+  // worker can't open ("cannot open broken document"), burning ~40s/each on retries.
+  console.log(`Fetching candidate PDF. Filename: ${filename}, Url: ${url}`);
+  const response = await axios.get(url, { responseType: 'arraybuffer' });
+  const pdfBuffer = response.data;
+  const contentType = String(response.headers['content-type'] || '').toLowerCase();
+  const head = Buffer.from(pdfBuffer).subarray(0, 5).toString('latin1');
+  if (!contentType.includes('application/pdf') && head !== '%PDF-') {
+    console.warn(`SKIP-PDF (not-a-pdf, content-type=${contentType || 'n/a'}): url=${url}`);
+    return null;
+  }
 
   console.log(`Uploading PDF to S3. Filename: ${filename}, Url: ${url}`);
 
@@ -70,8 +86,19 @@ export async function uploadPdfToS3(url: string, courseName: string) {
 
   const s3Key = `courses/${courseName}/${filename}`;
 
-  const response = await axios.get(url, { responseType: 'arraybuffer' });
-  const pdfBuffer = response.data;
+  // Dedup across crawls: a popular PDF (e.g. a site-wide handbook) is linked from many pages,
+  // so many separate crawl jobs target the SAME s3 key. Without dedup, the duplicate ingest
+  // jobs race the worker's duplicate-handling — which deletes the S3 object to "replace" it —
+  // so the sibling jobs' download 404s ("Error in /ingest: bulk_ingest: HeadObject 404") and
+  // the PDF fails. If the object already exists, an earlier crawl already uploaded + ingested
+  // it, so skip ingest (return null) instead of enqueuing a duplicate job.
+  try {
+    await s3Client.send(new HeadObjectCommand({ Bucket: s3BucketName, Key: s3Key }));
+    console.log(`SKIP-PDF (dup, already in S3): key=${s3Key}, url=${url}`);
+    return null;
+  } catch (headErr) {
+    // NotFound → first crawl to see this PDF; fall through to upload + ingest.
+  }
 
   try {
     await s3Client.send(new PutObjectCommand({

@@ -9,9 +9,23 @@ import {
   Text,
   TextInput,
   Title,
+  Tooltip,
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
-import { IconAlertCircle, IconCheck, IconX } from '@tabler/icons-react'
+import {
+  IconAlertCircle,
+  IconAlertTriangleFilled,
+  IconCheck,
+  IconX,
+} from '@tabler/icons-react'
+import {
+  type CountryOfConcern,
+  getCountryOfConcern,
+  getCountryOfConcernLongMessage,
+  getCountryOfConcernShortMessage,
+  isChatbotCocAcknowledged,
+  markChatbotCocAcknowledged,
+} from '~/utils/modelProviders/countriesOfConcern'
 import { useForm, type FieldApi } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
@@ -45,6 +59,7 @@ import {
 import { useResponsiveCardWidth } from '~/utils/responsiveGrid'
 import { Skeleton } from '@/components/shadcn/ui/skeleton'
 import { GetCurrentPageName } from '../CanViewOnlyCourse'
+import { CountryOfConcernModal } from './CountryOfConcernModal'
 import GlobalFooter from '../GlobalFooter'
 import AnthropicProviderInput from './providers/AnthropicProviderInput'
 import AzureProviderInput from './providers/AzureProviderInput'
@@ -168,7 +183,8 @@ const NewModelDropdown: React.FC<{
   onChange: (model: AnySupportedModel) => Promise<void>
   llmProviders: AllLLMProviders
   isSmallScreen: boolean
-}> = ({ value, onChange, llmProviders, isSmallScreen }) => {
+  chatbotId: string
+}> = ({ value, onChange, llmProviders, isSmallScreen, chatbotId }) => {
   // Filter out providers that are not enabled and their models which are disabled
   const { enabledProvidersAndModels, allModels } = Object.keys(
     llmProviders,
@@ -208,6 +224,21 @@ const NewModelDropdown: React.FC<{
   )
   const selectedModel =
     allModels.find((model) => model.id === value?.id) || undefined
+  const selectedModelCountry = getCountryOfConcern(value?.id)
+
+  const [pendingDefault, setPendingDefault] = useState<{
+    model: AnySupportedModel
+    country: CountryOfConcern
+  } | null>(null)
+
+  const closePendingModal = () => setPendingDefault(null)
+  const confirmPendingDefault = async () => {
+    if (!pendingDefault) return
+    const next = pendingDefault.model
+    markChatbotCocAcknowledged(chatbotId)
+    setPendingDefault(null)
+    await onChange(next)
+  }
 
   return (
     <>
@@ -228,10 +259,14 @@ const NewModelDropdown: React.FC<{
         searchable
         value={value?.id || ''}
         onChange={async (modelId) => {
-          const selectedModel = allModels.find((model) => model.id === modelId)
-          if (selectedModel) {
-            await onChange(selectedModel)
+          const nextModel = allModels.find((model) => model.id === modelId)
+          if (!nextModel) return
+          const country = getCountryOfConcern(nextModel.id)
+          if (country && !isChatbotCocAcknowledged(chatbotId)) {
+            setPendingDefault({ model: nextModel, country })
+            return
           }
+          await onChange(nextModel)
         }}
         data={Object.entries(enabledProvidersAndModels)
           // Sort by LLM_PROVIDER_ORDER
@@ -266,7 +301,9 @@ const NewModelDropdown: React.FC<{
           <ModelItem {...props} setLoadingModelId={() => {}} />
         )}
         maxDropdownHeight={520}
-        rightSectionWidth="auto"
+        // Reserve a fixed gutter when the warning icon is present so the
+        // absolutely-positioned rightSection never paints over the model name.
+        rightSectionWidth={selectedModelCountry ? 32 : 'auto'}
         icon={
           selectedModel ? (
             <Image
@@ -278,6 +315,31 @@ const NewModelDropdown: React.FC<{
               height={20}
               style={{ marginLeft: '4px', borderRadius: '4px' }}
             />
+          ) : null
+        }
+        rightSection={
+          selectedModelCountry ? (
+            <Tooltip
+              multiline
+              width={280}
+              withArrow
+              label={getCountryOfConcernShortMessage(selectedModelCountry)}
+            >
+              <span
+                aria-label={`Country of concern warning: ${selectedModelCountry}`}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  pointerEvents: 'auto',
+                }}
+              >
+                <IconAlertTriangleFilled
+                  size="1rem"
+                  aria-hidden="true"
+                  style={{ color: '#eab308' }}
+                />
+              </span>
+            </Tooltip>
           ) : null
         }
         // rightSection={<IconChevronDown size="1rem" className="mr-2" />}
@@ -297,6 +359,9 @@ const NewModelDropdown: React.FC<{
             color: 'var(--foreground)',
             backgroundColor: 'var(--background)',
             borderColor: 'var(--button)',
+            // Long model names ellipsis rather than running under the
+            // warning icon in the rightSection.
+            textOverflow: 'ellipsis',
             // color: theme.white,
             // borderRadius: theme.radius.md,
             // width: '24rem',
@@ -339,6 +404,26 @@ const NewModelDropdown: React.FC<{
         withinPortal
         zIndex={40}
       />
+
+      <CountryOfConcernModal
+        opened={pendingDefault !== null}
+        onClose={closePendingModal}
+        onConfirm={confirmPendingDefault}
+        title="Default Model — Country of Concern Warning"
+        confirmLabel="Set as default anyway"
+      >
+        {pendingDefault && (
+          <>
+            Setting <strong>{pendingDefault.model.name}</strong> as the default
+            model is discouraged because it originates from a country of
+            concern.{' '}
+            {getCountryOfConcernLongMessage(
+              pendingDefault.model.name,
+              pendingDefault.country,
+            )}
+          </>
+        )}
+      </CountryOfConcernModal>
     </>
   )
 }
@@ -375,6 +460,7 @@ export const ModelItem = forwardRef<
     },
     ref,
   ) => {
+    const countryOfConcern = getCountryOfConcern(modelId)
     return (
       <>
         <div ref={ref} {...others}>
@@ -397,6 +483,29 @@ export const ModelItem = forwardRef<
                 <Text size="sm" style={{ marginLeft: '8px' }}>
                   {label}
                 </Text>
+                {countryOfConcern && (
+                  <Tooltip
+                    multiline
+                    width={280}
+                    withArrow
+                    label={getCountryOfConcernShortMessage(countryOfConcern)}
+                  >
+                    <span
+                      aria-label={`Country of concern warning: ${countryOfConcern}`}
+                      style={{
+                        marginLeft: '6px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <IconAlertTriangleFilled
+                        size="0.9rem"
+                        aria-hidden="true"
+                        style={{ color: '#eab308' }}
+                      />
+                    </span>
+                  </Tooltip>
+                )}
               </div>
             </div>
           </Group>
@@ -653,6 +762,7 @@ export default function APIKeyInputForm({
                   }}
                   llmProviders={llmProviders}
                   isSmallScreen={isSmallScreen}
+                  chatbotId={projectName}
                 />
               ) : null}
             </div>
@@ -1021,6 +1131,7 @@ export default function APIKeyInputForm({
                               }}
                               llmProviders={llmProviders}
                               isSmallScreen={isSmallScreen}
+                              chatbotId={projectName}
                             />
                           ) : null}
                         </div>

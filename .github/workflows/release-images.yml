@@ -13,10 +13,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      # check-mode: none, matching pr-checks.yml and illinois-chat-dev.yml.
+      #
+      # Why: main has never been linted, so check-mode: all points trunk at
+      # the whole accumulated tree (1436 files, 895 issues) and fails. Here
+      # that failure would block a published release from building and
+      # pushing its images, for reasons unrelated to the release.
+      #
+      # Part of the same stopgap; see #86 for the real fix (check-mode:
+      # pull_request on PRs, plus a .trunk/trunk.yaml exclusion for
+      # apps/frontend).
       - name: Install Trunk
         uses: trunk-io/trunk-action@v1
         with:
-          check-mode: all
+          check-mode: none
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -68,9 +78,15 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: uiuc-chat-frontend
           IMAGE_TAG: ${{ github.event.release.tag_name }}
+          POSTHOG_API_KEY: ${{ secrets.PROD_POSTHOG_API_KEY }}
+          NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.PROD_POSTHOG_API_KEY }}
+          NEXT_PUBLIC_POSTHOG_HOST: ${{ secrets.PROD_NEXT_PUBLIC_POSTHOG_HOST }}
         run: |
           cd apps/frontend
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build \
+            --build-arg NEXT_PUBLIC_POSTHOG_KEY="$NEXT_PUBLIC_POSTHOG_KEY" \
+            --build-arg NEXT_PUBLIC_POSTHOG_HOST="$NEXT_PUBLIC_POSTHOG_HOST" \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
 
       - name: Push frontend image
         env:

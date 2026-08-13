@@ -19,7 +19,7 @@ describe('Search', () => {
       />,
     )
 
-    const input = screen.getByRole('textbox', { name: '' })
+    const input = screen.getByRole('textbox', { name: 'Search conversations' })
     expect(input).toHaveValue('')
     await user.type(input, 'hello')
     expect(onSearch).toHaveBeenCalledWith('h')

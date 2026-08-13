@@ -89,6 +89,21 @@ describe('normalizeS3Key', () => {
     )
   })
 
+  it('getPresignedUrlClient falls back to a region-only client when credentials are missing', async () => {
+    const ctor = vi.fn()
+    vi.doMock('@aws-sdk/client-s3', () => ({ S3Client: ctor }))
+
+    vi.stubEnv('AWS_REGION', '')
+    vi.stubEnv('AWS_KEY', '')
+    vi.stubEnv('AWS_SECRET', '')
+
+    vi.resetModules()
+    const mod = await import('../s3Client')
+    ctor.mockClear()
+    mod.getPresignedUrlClient()
+    expect(ctor).toHaveBeenCalledWith({ region: 'us-east-1' })
+  })
+
   it('leaves a virtual-hosted-style key untouched', async () => {
     vi.resetModules()
     const { normalizeS3Key } = await import('../s3Client')

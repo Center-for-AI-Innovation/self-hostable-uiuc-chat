@@ -17,6 +17,13 @@ vi.mock('@aws-sdk/s3-presigned-post', () => ({
   createPresignedPost: hoisted.createPresignedPost,
 }))
 
+vi.mock('~/utils/s3Client', () => ({
+  s3Client: {},
+  vyriadMinioClient: {},
+  getPresignedUrlClient: () => ({}),
+  getPresignedUrlVyriadClient: () => ({}),
+}))
+
 vi.mock('~/utils/connectionManager', () => ({
   connectionManager: { getS3Client: hoisted.getS3Client },
 }))

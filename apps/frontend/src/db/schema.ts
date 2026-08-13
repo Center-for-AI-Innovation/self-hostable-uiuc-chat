@@ -263,6 +263,57 @@ export const courseNames = pgTable('course_names', {
   course_name: text('course_name'),
 })
 
+// CourseMetadata table — mirror of Redis `course_metadatas` hash for server-side search.
+// Redis remains the source of truth; this table is a search-optimized projection.
+// Writes go through `src/utils/courseMetadataStore.ts` (Postgres-first, Redis-second with rollback).
+export const courseMetadata = pgTable('course_metadata', {
+  course_name: text('course_name').primaryKey(),
+  course_owner: text('course_owner').notNull(),
+  course_admins: text('course_admins').array().notNull().default([]),
+  approved_emails_list: text('approved_emails_list')
+    .array()
+    .notNull()
+    .default([]),
+  project_description: text('project_description'),
+  tags: jsonb('tags').notNull().default([]),
+  is_private: boolean('is_private').notNull().default(false),
+  allow_logged_in_users: boolean('allow_logged_in_users')
+    .notNull()
+    .default(false),
+  is_frozen: boolean('is_frozen').notNull().default(false),
+  raw_metadata: jsonb('raw_metadata').notNull(),
+  updated_at: timestamp('updated_at', { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+})
+
+// Registry of all known chatbot tag values, deduplicated across the system.
+// Maintained by upsertCourseMetadata; consumed by /api/UIUC-api/searchTags
+// for autocomplete in the chatbot tag editor.
+export const chatbotTags = pgTable(
+  'chatbot_tags',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    category: text('category').notNull(),
+    value: text('value').notNull(),
+    value_lower: text('value_lower').notNull(),
+    usage_count: integer('usage_count').notNull().default(0),
+    created_at: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updated_at: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => {
+    return {
+      categoryValueLowerUnique: uniqueIndex(
+        'chatbot_tags_category_value_lower_unique',
+      ).on(table.category, table.value_lower),
+    }
+  },
+)
+
 // DocGroups table
 export const docGroups = pgTable(
   'doc_groups',

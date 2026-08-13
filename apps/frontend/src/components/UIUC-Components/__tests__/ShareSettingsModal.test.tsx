@@ -5,8 +5,6 @@ import userEvent from '@testing-library/user-event'
 
 import { renderWithProviders } from '~/test-utils/renderWithProviders'
 
-process.env.NEXT_PUBLIC_USE_ILLINOIS_CHAT_CONFIG = 'False'
-
 vi.mock('framer-motion', () => ({
   motion: new Proxy(
     {},

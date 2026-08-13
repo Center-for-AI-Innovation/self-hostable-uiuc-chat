@@ -21,6 +21,15 @@ RUN npm run build
 # Create final image
 FROM apify/actor-node-playwright-chrome:20
 
+# Install the browser into a runtime-user-writable path. The base image bundles a
+# chromium that matches ITS playwright (1.60); our package.json pins playwright
+# 1.42.1, which expects a different chromium revision than the one at the root-owned
+# /pw-browsers, so the bundled browser is unusable and the launch fails with
+# BrowserLaunchError. Pointing PLAYWRIGHT_BROWSERS_PATH at a myuser-owned dir lets us
+# install the chromium that matches our pinned playwright (no EACCES, no --with-deps:
+# the base image already carries chromium's system libraries).
+ENV PLAYWRIGHT_BROWSERS_PATH=/home/myuser/pw-browsers
+
 # Copy only built JS files from builder image
 COPY --from=builder --chown=myuser /home/myuser/dist ./dist
 
@@ -39,6 +48,9 @@ RUN npm --quiet set progress=false \
     && node --version \
     && echo "NPM version:" \
     && npm --version
+
+# Install the chromium build matching the pinned playwright into the writable path.
+RUN npx playwright install chromium
 
 # Next, copy the remaining files and directories with the source code.
 # Since we do this after NPM install, quick build will be really fast

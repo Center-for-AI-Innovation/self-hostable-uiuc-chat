@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useDebouncedCallback } from 'use-debounce'
 // import { ModelSelect } from './ModelSelect'
 import { TemperatureSlider } from './Temperature'
 import { createStyles } from '@mantine/core'
@@ -62,17 +63,23 @@ export const ModelParams = ({
     setIsChecked(event.target.checked)
   }
 
+  const debouncedUpdateTemperature = useDebouncedCallback(
+    (temperature: number) => {
+      if (!selectedConversation) return
+      handleUpdateConversation(selectedConversation, {
+        key: 'temperature',
+        value: temperature,
+      })
+    },
+    400,
+  )
+
   return (
     <div className="backdrop-filter-[blur(10px)] w-full rounded-lg ">
       <div className="flex h-full flex-col space-y-4 rounded-lg p-4">
         <TemperatureSlider
           label={t('Temperature')}
-          onChangeTemperature={(temperature) =>
-            handleUpdateConversation(selectedConversation, {
-              key: 'temperature',
-              value: temperature,
-            })
-          }
+          onChangeTemperature={debouncedUpdateTemperature}
         />
       </div>
     </div>

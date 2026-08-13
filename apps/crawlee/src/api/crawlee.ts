@@ -1,8 +1,6 @@
 // For more information, see https://crawlee.dev/
 import { Configuration, PlaywrightCrawler, downloadListOfUrls } from "crawlee";
 import { Page } from "playwright";
-import axios from "axios";
-// import { isWithinTokenLimit } from "gpt-tokenizer";
 
 import { Config, configSchema } from "./configValidation.js";
 import { ingestPdf, uploadPdfToS3 } from "./uploadToS3.js";
@@ -12,8 +10,6 @@ export async function crawl(rawConfig: Config) {
   console.log("PARSED, final config:", config);
 
   let pageCounter = 0;
-  const ingestionPromises: Promise<any>[] = [];
-  // const results: Array<{ title: string; url: string; html: string }> = [];
 
   if (config.url) {
     console.log(`Crawling URL: ${config.url}`);
@@ -37,7 +33,7 @@ export async function crawl(rawConfig: Config) {
 
             // Use the requestHandler to process each of the crawled pages.
             // removed , pushData from params... weird try catch behavior
-            async requestHandler({ request, page, enqueueLinks, log }) {
+            async requestHandler({ request, response, page, enqueueLinks, log }) {
               console.log(`Crawling: ${request.loadedUrl}...`);
               const title = await page.title();
               pageCounter++;
@@ -67,19 +63,17 @@ export async function crawl(rawConfig: Config) {
 
               // Grab results from the page
               if (request.loadedUrl) {
-                // results.push({ title, url: request.loadedUrl, html });
-
-                // TODO: handle all file types (this is probably better than the transform function below)
-                // TODO: NOOO Do it below instead, otherwise the match strategy never makes it here!!
-                // const validFiletypes = ['.html', '.py', '.vtt', '.pdf', '.txt', '.srt', '.docx', '.ppt', '.pptx']
-                // if (validFiletypes.some(ext => req.url.endsWith(ext))) {
-                //   // If URL is a file, send it to handleFile
-                //   handleFile(req.url, config.courseName);
-                //   return null; // Returning null will prevent the URL from being enqueued
-                // }
-
-                // Asynchronously call the ingestWebscrape endpoint without awaiting the result
-                if (html) {
+                // Asynchronously call the ingestWebscrape endpoint without awaiting the result.
+                // Skip error/empty pages (soft-404s, dead links, paywalls) so they never enter
+                // the corpus. The ingest POST is fire-and-forget, so we log every skip with a
+                // greppable SKIP-INGEST prefix to keep the pipeline monitorable from the logs.
+                const skipReason = shouldSkipIngest(title, html, response?.status());
+                if (skipReason) {
+                  console.warn(
+                    `SKIP-INGEST (${skipReason}): status=${response?.status() ?? "n/a"} ` +
+                      `base_url=${config.url} url=${request.loadedUrl} title=${JSON.stringify(title)}`,
+                  );
+                } else {
                   const ingestUrl = process.env.INGEST_URL;
 
                   if (!ingestUrl) {
@@ -103,38 +97,12 @@ export async function crawl(rawConfig: Config) {
                       content: html,
                       course_name: config.courseName,
                       groups: config.documentGroups,
-                      // s3_paths: s3Key,
                     }),
                   })
                     .then((response) => response.text())
-                    // .then(text => {
-                    //   console.log(`In success case -- Data ingested for URL: ${request.loadedUrl}`);
-                    //   console.log(text)
-                    // })
                     .catch((err) => console.error(err));
-
-                  // ingestionPromises.push(
-                  //   axios.post('https://flask-production-751b.up.railway.app/ingest-web-text', {
-                  //     base_url: config.url,
-                  //     url: request.loadedUrl,
-                  //     title: title,
-                  //     content: html,
-                  //     courseName: config.courseName,
-                  //   }).then(() => {
-                  //     console.log(`Data ingested for URL: ${request.loadedUrl}`);
-                  //   }).catch(error => {
-                  //     console.error(`Failed to ingest data for URL: ${request.loadedUrl}`, error.name, error.message, error.data);
-                  //   })
-                  // )
-                } else {
-                  console.error("Error: URL is undefined. Title is: ", title);
                 }
               }
-
-              // Disabled this due to weird type error all of a sudden, after adding the try catch
-              // if (config.onVisitPage) {
-              //   await config.onVisitPage({ page, pushData });
-              // }
 
               page.off("console", consoleListener); // remove listener to avoid memory leak
 
@@ -267,12 +235,67 @@ export async function crawl(rawConfig: Config) {
       }
     }
   }
-  // Before returning from the function, wait for all the ingestion promises to resolve
-  await Promise.all(ingestionPromises);
   return pageCounter;
 }
 
 // ----- HELPERS -----
+
+// Page titles that almost always indicate an error/placeholder page rather than real
+// content (matched case-insensitively against the page <title>). Soft-404s commonly
+// return HTTP 200 with one of these titles, so the title is the reliable signal.
+const ERROR_TITLE_PATTERNS: RegExp[] = [
+  /\b(404|403|410)\b/,
+  /page not found/i,
+  /\bnot found\b/i,
+  /error\s*[: ]?\s*40\d/i,
+  /\bforbidden\b/i,
+  /access denied/i,
+  /document not found/i,
+  /no longer (available|exists)/i,
+  /(temporarily|service|currently) unavailable/i,
+  /site (can.?t|cannot) be reached/i,
+  /account suspended/i,
+  /under construction/i,
+  /\b410 gone\b/i,
+];
+
+// Body-text phrases that indicate an error page. Trusted only on SHORT pages — real
+// articles are long and may legitimately mention these phrases, so we bound the
+// false-positive risk by length rather than dropping content matching entirely.
+const ERROR_CONTENT_PATTERNS: RegExp[] = [
+  /the page you (requested|are looking for) (could not be|was not|cannot be|can.?t be) found/i,
+  /the requested url .{0,40} was not found on this server/i,
+  /this page (doesn.?t|does not) exist/i,
+  /we can.?t find the page/i,
+  /sorry,? (this|the) page/i,
+  /page not found/i,
+];
+
+const MIN_CONTENT_CHARS = 30; // trimmed body shorter than this == effectively empty
+const SHORT_CONTENT_CHARS = 350; // only trust ERROR_CONTENT_PATTERNS on pages this short
+
+// Decide whether a crawled page should be SKIPPED (not POSTed to the ingest endpoint).
+// Returns a short reason string when it should be skipped, or null for good content.
+// Catches: empty pages, hard HTTP 4xx/5xx, soft-404s (HTTP 200 + error title), and short
+// error-page bodies. Logged by the caller with a greppable SKIP-INGEST prefix.
+function shouldSkipIngest(
+  title: string,
+  content: string,
+  status?: number,
+): string | null {
+  const text = (content ?? "").trim();
+  if (text.length < MIN_CONTENT_CHARS) return "empty-content";
+  if (typeof status === "number" && status >= 400) return `http-${status}`;
+  const t = (title ?? "").trim();
+  if (t && ERROR_TITLE_PATTERNS.some((re) => re.test(t))) return "error-title";
+  if (
+    text.length <= SHORT_CONTENT_CHARS &&
+    ERROR_CONTENT_PATTERNS.some((re) => re.test(text))
+  ) {
+    return "error-content";
+  }
+  return null;
+}
 
 async function handlePdf(
   courseName: string,
@@ -282,6 +305,7 @@ async function handlePdf(
 ) {
   try {
     const s3Key = await uploadPdfToS3(url, courseName);
+    if (!s3Key) return; // URL didn't serve a real PDF (redirected to HTML) — skip ingest
     await new Promise((resolve) => setTimeout(resolve, 3000));
     await ingestPdf(s3Key, courseName, base_url, url, documentGroups);
   } catch (error) {

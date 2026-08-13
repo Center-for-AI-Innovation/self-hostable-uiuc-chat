@@ -46,6 +46,12 @@ lint:
         - .DS_Store
         - .vscode/**/*
         - README.md
+    # apps/frontend pins prettier 2.8.8 + prettier-plugin-tailwindcss 0.2.x via
+    # prettier.config.cjs; trunk's hermetic prettier 3 cannot load that config
+    # (exit 2 on every file). The app enforces its own formatting (npm run format).
+    - linters: [prettier]
+      paths:
+        - apps/frontend/**
 actions:
   enabled:
     - trunk-announce

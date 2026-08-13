@@ -47,6 +47,7 @@ export function convertChatFolderToDBFolder(
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const { method } = req
   const userIdentifier = getUserIdentifier(req)
+  const courseName = req.query.courseName as string | undefined
   if (!userIdentifier) {
     return res.status(400).json({
       error: 'No valid user identifier provided',
@@ -88,6 +89,9 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       break
 
     case 'GET':
+      if (!courseName) {
+        return res.status(400).json({ error: 'courseName query parameter is required' })
+      }
       try {
         const courseName = req.query.courseName as string
         const searchTerm = req.query.searchTerm as string
@@ -193,6 +197,14 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
             },
           },
         })
+
+        if (
+          !fetchedFolders.some(
+            (folder) => folder.conversations && folder.conversations.length > 0,
+          )
+        ) {
+          return res.status(200).json([])
+        }
 
         // Convert the fetched data to match the expected format
         const formattedFolders = fetchedFolders.map((folder) => {

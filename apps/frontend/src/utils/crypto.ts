@@ -130,9 +130,14 @@ export async function decryptProjectConfig<T = unknown>(
     return null
   }
   const plaintext = await decrypt(field.encrypted, getMasterKey())
+  // Type-narrowing guard: decrypt() only returns undefined for an empty
+  // ciphertext or key, both ruled out above, so this cannot be reached
+  // through the public API.
+  /* v8 ignore start */
   if (plaintext == null) {
     throw new Error('decrypt() returned null/undefined for project config')
   }
+  /* v8 ignore stop */
   try {
     return JSON.parse(plaintext) as T
   } catch (e) {

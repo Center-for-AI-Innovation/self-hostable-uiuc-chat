@@ -10,6 +10,7 @@ import {
 import { type CourseMetadata } from '~/types/courseMetadata'
 import EmailListAccordion from './EmailListAccordion'
 import { callSetCourseMetadata } from '~/utils/apiUtils'
+import { showSuccessToast } from '~/utils/toastUtils'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import { motion } from 'framer-motion'
 import { Accordion } from '@/components/shadcn/accordion'
@@ -61,10 +62,6 @@ export default function ShareSettingsModal({
   projectName,
   metadata: initialMetadata,
 }: ShareSettingsModalProps) {
-  const useIllinoisChatConfig = useMemo(() => {
-    return process.env.NEXT_PUBLIC_USE_ILLINOIS_CHAT_CONFIG === 'True'
-  }, [])
-
   const queryClient = useQueryClient()
   const [metadata, setMetadata] = useState<CourseMetadata>(initialMetadata)
 
@@ -123,34 +120,27 @@ export default function ShareSettingsModal({
   }, [currentAccessLevel])
 
   const accessOptions = useMemo(
-    () =>
-      [
-        {
-          key: 'invited' as AccessLevel,
-          label: ACCESS_LABELS.invited,
-          description: ACCESS_DESCRIPTIONS.invited,
-          icon: <IconLock className="h-4 w-4" />,
-        },
-        {
-          key: 'logged_in' as AccessLevel,
-          label: ACCESS_LABELS.logged_in,
-          description: ACCESS_DESCRIPTIONS.logged_in,
-          icon: <IconUsers className="h-4 w-4" />,
-        },
-        // Public option will be conditionally included below
-      ].concat(
-        useIllinoisChatConfig
-          ? []
-          : [
-              {
-                key: 'public' as AccessLevel,
-                label: ACCESS_LABELS.public,
-                description: ACCESS_DESCRIPTIONS.public,
-                icon: <IconLockOpen className="h-4 w-4" />,
-              },
-            ],
-      ),
-    [useIllinoisChatConfig],
+    () => [
+      {
+        key: 'invited' as AccessLevel,
+        label: ACCESS_LABELS.invited,
+        description: ACCESS_DESCRIPTIONS.invited,
+        icon: <IconLock className="h-4 w-4" />,
+      },
+      {
+        key: 'logged_in' as AccessLevel,
+        label: ACCESS_LABELS.logged_in,
+        description: ACCESS_DESCRIPTIONS.logged_in,
+        icon: <IconUsers className="h-4 w-4" />,
+      },
+      {
+        key: 'public' as AccessLevel,
+        label: ACCESS_LABELS.public,
+        description: ACCESS_DESCRIPTIONS.public,
+        icon: <IconLockOpen className="h-4 w-4" />,
+      },
+    ],
+    [],
   )
 
   const handleAccessSelect = async (level: AccessLevel) => {
@@ -166,7 +156,11 @@ export default function ShareSettingsModal({
     setMetadata(updatedMetadata)
     queryClient.setQueryData(['courseMetadata', projectName], updatedMetadata)
     await callSetCourseMetadata(projectName, updatedMetadata)
-    queryClient.invalidateQueries({ queryKey: ['allCourseMetadata'] })
+    await queryClient.invalidateQueries({ queryKey: ['allCourseMetadata'] })
+    showSuccessToast(
+      `Access changed to "${ACCESS_LABELS[level]}"`,
+      'Access updated',
+    )
   }
 
   // Removed old toggle handlers in favor of unified dropdown access control
@@ -183,6 +177,7 @@ export default function ShareSettingsModal({
       ['courseMetadata', course_name],
       new_course_metadata,
     )
+    void queryClient.invalidateQueries({ queryKey: ['allCourseMetadata'] })
   }
 
   // See handleAccessSelect for unified access updates

@@ -1,8 +1,13 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import posthog from 'posthog-js'
 import { createHeaders } from '../httpHeaders'
 
 describe('createHeaders', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    vi.restoreAllMocks()
+  })
+
   it('includes x-user-email when provided', () => {
     expect(createHeaders('user@example.com')).toEqual({
       'Content-Type': 'application/json',
@@ -18,19 +23,25 @@ describe('createHeaders', () => {
     })
   })
 
-  it('returns only Content-Type when no email and no posthog id', () => {
+  it('generates an anonymous ID when no email or PostHog ID exists', () => {
     vi.spyOn(posthog as any, 'get_distinct_id').mockReturnValue('')
-    expect(createHeaders()).toEqual({
-      'Content-Type': 'application/json',
-    })
+    expect(createHeaders()).toEqual(
+      expect.objectContaining({
+        'Content-Type': 'application/json',
+        'x-posthog-id': expect.stringMatching(/^anon_/),
+      }),
+    )
   })
 
-  it('ignores errors when PostHog distinct id lookup throws', () => {
+  it('generates an anonymous ID when PostHog lookup throws', () => {
     vi.spyOn(posthog as any, 'get_distinct_id').mockImplementation(() => {
       throw new Error('boom')
     })
-    expect(createHeaders()).toEqual({
-      'Content-Type': 'application/json',
-    })
+    expect(createHeaders()).toEqual(
+      expect.objectContaining({
+        'Content-Type': 'application/json',
+        'x-posthog-id': expect.stringMatching(/^anon_/),
+      }),
+    )
   })
 })

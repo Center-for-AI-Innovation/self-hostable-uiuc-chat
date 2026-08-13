@@ -1,6 +1,6 @@
 import React from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 
 import { renderWithProviders } from '~/test-utils/renderWithProviders'
 
@@ -35,7 +35,9 @@ describe('ModelParams', () => {
     expect(screen.getByText('Temperature')).toBeInTheDocument()
   })
 
-  it('calls handleUpdateConversation when temperature changes', () => {
+  // The update is debounced (400ms), so assert through waitFor rather than
+  // synchronously after the click.
+  it('calls handleUpdateConversation when temperature changes', async () => {
     const handleUpdate = vi.fn()
     renderWithProviders(
       <ModelParams {...defaultProps} handleUpdateConversation={handleUpdate} />,
@@ -43,9 +45,11 @@ describe('ModelParams', () => {
 
     screen.getByTestId('change-temp').click()
 
-    expect(handleUpdate).toHaveBeenCalledWith(conversation, {
-      key: 'temperature',
-      value: 0.7,
-    })
+    await waitFor(() =>
+      expect(handleUpdate).toHaveBeenCalledWith(conversation, {
+        key: 'temperature',
+        value: 0.7,
+      }),
+    )
   })
 })

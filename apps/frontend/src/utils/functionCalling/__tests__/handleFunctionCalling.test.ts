@@ -175,19 +175,22 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
     expect(JSON.stringify(out)).not.toContain('secret')
   })
 
-  it('toolOutputFromSim lifts image_urls and s3_paths off the unwrapped payload', () => {
+  it('toolOutputFromSim keeps s3Paths alongside the other output fields', () => {
+    // s3_paths must survive next to data/image_urls — they are the raw keys
+    // used to re-sign after the 1h presigned URLs expire.
     const out = toolOutputFromSim({
       data: {
-        result: 'ok',
-        image_urls: ['https://example.test/a.png'],
-        s3_paths: ['proj/a.png'],
+        ok: true,
+        image_urls: ['https://signed.example/a.png'],
+        s3_paths: ['courses/cs101/a.png'],
       },
       status: 200,
       headers: {},
     })
 
-    expect(out.imageUrls).toEqual(['https://example.test/a.png'])
-    expect(out.s3Paths).toEqual(['proj/a.png'])
+    expect(out.data).toMatchObject({ ok: true })
+    expect(out.imageUrls).toEqual(['https://signed.example/a.png'])
+    expect(out.s3Paths).toEqual(['courses/cs101/a.png'])
   })
 
   it('toolOutputFromSim maps string and empty outputs', () => {

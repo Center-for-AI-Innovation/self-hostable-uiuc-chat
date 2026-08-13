@@ -630,3 +630,297 @@ describe('ConnectionManager — preserved lock test', () => {
     expect(select).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('ConnectionManager — error and degraded paths', () => {
+  it('getHostDb exposes the host drizzle instance', async () => {
+    const hostStub = makeHostDbStub([])
+    vi.doMock('~/db/dbClient', () => ({ db: hostStub.db }))
+    vi.doMock('~/utils/s3Client', () => ({ s3Client: {} }))
+    vi.doMock('~/utils/qdrantClient', () => ({ qdrant: {} }))
+    setupRedisFake()
+
+    const { connectionManager } = await import('../connectionManager')
+    expect(connectionManager.getHostDb()).toBe(hostStub.db)
+  })
+
+  it('resolveVectorEngine returns the qdrant client when qdrant_config is set', async () => {
+    const qField = await encryptJson({
+      url: 'https://qdrant.example.com',
+      api_key: 'qkey',
+      default_collection: 'proj-coll',
+    })
+    const hostStub = makeHostDbStub([
+      {
+        is_active: true,
+        s3_config: null,
+        database_config: null,
+        qdrant_config: qField,
+      },
+    ])
+    vi.doMock('~/db/dbClient', () => ({ db: hostStub.db }))
+    vi.doMock('~/utils/s3Client', () => ({ s3Client: {} }))
+    vi.doMock('~/utils/qdrantClient', () => ({ qdrant: {} }))
+    const qdrantCtor = vi.fn(function (this: any) {
+      this.kind = 'project-qdrant'
+    })
+    vi.doMock('@qdrant/js-client-rest', () => ({ QdrantClient: qdrantCtor }))
+    setupRedisFake()
+
+    const { connectionManager } = await import('../connectionManager')
+    const got = await connectionManager.resolveVectorEngine('p')
+    expect(got.kind).toBe('qdrant')
+    expect(got).toMatchObject({ collection: 'proj-coll' })
+    expect(qdrantCtor).toHaveBeenCalledWith(
+      expect.objectContaining({ apiKey: 'qkey' }),
+    )
+  })
+
+  it('throws when a project has no S3 override and no default client is configured', async () => {
+    vi.doMock('~/db/dbClient', () => ({ db: makeHostDbStub([]).db }))
+    // AWS_REGION/KEY/SECRET unset in the deployment → s3Client is undefined.
+    vi.doMock('~/utils/s3Client', () => ({ s3Client: undefined }))
+    vi.doMock('~/utils/qdrantClient', () => ({ qdrant: {} }))
+    setupRedisFake()
+
+    const { connectionManager } = await import('../connectionManager')
+    await expect(connectionManager.getS3Client('p')).rejects.toThrow(
+      /default S3 client is not configured/,
+    )
+  })
+
+  it('getQdrantClient throws when the project has no qdrant_config', async () => {
+    // Callers must route through resolveVectorEngine(); reaching here means
+    // a pgvector project was handed to the Qdrant path.
+    vi.doMock('~/db/dbClient', () => ({ db: makeHostDbStub([]).db }))
+    vi.doMock('~/utils/s3Client', () => ({ s3Client: {} }))
+    vi.doMock('~/utils/qdrantClient', () => ({ qdrant: {} }))
+    setupRedisFake()
+
+    const { connectionManager } = await import('../connectionManager')
+    await expect(connectionManager.getQdrantClient('p')).rejects.toThrow(
+      /use resolveVectorEngine\(\)/,
+    )
+  })
+
+  it('throws when the qdrant override has no collection and no env default', async () => {
+    const qField = await encryptJson({
+      url: 'https://qdrant.example.com',
+      api_key: 'qkey',
+    })
+    const hostStub = makeHostDbStub([
+      {
+        is_active: true,
+        s3_config: null,
+        database_config: null,
+        qdrant_config: qField,
+      },
+    ])
+    vi.doMock('~/db/dbClient', () => ({ db: hostStub.db }))
+    vi.doMock('~/utils/s3Client', () => ({ s3Client: {} }))
+    vi.doMock('~/utils/qdrantClient', () => ({ qdrant: {} }))
+    vi.doMock('@qdrant/js-client-rest', () => ({ QdrantClient: vi.fn() }))
+    vi.stubEnv('QDRANT_COLLECTION_NAME', '')
+    setupRedisFake()
+
+    const { connectionManager } = await import('../connectionManager')
+    await expect(connectionManager.getQdrantClient('p')).rejects.toThrow(
+      /no default_collection/,
+    )
+  })
+
+  it('serves a cached config straight from Redis without touching the host DB', async () => {
+    const hostStub = makeHostDbStub([])
+    vi.doMock('~/db/dbClient', () => ({ db: hostStub.db }))
+    vi.doMock('~/utils/s3Client', () => ({ s3Client: { kind: 'default' } }))
+    vi.doMock('~/utils/qdrantClient', () => ({ qdrant: {} }))
+    const { store } = setupRedisFake()
+    store.set(
+      'pec:config:p',
+      JSON.stringify({ s3: null, pg: null, qdrant: null, embedding: null }),
+    )
+
+    const { connectionManager } = await import('../connectionManager')
+    const got = await connectionManager.getS3Client('p')
+    expect(got.bucket).toBe('default-bucket')
+    expect(hostStub.select).not.toHaveBeenCalled()
+  })
+
+  it('continues with the in-process cache when the Redis write fails', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.doMock('~/db/dbClient', () => ({ db: makeHostDbStub([]).db }))
+    vi.doMock('~/utils/s3Client', () => ({ s3Client: {} }))
+    vi.doMock('~/utils/qdrantClient', () => ({ qdrant: {} }))
+    vi.doMock('~/utils/redisClient', () => ({
+      ensureRedisConnected: vi.fn(async () => ({
+        get: vi.fn(async () => null),
+        set: vi.fn(async () => {
+          throw new Error('redis write failed')
+        }),
+        del: vi.fn(async () => 1),
+      })),
+    }))
+
+    const { connectionManager } = await import('../connectionManager')
+    await expect(connectionManager.getS3Client('p')).resolves.toBeTruthy()
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('Redis write failed'),
+      expect.any(Error),
+    )
+    warn.mockRestore()
+  })
+
+  it('falls through to the host DB when the Redis read fails', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const hostStub = makeHostDbStub([])
+    vi.doMock('~/db/dbClient', () => ({ db: hostStub.db }))
+    vi.doMock('~/utils/s3Client', () => ({ s3Client: {} }))
+    vi.doMock('~/utils/qdrantClient', () => ({ qdrant: {} }))
+    vi.doMock('~/utils/redisClient', () => ({
+      ensureRedisConnected: vi.fn(async () => {
+        throw new Error('redis unreachable')
+      }),
+    }))
+
+    const { connectionManager } = await import('../connectionManager')
+    await expect(connectionManager.getS3Client('p')).resolves.toBeTruthy()
+    expect(hostStub.select).toHaveBeenCalledTimes(1)
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('Redis read failed'),
+      expect.any(Error),
+    )
+    warn.mockRestore()
+  })
+
+  it('invalidate() warns but completes when pool disposal and Redis del fail', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const dbField = await encryptJson({
+      connection_uri: 'postgres://u:p@host:5432/db',
+    })
+    const hostStub = makeHostDbStub([
+      {
+        is_active: true,
+        s3_config: null,
+        database_config: dbField,
+        qdrant_config: null,
+      },
+    ])
+    vi.doMock('~/db/dbClient', () => ({ db: hostStub.db }))
+    vi.doMock('~/utils/s3Client', () => ({ s3Client: {} }))
+    vi.doMock('~/utils/qdrantClient', () => ({ qdrant: {} }))
+    vi.doMock('~/utils/redisClient', () => ({
+      ensureRedisConnected: vi.fn(async () => ({
+        get: vi.fn(async () => null),
+        set: vi.fn(async () => 'OK'),
+        del: vi.fn(async () => {
+          throw new Error('redis del failed')
+        }),
+      })),
+    }))
+    vi.doMock('postgres', () => ({
+      default: vi.fn(() => ({
+        end: vi.fn().mockRejectedValue(new Error('pool stuck')),
+      })),
+    }))
+    vi.doMock('drizzle-orm/postgres-js', () => ({
+      drizzle: vi.fn(() => ({ kind: 'external' })),
+    }))
+
+    const { connectionManager } = await import('../connectionManager')
+    await connectionManager.getDocumentsDb('p')
+
+    // Neither failure may propagate: the in-process cache was already dropped.
+    await expect(connectionManager.invalidate('p')).resolves.toBeUndefined()
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('failed to dispose pg pool for p'),
+      expect.any(Error),
+    )
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('redis invalidation failed for p'),
+      expect.any(Error),
+    )
+    warn.mockRestore()
+  })
+
+  it('warns when disposing a TTL-expired pool fails', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const dbField = await encryptJson({
+      connection_uri: 'postgres://u:p@host:5432/db',
+    })
+    const hostStub = makeHostDbStub([
+      {
+        is_active: true,
+        s3_config: null,
+        database_config: dbField,
+        qdrant_config: null,
+      },
+    ])
+    vi.doMock('~/db/dbClient', () => ({ db: hostStub.db }))
+    vi.doMock('~/utils/s3Client', () => ({ s3Client: {} }))
+    vi.doMock('~/utils/qdrantClient', () => ({ qdrant: {} }))
+    setupRedisFake()
+
+    const pools: Array<{ end: ReturnType<typeof vi.fn> }> = []
+    vi.doMock('postgres', () => ({
+      default: vi.fn(() => {
+        const pool = { end: vi.fn().mockRejectedValue(new Error('stuck')) }
+        pools.push(pool)
+        return pool
+      }),
+    }))
+    vi.doMock('drizzle-orm/postgres-js', () => ({
+      drizzle: vi.fn(() => ({ kind: 'external' })),
+    }))
+
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] })
+    try {
+      const { connectionManager, DISPOSE_GRACE_MS } = await import(
+        '../connectionManager'
+      )
+      await connectionManager.getDocumentsDb('p')
+      vi.setSystemTime(Date.now() + 31 * 60 * 1000)
+      await connectionManager.getDocumentsDb('p')
+
+      vi.advanceTimersByTime(DISPOSE_GRACE_MS + 1)
+      await vi.waitFor(() =>
+        expect(warn).toHaveBeenCalledWith(
+          expect.stringContaining('failed to dispose expired pg pool for p'),
+          expect.any(Error),
+        ),
+      )
+    } finally {
+      vi.useRealTimers()
+      warn.mockRestore()
+    }
+  })
+})
+
+describe('buildQdrantUrl', () => {
+  it('returns the URL untouched when no port is configured', async () => {
+    const { buildQdrantUrl } = await import('../connectionManager')
+    expect(buildQdrantUrl({ url: 'https://qdrant.example.com' } as any)).toBe(
+      'https://qdrant.example.com',
+    )
+  })
+
+  it('grafts the configured port only when the URL lacks one', async () => {
+    const { buildQdrantUrl } = await import('../connectionManager')
+    expect(
+      buildQdrantUrl({ url: 'https://qdrant.example.com', port: 6333 } as any),
+    ).toBe('https://qdrant.example.com:6333')
+    // An explicit port in the URL wins — matching qdrant-client's
+    // `parsed_url.port or port`.
+    expect(
+      buildQdrantUrl({
+        url: 'https://qdrant.example.com:7000',
+        port: 6333,
+      } as any),
+    ).toBe('https://qdrant.example.com:7000')
+  })
+
+  it('falls back to the raw string when the URL will not parse', async () => {
+    const { buildQdrantUrl } = await import('../connectionManager')
+    expect(buildQdrantUrl({ url: 'not a url', port: 6333 } as any)).toBe(
+      'not a url',
+    )
+  })
+})

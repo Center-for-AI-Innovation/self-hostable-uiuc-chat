@@ -162,6 +162,17 @@ describe('encryptProjectConfig', () => {
       /ENCRYPTION_MASTER_KEY/,
     )
   })
+
+  it('throws when there is nothing to encrypt', async () => {
+    // JSON.stringify(undefined) is undefined, so encrypt() bails and returns
+    // no envelope — storing `{ encrypted: undefined }` would silently write a
+    // broken config row.
+    vi.stubEnv('ENCRYPTION_MASTER_KEY', MASTER)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    await expect(encryptProjectConfig(undefined)).rejects.toThrow(
+      /encrypt\(\) returned no value/,
+    )
+  })
 })
 
 describe('maskConfig', () => {

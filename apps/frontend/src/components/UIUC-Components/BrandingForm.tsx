@@ -8,6 +8,7 @@ import { IconFileUpload } from '@tabler/icons-react'
 import { FormInput } from '@/components/shadcn/ui/form-input'
 
 import SetExampleQuestions from './SetExampleQuestions'
+import ChatbotTagsEditor from './ChatbotTagsEditor'
 
 import { useQueryClient } from '@tanstack/react-query'
 import {
@@ -49,9 +50,20 @@ const BrandingForm = ({
   >(cachedMetadata?.banner_image_s3 ? 'success' : 'idle')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Subscribe to future query cache changes
+  // Subscribe to future query cache changes — but only react to events for
+  // this course's metadata key. Without this guard, *any* query observer
+  // mounting elsewhere in the tree (e.g. the tag autocomplete) would fire
+  // the callback and clobber any in-progress edits on this form.
   useEffect(() => {
-    const unsubscribe = queryClient.getQueryCache().subscribe(() => {
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      const key = event?.query?.queryKey
+      if (
+        !Array.isArray(key) ||
+        key[0] !== 'courseMetadata' ||
+        key[1] !== project_name
+      ) {
+        return
+      }
       const latestData = queryClient.getQueryData([
         'courseMetadata',
         project_name,
@@ -175,6 +187,13 @@ const BrandingForm = ({
             )}
           </div>
         </div>
+
+        {metadata && (
+          <ChatbotTagsEditor
+            course_name={project_name}
+            course_metadata={metadata as CourseMetadataOptionalForUpsert}
+          />
+        )}
 
         <div className="upload_logo form-control">
           <div className="mt-6 font-semibold">Add a logo</div>
