@@ -199,6 +199,62 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
     expect(toolOutputFromSim(undefined)).toEqual({})
   })
 
+  it('fetchSimTools sends the api key as a header, never in the query string', async () => {
+    localStorage.setItem('sim_api_key_proj', 'sk-sim-secret')
+    localStorage.setItem('sim_workspace_id_proj', 'ws-123')
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ workflows: [], failed: [] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    )
+
+    await fetchSimTools('proj')
+
+    const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit]
+    expect(url).not.toContain('sk-sim-secret')
+    expect(url).not.toContain('api_key')
+    expect((init.headers as Record<string, string>)['X-Sim-Api-Key']).toBe(
+      'sk-sim-secret',
+    )
+
+    localStorage.clear()
+  })
+
+  it('fetchSimTools warns about workflows the server could not describe', async () => {
+    localStorage.setItem('sim_api_key_proj', 'sk-sim-test')
+    localStorage.setItem('sim_workspace_id_proj', 'ws-123')
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          workflows: [
+            {
+              id: 'w1',
+              name: 'Good',
+              description: 'd',
+              inputFields: [],
+            },
+          ],
+          failed: [{ id: 'w2', name: 'Bad', reason: 'timed out' }],
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      ),
+    )
+
+    const tools = await fetchSimTools('proj')
+
+    expect(tools).toHaveLength(1)
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('could not be described'),
+      expect.stringContaining('Bad'),
+    )
+
+    localStorage.clear()
+  })
+
   it('fetchSimTools surfaces the server error message on non-ok response', async () => {
     localStorage.setItem('sim_api_key_proj', 'sk-sim-test')
     localStorage.setItem('sim_workspace_id_proj', 'ws-123')

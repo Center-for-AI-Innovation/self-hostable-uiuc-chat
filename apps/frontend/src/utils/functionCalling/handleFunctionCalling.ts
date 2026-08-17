@@ -5,6 +5,7 @@ import type { ToolOutput } from '~/types/chat'
 import { type Conversation, type Message, type UIUCTool } from '~/types/chat'
 import { type ToolParameter, type OpenAICompatibleTool } from '~/types/tools'
 import { type SimWorkflow } from '~/types/sim'
+import { type SimWorkflowFailure } from '~/utils/simDiscovery'
 import {
   type AllLLMProviders,
   type AnySupportedModel,
@@ -448,12 +449,15 @@ export async function fetchSimTools(course_name?: string): Promise<UIUCTool[]> {
   if (!usesServerConfig && (!apiKey || !workspaceId)) return []
 
   const params = new URLSearchParams({ course_name })
+  // The key travels in a header, never the query string: query strings reach
+  // access logs, proxy logs, browser history and Referer headers.
+  const headers: Record<string, string> = {}
   if (!usesServerConfig) {
-    params.set('api_key', apiKey)
     params.set('workspace_id', workspaceId)
+    headers['X-Sim-Api-Key'] = apiKey
   }
   const url = `/api/UIUC-api/getSimWorkflows?${params}`
-  const response = await fetch(url)
+  const response = await fetch(url, { headers })
 
   if (!response.ok) {
     // Surface the server's reason. Swallowing this renders a configuration or
@@ -464,7 +468,21 @@ export async function fetchSimTools(course_name?: string): Promise<UIUCTool[]> {
     )
   }
 
-  const data = (await response.json()) as { workflows: SimWorkflow[] }
+  const data = (await response.json()) as {
+    workflows: SimWorkflow[]
+    failed?: SimWorkflowFailure[]
+  }
+
+  // Workflows we could not describe are omitted server-side rather than
+  // published with a fabricated signature. Surface them so a partial result
+  // is not mistaken for the whole workspace.
+  if (data.failed?.length) {
+    console.warn(
+      '[fetchSimTools] omitted workflows that could not be described:',
+      data.failed.map((f) => `${f.name} (${f.reason})`).join(', '),
+    )
+  }
+
   if (!data.workflows?.length) return []
 
   const tools = getUIUCToolFromSim(data.workflows)

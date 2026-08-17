@@ -26,11 +26,7 @@ import {
   simConfigErrorResponse,
   validateSimBaseUrl,
 } from '~/utils/simConfig'
-import {
-  type SimWorkflow,
-  type SimWorkflowListItem,
-  type SimInputField,
-} from '~/types/sim'
+import { discoverSimWorkflows } from '~/utils/simDiscovery'
 import { type SimExecutionResult } from '~/types/sim'
 
 /**
@@ -486,52 +482,23 @@ export async function fetchToolsServer(
   const rawBaseUrl = (creds.base_url ?? SIM_DEFAULT_BASE_URL).replace(/\/$/, '')
   const simBaseUrl = validateSimBaseUrl(rawBaseUrl)
   if (!simBaseUrl) return []
-  const headers = { 'X-API-Key': creds.api_key }
 
   try {
-    const listUrl = `${simBaseUrl}/api/v1/workflows?workspaceId=${encodeURIComponent(creds.workspace_id)}&deployedOnly=true`
-    const listRes = await fetch(listUrl, { headers, signal })
+    const { workflows, failed } = await discoverSimWorkflows({
+      simBaseUrl,
+      apiKey: creds.api_key,
+      workspaceId: creds.workspace_id,
+      signal,
+    })
 
-    if (!listRes.ok) {
-      console.error('[fetchToolsServer] Sim list failed', listRes.status)
-      return []
+    // Omitted rather than offered with a fabricated signature — see
+    // discoverSimWorkflows. Log so a partially-degraded tool list is visible.
+    if (failed.length > 0) {
+      console.error(
+        `[Agent] Omitted ${failed.length} Sim workflow(s) that could not be described for ${courseName}:`,
+        failed,
+      )
     }
-
-    const listData = (await listRes.json()) as { data: SimWorkflowListItem[] }
-    const items = listData.data ?? []
-    if (items.length === 0) return []
-
-    const workflows: SimWorkflow[] = await Promise.all(
-      items.map(async (item): Promise<SimWorkflow> => {
-        try {
-          const detailRes = await fetch(
-            `${simBaseUrl}/api/v1/workflows/${item.id}`,
-            { headers, signal },
-          )
-          if (detailRes.ok) {
-            const detail = (await detailRes.json()) as Record<string, unknown>
-            return {
-              id: item.id,
-              name: item.name,
-              description: item.description ?? '',
-              inputFields: extractInputFields(detail),
-            }
-          }
-        } catch (err) {
-          console.debug(
-            '[fetchToolsServer] detail fetch failed for',
-            item.id,
-            err,
-          )
-        }
-        return {
-          id: item.id,
-          name: item.name,
-          description: item.description ?? '',
-          inputFields: [],
-        }
-      }),
-    )
 
     return getUIUCToolFromSim(workflows)
   } catch (error) {
@@ -541,19 +508,6 @@ export async function fetchToolsServer(
     )
     return []
   }
-}
-
-function extractInputFields(detail: Record<string, unknown>): SimInputField[] {
-  const inner = (detail.data ?? detail) as Record<string, unknown>
-  const inputs = inner.inputs
-  if (Array.isArray(inputs)) {
-    return inputs.map((f: Record<string, unknown>) => ({
-      name: String(f.name ?? ''),
-      type: String(f.type ?? 'string'),
-      description: f.description ? String(f.description) : undefined,
-    }))
-  }
-  return []
 }
 
 /**
