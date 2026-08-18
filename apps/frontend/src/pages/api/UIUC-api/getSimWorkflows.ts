@@ -14,29 +14,19 @@ import { getCourseMetadata, hasCourseAccess } from '~/pages/api/authorization'
 import { withAuth, type AuthenticatedRequest } from '~/utils/authMiddleware'
 
 /**
- * GET /api/UIUC-api/getSimWorkflows?course_name=X[&workspace_id=...&base_url=...]
+ * GET /api/UIUC-api/getSimWorkflows?course_name=X
  *
- * Discovers deployed workflows from SimAI.
- * - NEXT_PUBLIC_SIM_STORAGE=local  → credentials from the caller (see below)
- * - NEXT_PUBLIC_SIM_STORAGE=supabase → credentials from DB
- *
- * The Sim API key is read from the `X-Sim-Api-Key` header, never a query
- * parameter: query strings reach access logs, proxy logs, browser history and
- * Referer headers, and this value is a credential.
+ * Discovers deployed workflows from SimAI. Credentials come from the project's
+ * stored configuration and never from the caller — see `resolveSimCredentials`.
  */
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { course_name, workspace_id, base_url } = req.query as {
+  const { course_name } = req.query as {
     course_name?: string
-    workspace_id?: string
-    base_url?: string
   }
-
-  const headerApiKey = req.headers['x-sim-api-key']
-  const api_key = Array.isArray(headerApiKey) ? headerApiKey[0] : headerApiKey
 
   if (!course_name) {
     return res.status(400).json({ error: 'course_name is required' })
@@ -51,11 +41,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     return res.status(403).json({ error: 'Access denied' })
   }
 
-  const resolved = await resolveSimCredentials(course_name, {
-    api_key,
-    workspace_id,
-    base_url,
-  })
+  const resolved = await resolveSimCredentials(course_name)
 
   if (!resolved.ok) {
     // A project that has never been configured legitimately has no workflows.

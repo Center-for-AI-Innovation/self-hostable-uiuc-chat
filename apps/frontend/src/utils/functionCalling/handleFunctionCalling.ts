@@ -4,7 +4,7 @@ import posthog from 'posthog-js'
 import type { ToolOutput } from '~/types/chat'
 import { type Conversation, type Message, type UIUCTool } from '~/types/chat'
 import { type ToolParameter, type OpenAICompatibleTool } from '~/types/tools'
-import { type SimWorkflow } from '~/types/sim'
+import { type SimInputField, type SimWorkflow } from '~/types/sim'
 import { type SimWorkflowFailure } from '~/utils/simDiscovery'
 import {
   type AllLLMProviders,
@@ -201,11 +201,24 @@ export async function handleFunctionCall(
 // handleToolCall — executes tools in parallel, stores outputs in message
 // ---------------------------------------------------------------------------
 
+/**
+ * How a tool is actually run. The browser posts to our API route
+ * (`callSimFunction`); server-side callers pass an executor that talks to Sim
+ * directly, because that route is cookie-authenticated and a server has no
+ * cookie to present.
+ */
+export type SimToolExecutor = (
+  tool: UIUCTool,
+  projectName: string,
+  base_url?: string,
+) => Promise<ToolOutput>
+
 export async function handleToolCall(
   uiucToolsToRun: UIUCTool[],
   selectedConversation: Conversation,
   projectName: string,
   base_url?: string,
+  executeTool: SimToolExecutor = callSimFunction,
 ) {
   try {
     if (uiucToolsToRun.length > 0) {
@@ -240,7 +253,7 @@ export async function handleToolCall(
         }
 
         try {
-          const toolOutput = await callSimFunction(tool, projectName, base_url)
+          const toolOutput = await executeTool(tool, projectName, base_url)
           targetToolInMessage.output = toolOutput
         } catch (error: unknown) {
           console.error(`Error running tool ${tool.readableName}: ${error}`)
@@ -279,6 +292,7 @@ export async function handleToolsServer(
   projectName: string,
   base_url?: string,
   llmProviders?: AllLLMProviders,
+  executeTool: SimToolExecutor = callSimFunction,
 ): Promise<Conversation> {
   try {
     const uiucToolsToRun = await handleFunctionCall(
@@ -299,6 +313,7 @@ export async function handleToolsServer(
         selectedConversation,
         projectName,
         base_url,
+        executeTool,
       )
     }
 
@@ -364,24 +379,154 @@ export function getOpenAIToolFromUIUCTool(
 // useFetchAllWorkflows — React Query hook for tool discovery
 // ---------------------------------------------------------------------------
 
+/**
+ * How long a discovered tool list stays usable without re-asking Sim.
+ * Discovery costs one list call plus one detail call per workflow, and it runs
+ * on every page that offers tools, so the result is kept across reloads rather
+ * than only for the lifetime of a tab.
+ */
+const TOOL_CACHE_TTL_MS = 60_000
+const TOOL_CACHE_PREFIX = 'sim_tools_'
+
+interface CachedTools {
+  tools: UIUCTool[]
+  cachedAt: number
+}
+
+/**
+ * Read a project's cached tool list, or null when absent, expired or unusable.
+ *
+ * Only the tool descriptions live here — names, descriptions and input schemas,
+ * all of which the user can already see. Credentials are resolved server-side
+ * and never reach the browser, so nothing secret is being persisted.
+ */
+export function readCachedSimTools(course_name: string): CachedTools | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem(`${TOOL_CACHE_PREFIX}${course_name}`)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Partial<CachedTools>
+    if (!Array.isArray(parsed.tools) || typeof parsed.cachedAt !== 'number') {
+      return null
+    }
+    if (Date.now() - parsed.cachedAt >= TOOL_CACHE_TTL_MS) return null
+    return { tools: parsed.tools, cachedAt: parsed.cachedAt }
+  } catch {
+    // Malformed or unavailable storage is a cache miss, never a failure.
+    return null
+  }
+}
+
+function writeCachedSimTools(course_name: string, tools: UIUCTool[]): void {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(
+      `${TOOL_CACHE_PREFIX}${course_name}`,
+      JSON.stringify({ tools, cachedAt: Date.now() } satisfies CachedTools),
+    )
+  } catch {
+    // A full or disabled localStorage costs a re-fetch, nothing more.
+  }
+}
+
+/** Forget a project's cached tools, so the next read re-runs discovery. */
+export function clearCachedSimTools(course_name: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.removeItem(`${TOOL_CACHE_PREFIX}${course_name}`)
+  } catch {
+    // Nothing to do — a stale entry expires on its own.
+  }
+}
+
 export const useFetchAllWorkflows = (course_name?: string) => {
   if (!course_name) {
     throw new Error('course_name is required')
   }
 
+  const cached = readCachedSimTools(course_name)
+
   return useQuery({
     queryKey: ['tools', course_name],
     // Errors deliberately propagate so callers can show what actually failed
     // rather than an empty list that reads as "no tools configured".
-    queryFn: (): Promise<UIUCTool[]> => fetchSimTools(course_name),
+    queryFn: async (): Promise<UIUCTool[]> => {
+      const tools = await fetchSimTools(course_name)
+      writeCachedSimTools(course_name, tools)
+      return tools
+    },
+    // Seeding with the persisted entry — and telling React Query when it was
+    // taken — means a page load reuses a fresh list and refetches an expired
+    // one, rather than re-running discovery on every mount.
+    initialData: cached?.tools,
+    initialDataUpdatedAt: cached?.cachedAt,
     retry: false,
-    staleTime: 60_000,
+    staleTime: TOOL_CACHE_TTL_MS,
   })
 }
 
 // ---------------------------------------------------------------------------
 // Sim AI helpers — discovery, conversion, execution
 // ---------------------------------------------------------------------------
+
+/**
+ * An explicit "this one is needed" wins over any optional wording elsewhere in
+ * the same description. `not required` is matched first so it is read as the
+ * phrase it is, rather than as the word `required`.
+ */
+const EXPLICITLY_OPTIONAL = [
+  /\bnot\s+required\b/i,
+  /\bnot\s+mandatory\b/i,
+  /\bnot\s+needed\b/i,
+]
+
+const EXPLICITLY_REQUIRED = [
+  /\bnot\s+optional\b/i,
+  /\brequired\b/i,
+  /\bmandatory\b/i,
+]
+
+/**
+ * Optional wording. `optional` also covers `optionally`.
+ *
+ * `blank` is only read as optional in phrases that grant permission to leave it
+ * empty — the bare word appears just as readily in "must not be blank".
+ */
+const OPTIONAL_MARKERS = [
+  /\boptional/i,
+  /leave\s+(?:it\s+|them\s+|this\s+|the\s+field\s+)?blank/i,
+  /\bblank\s+if\b/i,
+  /\bif\s+(?:left\s+)?blank\b/i,
+  /\b(?:may|can|could)\s+be\s+(?:left\s+)?blank\b/i,
+  /\b(?:may|can)\s+be\s+omitted\b/i,
+]
+
+/**
+ * Decide whether a Sim input field is optional, from its description alone.
+ *
+ * Sim exposes no required flag and the API strips the per-field defaults, so
+ * prose is the only channel carrying this information — and workflow authors do
+ * use it: MRTN Tool's description text marks four of its seven fields
+ * "Optional", two of them mutually exclusive. Marking all seven required forced
+ * the model to supply both sides of an either/or pair and to invent values for
+ * fields the workflow was written to receive empty.
+ *
+ * This is a heuristic over free text and will not be perfect. It errs toward
+ * required — a field with no marker stays required — because that is the
+ * behaviour every existing workflow was published under.
+ */
+export function isOptionalInputField(field: SimInputField): boolean {
+  const description = field.description?.trim()
+  if (!description) return false
+
+  if (EXPLICITLY_OPTIONAL.some((pattern) => pattern.test(description))) {
+    return true
+  }
+  if (EXPLICITLY_REQUIRED.some((pattern) => pattern.test(description))) {
+    return false
+  }
+  return OPTIONAL_MARKERS.some((pattern) => pattern.test(description))
+}
 
 /**
  * Convert SimWorkflow[] (from API) to UIUCTool[] for the function-calling pipeline.
@@ -415,9 +560,11 @@ export function getUIUCToolFromSim(workflows: SimWorkflow[]): UIUCTool[] {
       ]),
     )
 
-    // Treat all declared input fields as required — Sim API doesn't expose
-    // a required flag, and workflows define only the fields they need.
-    const required: string[] = wf.inputFields.map((f) => f.name)
+    // Sim has no required flag, so optionality is read out of the field's own
+    // description — see isOptionalInputField.
+    const required: string[] = wf.inputFields
+      .filter((f) => !isOptionalInputField(f))
+      .map((f) => f.name)
 
     return {
       id: wf.id,
@@ -432,33 +579,25 @@ export function getUIUCToolFromSim(workflows: SimWorkflow[]): UIUCTool[] {
 
 /**
  * Fetch deployed Sim workflows for a project and return as UIUCTool[].
- * Reads credentials from localStorage and passes them to the API route.
+ *
+ * Browser-only: the route resolves the project's credentials server-side, so
+ * nothing is passed in, and the URL is relative. Server-side callers must use
+ * `fetchToolsServer`, which talks to Sim directly — calling this one there used
+ * to yield an empty list rather than an error, which read as "this project has
+ * no tools".
  */
 export async function fetchSimTools(course_name?: string): Promise<UIUCTool[]> {
   if (!course_name) return []
 
-  const usesServerConfig = process.env.NEXT_PUBLIC_SIM_STORAGE === 'supabase'
-  const apiKey =
-    typeof window !== 'undefined'
-      ? localStorage.getItem(`sim_api_key_${course_name}`) ?? ''
-      : ''
-  const workspaceId =
-    typeof window !== 'undefined'
-      ? localStorage.getItem(`sim_workspace_id_${course_name}`) ?? ''
-      : ''
-
-  if (!usesServerConfig && (!apiKey || !workspaceId)) return []
+  if (typeof window === 'undefined') {
+    throw new Error(
+      'fetchSimTools is browser-only; use fetchToolsServer on the server',
+    )
+  }
 
   const params = new URLSearchParams({ course_name })
-  // The key travels in a header, never the query string: query strings reach
-  // access logs, proxy logs, browser history and Referer headers.
-  const headers: Record<string, string> = {}
-  if (!usesServerConfig) {
-    params.set('workspace_id', workspaceId)
-    headers['X-Sim-Api-Key'] = apiKey
-  }
   const url = `/api/UIUC-api/getSimWorkflows?${params}`
-  const response = await fetch(url, { headers })
+  const response = await fetch(url)
 
   if (!response.ok) {
     // Surface the server's reason. Swallowing this renders a configuration or
@@ -557,23 +696,15 @@ export function toolOutputFromSim(output: unknown): ToolOutput {
 
 /**
  * Execute a Sim workflow via our server-side proxy route.
- * Reads api_key from localStorage and passes it in the request body.
+ *
+ * The route resolves the project's credentials and checks the workflow against
+ * its workspace, so this sends only what identifies the call.
  */
 export async function callSimFunction(
   tool: UIUCTool,
   projectName: string,
   base_url?: string,
 ): Promise<ToolOutput> {
-  const usesServerConfig = process.env.NEXT_PUBLIC_SIM_STORAGE === 'supabase'
-  const apiKey =
-    typeof window !== 'undefined'
-      ? localStorage.getItem(`sim_api_key_${projectName}`) ?? ''
-      : ''
-
-  if (!usesServerConfig && !apiKey) {
-    throw new Error('Sim API key not configured for this project')
-  }
-
   const timeStart = Date.now()
   const endpoint = base_url
     ? `${base_url}/api/UIUC-api/runSimWorkflow`
@@ -586,7 +717,6 @@ export async function callSimFunction(
       workflow_id: tool.id,
       input: tool.aiGeneratedArgumentValues ?? {},
       course_name: projectName,
-      ...(usesServerConfig ? {} : { api_key: apiKey }),
     }),
   })
 

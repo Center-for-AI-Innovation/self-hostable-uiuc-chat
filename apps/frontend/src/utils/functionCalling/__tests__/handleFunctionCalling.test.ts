@@ -9,6 +9,7 @@ import {
   handleFunctionCall,
   handleToolCall,
   handleToolsServer,
+  isOptionalInputField,
   toolOutputFromSim,
   unwrapSimOutput,
 } from '../handleFunctionCalling'
@@ -215,7 +216,8 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
     expect(toolOutputFromSim(undefined)).toEqual({})
   })
 
-  it('fetchSimTools sends the api key as a header, never in the query string', async () => {
+  it('fetchSimTools sends no credentials at all — the server resolves them', async () => {
+    // A key in localStorage is a leftover from the old design; nothing reads it.
     localStorage.setItem('sim_api_key_proj', 'sk-sim-secret')
     localStorage.setItem('sim_workspace_id_proj', 'ws-123')
 
@@ -228,12 +230,12 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
 
     await fetchSimTools('proj')
 
-    const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit]
+    const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit?]
+    expect(url).toContain('course_name=proj')
     expect(url).not.toContain('sk-sim-secret')
     expect(url).not.toContain('api_key')
-    expect((init.headers as Record<string, string>)['X-Sim-Api-Key']).toBe(
-      'sk-sim-secret',
-    )
+    expect(url).not.toContain('workspace_id')
+    expect(JSON.stringify(init ?? {})).not.toContain('sk-sim-secret')
 
     localStorage.clear()
   })
@@ -994,5 +996,98 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
 
     expect(updated).toBe(conversation)
     expect(updated.messages).toHaveLength(1)
+  })
+})
+
+describe('optional input detection', () => {
+  function optional(description?: string) {
+    return isOptionalInputField({ name: 'f', type: 'string', description })
+  }
+
+  it('marks fields the author called optional', () => {
+    expect(optional('Optional sub-region for IL/IN')).toBe(true)
+    expect(optional('optionally narrows the search')).toBe(true)
+    expect(optional('This field is not required')).toBe(true)
+    expect(optional('Not mandatory')).toBe(true)
+  })
+
+  it('marks fields the author said may be left empty', () => {
+    expect(
+      optional('Optional — leave blank if providing fertilizer price per ton'),
+    ).toBe(true)
+    expect(optional('Leave it blank to use the default')).toBe(true)
+    expect(optional('May be left blank')).toBe(true)
+    expect(optional('Can be omitted for corn')).toBe(true)
+    expect(optional('Blank if unknown')).toBe(true)
+  })
+
+  it('keeps fields required when nothing says otherwise', () => {
+    expect(optional('Two-letter state code')).toBe(false)
+    expect(optional('Crop rotation')).toBe(false)
+    expect(optional('')).toBe(false)
+    expect(optional(undefined)).toBe(false)
+  })
+
+  it('does not read a prohibition on blanks as permission', () => {
+    // The bare word `blank` appears just as readily in the opposite claim.
+    expect(optional('Must not be blank')).toBe(false)
+    expect(optional('Cannot be blank')).toBe(false)
+  })
+
+  it('lets an explicit requirement win over optional wording', () => {
+    expect(optional('Optional in theory, but required for IL')).toBe(false)
+    expect(optional('This one is not optional')).toBe(false)
+    expect(optional('Mandatory')).toBe(false)
+  })
+
+  it('reads "not required" as a phrase, not as the word "required"', () => {
+    expect(optional('Not required when a price per ton is given')).toBe(true)
+  })
+
+  it('splits the real MRTN fields the way its author wrote them', () => {
+    // Descriptions taken from the deployed workflow: four of seven are marked
+    // optional, and two of those are alternatives to each other.
+    const [tool] = getUIUCToolFromSim([
+      {
+        id: 'wf-mrtn',
+        name: 'MRTN Tool',
+        description: '',
+        inputFields: [
+          { name: 'state', type: 'string' },
+          { name: 'rotation', type: 'string' },
+          { name: 'corn_price', type: 'string' },
+          {
+            name: 'n_price_per_lb',
+            type: 'string',
+            description:
+              'Optional. Leave blank if providing fertilizer price per ton',
+          },
+          {
+            name: 'fertilizer_product',
+            type: 'string',
+            description: 'Optional Fertilizer type',
+          },
+          {
+            name: 'fertilizer_price_per_ton',
+            type: 'string',
+            description:
+              'Optional. Used with Fertilizer Product to derive N price',
+          },
+          {
+            name: 'region',
+            type: 'string',
+            description: 'Optional sub-region for IL/IN',
+          },
+        ],
+      },
+    ])
+
+    expect(tool?.inputParameters?.required).toEqual([
+      'state',
+      'rotation',
+      'corn_price',
+    ])
+    // Every field is still offered to the model — only the obligation changed.
+    expect(Object.keys(tool?.inputParameters?.properties ?? {})).toHaveLength(7)
   })
 })

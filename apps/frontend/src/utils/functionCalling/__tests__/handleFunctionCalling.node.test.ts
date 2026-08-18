@@ -16,10 +16,12 @@ describe('handleFunctionCalling (node)', () => {
     await expect(fetchSimTools()).resolves.toEqual([])
   })
 
-  it('fetchSimTools returns [] when no api_key/workspace_id in localStorage (server-side)', async () => {
+  it('fetchSimTools refuses to run server-side instead of reporting no tools', async () => {
     const { fetchSimTools } = await import('../handleFunctionCalling')
-    // In node env, typeof window === 'undefined', so localStorage is not accessed
-    await expect(fetchSimTools('proj')).resolves.toEqual([])
+    // It fetches a relative URL, which has no base on the server. Returning []
+    // here is what made the public chat API look like a project with no tools;
+    // failing loudly points the caller at fetchToolsServer instead.
+    await expect(fetchSimTools('proj')).rejects.toThrow(/browser-only/i)
   })
 
   it('handleToolCall skips tools missing invocationId', async () => {

@@ -1,7 +1,9 @@
 /* @vitest-environment node */
 
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  assertWorkflowInWorkspace,
+  clearWorkspaceMembershipCache,
   discoverSimWorkflows,
   extractInputFields,
   SimListError,
@@ -216,5 +218,94 @@ describe('extractInputFields', () => {
 
   it('returns [] when inputs are absent', () => {
     expect(extractInputFields({ data: {} })).toEqual([])
+  })
+})
+
+describe('assertWorkflowInWorkspace', () => {
+  beforeEach(() => {
+    clearWorkspaceMembershipCache()
+  })
+
+  function check(workflowId: string) {
+    return assertWorkflowInWorkspace({
+      simBaseUrl: BASE,
+      apiKey: 'k',
+      workspaceId: 'ws-1',
+      workflowId,
+    })
+  }
+
+  it('authorizes a workflow the workspace listing contains', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      listResponse([
+        { id: 'wf-1', name: 'One' },
+        { id: 'wf-2', name: 'Two' },
+      ]),
+    )
+
+    await expect(check('wf-2')).resolves.toBe(true)
+  })
+
+  it('refuses a workflow outside the listing', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      listResponse([{ id: 'wf-1', name: 'One' }]),
+    )
+
+    await expect(check('wf-other')).resolves.toBe(false)
+  })
+
+  it('scopes the listing to the project workspace and deployed workflows', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(listResponse([{ id: 'wf-1', name: 'One' }]))
+
+    await check('wf-1')
+
+    const [url] = fetchSpy.mock.calls[0] as [string]
+    expect(url).toContain('workspaceId=ws-1')
+    expect(url).toContain('deployedOnly=true')
+  })
+
+  it('answers repeat checks from one listing, including refusals', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(listResponse([{ id: 'wf-1', name: 'One' }]))
+
+    await expect(check('wf-1')).resolves.toBe(true)
+    // A caller guessing ids must not be able to drive one upstream request per
+    // attempt, so a miss is answered from the same cached listing.
+    await expect(check('nope-1')).resolves.toBe(false)
+    await expect(check('nope-2')).resolves.toBe(false)
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('is already warm after discovery, so the check costs no extra request', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(listResponse([{ id: 'wf-1', name: 'One' }]))
+      .mockResolvedValueOnce(detailResponse([]))
+
+    await discoverSimWorkflows({
+      simBaseUrl: BASE,
+      apiKey: 'k',
+      workspaceId: 'ws-1',
+    })
+    const callsAfterDiscovery = fetchSpy.mock.calls.length
+
+    await expect(check('wf-1')).resolves.toBe(true)
+    await expect(check('wf-nope')).resolves.toBe(false)
+
+    expect(fetchSpy.mock.calls.length).toBe(callsAfterDiscovery)
+  })
+
+  it('propagates an upstream listing failure rather than refusing silently', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response('nope', { status: 401 }),
+    )
+
+    // A refusal here would read as "this workflow is not yours"; the caller
+    // needs to know Sim rejected the key instead.
+    await expect(check('wf-1')).rejects.toBeInstanceOf(SimListError)
   })
 })

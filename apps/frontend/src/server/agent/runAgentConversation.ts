@@ -146,7 +146,7 @@ export async function runAgentConversation(
     if (abortIfNeeded()) {
       return cancelledResult
     }
-    availableTools = await fetchToolsServer(courseName, undefined, 20, signal)
+    availableTools = await fetchToolsServer(courseName, signal)
   } catch (error) {
     console.error(
       `[Agent] Error fetching tools for course ${courseName}:`,
@@ -542,7 +542,6 @@ export async function runAgentConversation(
         const executedTools = await executeToolsServer(
           simTools,
           courseName,
-          undefined,
           signal,
         )
 

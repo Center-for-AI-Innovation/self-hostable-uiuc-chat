@@ -24,9 +24,13 @@ import { conversationToMessages as baseConversationToMessages } from '~/utils/fu
 import {
   resolveSimCredentials,
   simConfigErrorResponse,
+  SIM_DEFAULT_BASE_URL,
   validateSimBaseUrl,
 } from '~/utils/simConfig'
-import { discoverSimWorkflows } from '~/utils/simDiscovery'
+import {
+  assertWorkflowInWorkspace,
+  discoverSimWorkflows,
+} from '~/utils/simDiscovery'
 import { type SimExecutionResult } from '~/types/sim'
 
 /**
@@ -237,11 +241,9 @@ export async function selectToolsServer(
 export interface ExecuteToolServerParams {
   tool: UIUCTool
   projectName: string
-  simApiKey?: string
   signal?: AbortSignal
 }
 
-const SIM_DEFAULT_BASE_URL = 'https://www.sim.ai'
 const SIM_TIMEOUT_MS = 300_000
 
 /**
@@ -251,12 +253,10 @@ const SIM_TIMEOUT_MS = 300_000
 export async function executeToolServer(
   params: ExecuteToolServerParams,
 ): Promise<UIUCTool> {
-  const { tool, projectName, simApiKey, signal } = params
+  const { tool, projectName, signal } = params
   const toolCopy = { ...tool }
 
-  const resolved = await resolveSimCredentials(projectName, {
-    api_key: simApiKey,
-  })
+  const resolved = await resolveSimCredentials(projectName)
 
   if (!resolved.ok) {
     toolCopy.error = simConfigErrorResponse(resolved.reason).error
@@ -271,6 +271,37 @@ export async function executeToolServer(
     toolCopy.error = 'Invalid Sim base URL'
     return toolCopy
   }
+  if (!creds.workspace_id) {
+    toolCopy.error = simConfigErrorResponse('missing_workspace_id').error
+    return toolCopy
+  }
+
+  // The same gate the HTTP route applies. Ids reaching here come from
+  // workspace-scoped discovery, so this should always pass — it is enforced
+  // anyway so that no execution path depends on its caller having checked, and
+  // discovery has already warmed the listing this reads.
+  try {
+    const allowed = await assertWorkflowInWorkspace({
+      simBaseUrl,
+      apiKey: creds.api_key,
+      workspaceId: creds.workspace_id,
+      workflowId: tool.id,
+      signal,
+    })
+    if (!allowed) {
+      console.warn('[executeToolServer] workflow outside project workspace', {
+        projectName,
+        workflowId: tool.id,
+      })
+      toolCopy.error = 'This workflow is not available for this project'
+      return toolCopy
+    }
+  } catch (error) {
+    console.error('[executeToolServer] workspace check failed', error)
+    toolCopy.error = 'Could not verify the workflow against Sim'
+    return toolCopy
+  }
+
   const url = `${simBaseUrl}/api/workflows/${encodeURIComponent(tool.id)}/execute`
 
   const timeStart = Date.now()
@@ -343,13 +374,10 @@ export async function executeToolServer(
 export async function executeToolsServer(
   tools: UIUCTool[],
   projectName: string,
-  simApiKey?: string,
   signal?: AbortSignal,
 ): Promise<UIUCTool[]> {
   const results = await Promise.all(
-    tools.map((tool) =>
-      executeToolServer({ tool, projectName, simApiKey, signal }),
-    ),
+    tools.map((tool) => executeToolServer({ tool, projectName, signal })),
   )
   return results
 }
@@ -454,13 +482,9 @@ export async function fetchContextsServer(
  */
 export async function fetchToolsServer(
   courseName: string,
-  simApiKey?: string,
-  _limit = 20,
   signal?: AbortSignal,
 ): Promise<UIUCTool[]> {
-  const resolved = await resolveSimCredentials(courseName, {
-    api_key: simApiKey,
-  })
+  const resolved = await resolveSimCredentials(courseName)
 
   if (!resolved.ok) {
     if (resolved.reason !== 'not_configured') {

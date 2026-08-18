@@ -27,14 +27,14 @@ import SettingsLayout, {
 } from '~/components/Layout/SettingsLayout'
 import { type CourseMetadata } from '~/types/courseMetadata'
 import { fetchCourseMetadata } from '~/utils/apiUtils'
-import { useFetchAllWorkflows } from '~/utils/functionCalling/handleFunctionCalling'
+import {
+  clearCachedSimTools,
+  useFetchAllWorkflows,
+} from '~/utils/functionCalling/handleFunctionCalling'
 import { useResponsiveCardWidth } from '~/utils/responsiveGrid'
 import { CannotEditCourse } from './CannotEditCourse'
 import GlobalFooter from './GlobalFooter'
 import { LoadingPlaceholderForAdminPages } from './MainPageBackground'
-
-const STORAGE_KEY_API = 'sim_api_key'
-const STORAGE_KEY_WORKSPACE = 'sim_workspace_id'
 
 function maskKey(key: string): string {
   if (key.length <= 8) return '*'.repeat(key.length)
@@ -44,8 +44,6 @@ function maskKey(key: string): string {
 const SimPage = ({ course_name }: { course_name: string }) => {
   const router = useRouter()
   const auth = useAuth()
-  const usesServerConfig = process.env.NEXT_PUBLIC_SIM_STORAGE === 'supabase'
-
   const [courseMetadata, setCourseMetadata] = useState<CourseMetadata | null>(
     null,
   )
@@ -68,41 +66,32 @@ const SimPage = ({ course_name }: { course_name: string }) => {
     refetch: refetchWorkflows,
   } = useFetchAllWorkflows(course_name)
 
-  // Load saved config on mount.
+  // Load saved config on mount. The stored project row is the only source of
+  // truth — the browser holds no copy of the credentials, so every user of the
+  // project gets the same tools rather than only the admin who typed the key.
   useEffect(() => {
-    if (usesServerConfig) {
-      fetch(`/api/UIUC-api/tools/getSimConfig?course_name=${course_name}`)
-        .then((response) => (response.ok ? response.json() : null))
-        .then(
-          (
-            config: {
-              sim_api_key?: string | null
-              sim_workspace_id?: string | null
-            } | null,
-          ) => {
-            if (!config) return
-            if (config.sim_api_key) setApiKeyInput(config.sim_api_key)
-            if (config.sim_workspace_id)
-              setWorkspaceIdInput(config.sim_workspace_id)
-            setHasSavedConfig(
-              Boolean(config.sim_api_key && config.sim_workspace_id),
-            )
-          },
-        )
-        .catch((error) => {
-          console.debug('[SimPage] failed to load Sim config', error)
-        })
-      return
-    }
-
-    const savedKey = localStorage.getItem(`${STORAGE_KEY_API}_${course_name}`)
-    const savedWorkspace = localStorage.getItem(
-      `${STORAGE_KEY_WORKSPACE}_${course_name}`,
-    )
-    if (savedKey) setApiKeyInput(savedKey)
-    if (savedWorkspace) setWorkspaceIdInput(savedWorkspace)
-    setHasSavedConfig(Boolean(savedKey && savedWorkspace))
-  }, [course_name, usesServerConfig])
+    fetch(`/api/UIUC-api/tools/getSimConfig?course_name=${course_name}`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then(
+        (
+          config: {
+            sim_api_key?: string | null
+            sim_workspace_id?: string | null
+          } | null,
+        ) => {
+          if (!config) return
+          if (config.sim_api_key) setApiKeyInput(config.sim_api_key)
+          if (config.sim_workspace_id)
+            setWorkspaceIdInput(config.sim_workspace_id)
+          setHasSavedConfig(
+            Boolean(config.sim_api_key && config.sim_workspace_id),
+          )
+        },
+      )
+      .catch((error) => {
+        console.debug('[SimPage] failed to load Sim config', error)
+      })
+  }, [course_name])
 
   // Fetch course metadata + auth
   useEffect(() => {
@@ -128,7 +117,6 @@ const SimPage = ({ course_name }: { course_name: string }) => {
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      // Persist credentials server-side (DB when available, falls back gracefully)
       const upsertRes = await fetch('/api/UIUC-api/tools/upsertSimConfig', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -139,19 +127,21 @@ const SimPage = ({ course_name }: { course_name: string }) => {
         }),
       })
 
-      if (!usesServerConfig) {
-        localStorage.setItem(
-          `${STORAGE_KEY_WORKSPACE}_${course_name}`,
-          workspaceIdInput,
-        )
-        localStorage.setItem(`${STORAGE_KEY_API}_${course_name}`, apiKeyInput)
-      }
-
+      // `fetch` only rejects on transport failure, so a 4xx/5xx save would
+      // otherwise fall through to the success toast below.
       if (!upsertRes.ok) {
-        console.debug('[SimPage] DB upsert returned', upsertRes.status)
+        const body = (await upsertRes.json().catch(() => ({}))) as {
+          error?: string
+        }
+        throw new Error(
+          body.error ?? `Save failed with status ${upsertRes.status}`,
+        )
       }
 
       setHasSavedConfig(Boolean(apiKeyInput && workspaceIdInput))
+      // The credentials just changed, so any tools discovered under the old
+      // ones are wrong; drop the cache before refetching.
+      clearCachedSimTools(course_name)
       refetchWorkflows()
 
       notifications.show({
@@ -164,10 +154,14 @@ const SimPage = ({ course_name }: { course_name: string }) => {
         styles: notificationStyles(false),
       })
     } catch (error) {
+      console.error('[SimPage] failed to save Sim config', error)
       notifications.show({
         id: 'sim-config-error',
         title: 'Error',
-        message: 'Failed to save Sim AI configuration.',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Failed to save Sim AI configuration.',
         autoClose: 10000,
         color: 'red',
         icon: <IconAlertCircle />,

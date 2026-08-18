@@ -5,9 +5,15 @@ import { db } from '~/db/dbClient'
 import { projects } from '~/db/schema'
 import { type SimProjectConfig } from '~/types/sim'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
+import { invalidateSimConfigCache } from '~/utils/simConfig'
 
 /**
  * POST /api/UIUC-api/tools/upsertSimConfig
+ *
+ * Only the fields present in the body are written. Defaulting the absent ones
+ * to NULL made saving credentials wipe `sim_base_url` — the sole way to point a
+ * project at a self-hosted Sim — because the form never sends that field.
+ * Sending an explicit `null` still clears a value.
  */
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -19,16 +25,31 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     return res.status(400).json({ error: 'course_name is required' })
   }
 
-  const {
-    sim_api_key = null,
-    sim_base_url = null,
-    sim_workspace_id = null,
-  } = req.body as Partial<SimProjectConfig>
+  const body = req.body as Partial<SimProjectConfig>
+  const update: Partial<SimProjectConfig> = {}
+  if ('sim_api_key' in body) update.sim_api_key = body.sim_api_key ?? null
+  if ('sim_base_url' in body) update.sim_base_url = body.sim_base_url ?? null
+  if ('sim_workspace_id' in body) {
+    update.sim_workspace_id = body.sim_workspace_id ?? null
+  }
 
-  await db
+  if (Object.keys(update).length === 0) {
+    return res.status(400).json({ error: 'No Sim configuration fields given' })
+  }
+
+  const updated = await db
     .update(projects)
-    .set({ sim_api_key, sim_base_url, sim_workspace_id })
+    .set(update)
     .where(eq(projects.course_name, courseName))
+    .returning({ course_name: projects.course_name })
+
+  // A bare UPDATE against a missing row affects nothing and used to report
+  // success, so the caller was told a save happened that never did.
+  if (updated.length === 0) {
+    return res.status(404).json({ error: 'Project not found' })
+  }
+
+  invalidateSimConfigCache(courseName)
 
   return res.status(200).json({ success: true })
 }

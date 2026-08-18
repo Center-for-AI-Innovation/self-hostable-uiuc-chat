@@ -6,6 +6,7 @@ import {
   type Content,
   type Conversation,
   type Message,
+  type ToolOutput,
   type UIUCTool,
 } from '~/types/chat'
 import fetchCourseMetadataServer from '~/pages/api/chat-api/util/fetchCourseMetadataServer'
@@ -29,10 +30,11 @@ import { DEFAULT_SYSTEM_PROMPT } from '~/utils/app/const'
 import { v4 as uuidv4 } from 'uuid'
 import { getBaseUrl } from '~/utils/apiUtils'
 
+import { handleToolsServer } from '~/utils/functionCalling/handleFunctionCalling'
 import {
-  fetchSimTools,
-  handleToolsServer,
-} from '~/utils/functionCalling/handleFunctionCalling'
+  executeToolServer,
+  fetchToolsServer,
+} from '~/server/agent/agentServerUtils'
 import {
   type AllLLMProviders,
   type AnySupportedModel,
@@ -41,6 +43,22 @@ import {
 } from '~/utils/modelProviders/LLMProvider'
 import { buildPrompt } from '~/app/utils/buildPromptUtils'
 import { type AuthContextProps } from 'react-oidc-context'
+
+/**
+ * Run one Sim tool in-process and return its output in the shape the tool
+ * pipeline expects.
+ *
+ * `executeToolServer` reports failure on the returned tool rather than by
+ * throwing; the pipeline's contract is the opposite, so translate here.
+ */
+async function executeToolFromApi(
+  tool: UIUCTool,
+  projectName: string,
+): Promise<ToolOutput> {
+  const executed = await executeToolServer({ tool, projectName })
+  if (executed.error) throw new Error(executed.error)
+  return executed.output ?? {}
+}
 
 /**
  * The chat API endpoint for handling chat requests and streaming/non streaming responses.
@@ -177,7 +195,10 @@ export default async function chat(
   let availableTools: UIUCTool[] = []
   if (!retrieval_only) {
     try {
-      availableTools = await fetchSimTools(course_name!)
+      // Server-side discovery: talks to Sim directly. The browser helper
+      // (`fetchSimTools`) fetches a relative URL and has no base here, so it
+      // could only ever return nothing on this path.
+      availableTools = await fetchToolsServer(course_name!)
     } catch (error) {
       console.error('Error fetching tools.', error)
       availableTools = []
@@ -318,6 +339,10 @@ export default async function chat(
       course_name,
       getBaseUrl(),
       llmProviders,
+      // Run tools in-process. Posting to /api/UIUC-api/runSimWorkflow would
+      // require the Keycloak cookie this route does not have — it authenticates
+      // callers by API key — so the call would come back 401.
+      (tool, projectName) => executeToolFromApi(tool, projectName),
     )
   }
 
