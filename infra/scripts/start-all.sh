@@ -78,6 +78,44 @@ if [ "$wipe_data" = true ]; then
 	"${COMPOSE[@]}" down -v --remove-orphans
 fi
 
+# Sim's four secrets have no defaults in docker-compose.sim.yaml — a working
+# default would be a published key, and API_ENCRYPTION_KEY is what encrypts
+# stored Sim API keys. Generate per-deployment values on first run and persist
+# them, the same way ENCRYPTION_MASTER_KEY is handled.
+ensure_sim_secrets() {
+	local name value
+	for name in SIM_API_ENCRYPTION_KEY SIM_BETTER_AUTH_SECRET SIM_ENCRYPTION_KEY SIM_INTERNAL_API_SECRET; do
+		eval "value=\${$name:-}"
+		if [ -n "$value" ]; then
+			continue
+		fi
+		if [ "$name" = "SIM_API_ENCRYPTION_KEY" ]; then
+			# Sim validates this one as exactly 64 hex characters.
+			value="$(openssl rand -hex 32)"
+		else
+			value="$(openssl rand -base64 32 | tr -d '=+/' | cut -c1-40)"
+		fi
+		export "$name=$value"
+		if grep -q "^${name}=" .env; then
+			sed -i.bak "s|^${name}=.*|${name}=\"${value}\"|" .env
+			rm -f .env.bak
+		else
+			printf '%s="%s"\n' "$name" "$value" >>.env
+		fi
+		echo "[INFO] Generated ${name} into .env"
+		case "$name" in
+		SIM_ENCRYPTION_KEY | SIM_API_ENCRYPTION_KEY)
+			echo "[WARNING] ${name} was not set, so a new one was generated. Anything Sim already encrypted under a previous value cannot be decrypted with it — re-enter secrets stored inside Sim workflows if this stack has existing data."
+			;;
+		SIM_BETTER_AUTH_SECRET)
+			echo "[WARNING] SIM_BETTER_AUTH_SECRET was not set, so a new one was generated. Existing Sim sessions are invalidated; sign in again."
+			;;
+		esac
+	done
+}
+
+ensure_sim_secrets
+
 log "Pulling Sim AI images"
 "${COMPOSE[@]}" pull simstudio sim-realtime sim-migrations
 

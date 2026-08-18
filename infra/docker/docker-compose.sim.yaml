@@ -1,6 +1,6 @@
 services:
   simstudio:
-    image: ghcr.io/simstudioai/simstudio:${SIM_IMAGE_TAG:-latest}
+    image: ${SIM_APP_IMAGE:-ghcr.io/simstudioai/simstudio@sha256:8341f8b3e8e564e46859fe4dba02462101627307f0907b19d879b1d253fa75a8}
     restart: unless-stopped
     ports:
       - "${SIM_APP_PORT:-3010}:3000"
@@ -11,10 +11,10 @@ services:
       DATABASE_URL: postgresql://${SIM_POSTGRES_USER:-postgres}:${SIM_POSTGRES_PASSWORD}@sim-db:5432/${SIM_POSTGRES_DB:-simstudio}
       BETTER_AUTH_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
       NEXT_PUBLIC_APP_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
-      BETTER_AUTH_SECRET: ${SIM_BETTER_AUTH_SECRET:-sim-dev-secret-at-least-32-characters}
-      ENCRYPTION_KEY: ${SIM_ENCRYPTION_KEY:-sim-dev-encryption-key-at-least-32-chars}
-      API_ENCRYPTION_KEY: ${SIM_API_ENCRYPTION_KEY:-}
-      INTERNAL_API_SECRET: ${SIM_INTERNAL_API_SECRET:-sim-dev-internal-api-secret-32-chars}
+      BETTER_AUTH_SECRET: ${SIM_BETTER_AUTH_SECRET:?set it in .env — start-dev.sh/start-all.sh generate one}
+      ENCRYPTION_KEY: ${SIM_ENCRYPTION_KEY:?set it in .env — start-dev.sh/start-all.sh generate one}
+      API_ENCRYPTION_KEY: ${SIM_API_ENCRYPTION_KEY:?set it in .env — 64 hex chars, see .env.template}
+      INTERNAL_API_SECRET: ${SIM_INTERNAL_API_SECRET:?set it in .env — start-dev.sh/start-all.sh generate one}
       REDIS_URL: ${SIM_REDIS_URL:-}
       SOCKET_SERVER_URL: http://sim-realtime:3002
       NEXT_PUBLIC_SOCKET_URL: ${SIM_NEXT_PUBLIC_SOCKET_URL:-http://localhost:3011}
@@ -48,7 +48,7 @@ services:
       start_period: 45s
 
   sim-realtime:
-    image: ghcr.io/simstudioai/realtime:${SIM_IMAGE_TAG:-latest}
+    image: ${SIM_REALTIME_IMAGE:-ghcr.io/simstudioai/realtime@sha256:9713a7fb7dae86e034ee18cd70fc1077fd41a6975641dca0936e847699dc33ef}
     restart: unless-stopped
     ports:
       - "${SIM_REALTIME_PORT:-3011}:3002"
@@ -59,8 +59,8 @@ services:
       DATABASE_URL: postgresql://${SIM_POSTGRES_USER:-postgres}:${SIM_POSTGRES_PASSWORD}@sim-db:5432/${SIM_POSTGRES_DB:-simstudio}
       NEXT_PUBLIC_APP_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
       BETTER_AUTH_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
-      BETTER_AUTH_SECRET: ${SIM_BETTER_AUTH_SECRET:-sim-dev-secret-at-least-32-characters}
-      INTERNAL_API_SECRET: ${SIM_INTERNAL_API_SECRET:-sim-dev-internal-api-secret-32-chars}
+      BETTER_AUTH_SECRET: ${SIM_BETTER_AUTH_SECRET:?set it in .env — start-dev.sh/start-all.sh generate one}
+      INTERNAL_API_SECRET: ${SIM_INTERNAL_API_SECRET:?set it in .env — start-dev.sh/start-all.sh generate one}
       REDIS_URL: ${SIM_REDIS_URL:-}
     depends_on:
       sim-db:
@@ -73,7 +73,7 @@ services:
       start_period: 10s
 
   sim-migrations:
-    image: ghcr.io/simstudioai/migrations:${SIM_IMAGE_TAG:-latest}
+    image: ${SIM_MIGRATIONS_IMAGE:-ghcr.io/simstudioai/migrations@sha256:b2831fd7453651a051b1e7cb72e52a12cf6ecf72441298f03b01195f973149be}
     networks:
       - uiuc-chat-network
     working_dir: /app/packages/db
@@ -312,7 +312,7 @@ services:
     restart: "no"
 
   sim-sso-setup:
-    image: ghcr.io/simstudioai/migrations:${SIM_IMAGE_TAG:-latest}
+    image: ${SIM_MIGRATIONS_IMAGE:-ghcr.io/simstudioai/migrations@sha256:b2831fd7453651a051b1e7cb72e52a12cf6ecf72441298f03b01195f973149be}
     networks:
       - uiuc-chat-network
     working_dir: /app
