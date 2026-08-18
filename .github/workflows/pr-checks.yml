@@ -62,6 +62,18 @@ jobs:
         working-directory: apps/frontend
         run: npm ci
 
+      # The branch that added Sim shipped a `next build` failure — a free
+      # variable left behind by a deleted block — because nothing in CI
+      # typechecks: vitest does not, and trunk runs with check-mode: none.
+      #
+      # Scoped to shipped source via tsconfig.typecheck.json. The test files
+      # carry ~250 pre-existing errors that predate this workflow; gating on
+      # them would fail every PR regardless of its contents, the same trap the
+      # trunk comment above describes.
+      - name: Frontend typecheck
+        working-directory: apps/frontend
+        run: npm run typecheck
+
       - name: Frontend tests
         working-directory: apps/frontend
         run: npm run test:coverage:check

@@ -10,6 +10,7 @@
     "dev": "infisical run --env=dev -- next dev",
     "local": "next dev",
     "lint": "next lint --max-warnings=10000",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
