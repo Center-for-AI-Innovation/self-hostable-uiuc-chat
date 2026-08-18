@@ -85,11 +85,27 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
         required: ['first_name', 'count'],
       }),
     })
-    // No inputs → default 'input' field
+    // No declared inputs → no arguments, not a fabricated `input` parameter.
     expect(tools[1]).toMatchObject({
       id: 'w2',
       name: 'sim_no_inputs',
-      inputParameters: expect.objectContaining({ required: ['input'] }),
+      inputParameters: { type: 'object', properties: {}, required: [] },
+    })
+  })
+
+  it('advertises an input-less workflow as taking no arguments', () => {
+    const workflows = [
+      { id: 'w2', name: 'No Inputs', description: '', inputFields: [] },
+    ] as any
+
+    const [schema] = getOpenAIToolFromUIUCTool(getUIUCToolFromSim(workflows))
+
+    // Valid JSON Schema for a zero-argument function; crucially the model is
+    // not told to supply an `input` the workflow never declared.
+    expect(schema?.function.parameters).toEqual({
+      type: 'object',
+      properties: {},
+      required: [],
     })
   })
 

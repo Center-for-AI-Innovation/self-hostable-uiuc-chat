@@ -395,28 +395,29 @@ export function getUIUCToolFromSim(workflows: SimWorkflow[]): UIUCTool[] {
       .replace(/^_|_$/g, '')
       .slice(0, 59)
 
-    const properties: Record<string, ToolParameter> =
-      wf.inputFields.length > 0
-        ? Object.fromEntries(
-            wf.inputFields.map((f) => [
-              f.name,
-              {
-                type:
-                  f.type === 'number'
-                    ? 'number'
-                    : f.type === 'boolean'
-                      ? 'Boolean'
-                      : 'string',
-                description: f.description ?? f.name,
-              } satisfies ToolParameter,
-            ]),
-          )
-        : { input: { type: 'string', description: 'Input for the workflow' } }
+    // A workflow with no declared inputs takes no arguments. Emit an empty
+    // schema rather than inventing a generic `input` parameter: discovery now
+    // omits workflows it could not describe, so an empty field list means the
+    // workflow genuinely accepts nothing, and a fabricated required parameter
+    // would make the model pass an argument the workflow never asked for.
+    const properties: Record<string, ToolParameter> = Object.fromEntries(
+      wf.inputFields.map((f) => [
+        f.name,
+        {
+          type:
+            f.type === 'number'
+              ? 'number'
+              : f.type === 'boolean'
+                ? 'Boolean'
+                : 'string',
+          description: f.description ?? f.name,
+        } satisfies ToolParameter,
+      ]),
+    )
 
     // Treat all declared input fields as required — Sim API doesn't expose
     // a required flag, and workflows define only the fields they need.
-    const required: string[] =
-      wf.inputFields.length > 0 ? wf.inputFields.map((f) => f.name) : ['input']
+    const required: string[] = wf.inputFields.map((f) => f.name)
 
     return {
       id: wf.id,
