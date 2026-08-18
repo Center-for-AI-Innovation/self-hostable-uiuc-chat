@@ -189,7 +189,7 @@ export async function discoverSimWorkflows(params: {
   workspaceId: string
   signal?: AbortSignal
 }): Promise<SimDiscoveryResult> {
-  const { simBaseUrl, apiKey, workspaceId, signal } = params
+  const { simBaseUrl, apiKey, signal } = params
   const headers = { 'X-API-Key': apiKey }
 
   const items = await listDeployedWorkflows(params)
