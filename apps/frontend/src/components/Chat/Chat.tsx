@@ -1824,7 +1824,7 @@ export const Chat = memo(
             <h4
               className={`text-md mb-2 text-[--welcome-foreground] ${montserrat_paragraph.variable} font-montserratParagraph`}
             >
-              {getCurrentPageName() === 'cropwizard-1.5' && (
+              {getCurrentPageName() === 'cropwizard-2.0' && (
                 <CropwizardLicenseDisclaimer />
               )}
               {getCurrentPageName() !== 'chat' && (

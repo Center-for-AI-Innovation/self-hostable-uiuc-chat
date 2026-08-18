@@ -129,7 +129,9 @@ const TypingAnimation: React.FC = () => {
 const Home: NextPage = () => {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false)
   const useIllinoisChatConfig = useMemo(() => {
-    return process.env.NEXT_PUBLIC_USE_ILLINOIS_CHAT_CONFIG === 'True'
+    return (
+      process.env.NEXT_PUBLIC_USE_ILLINOIS_CHAT_CONFIG?.toLowerCase() === 'true'
+    )
   }, [])
   const IllinoisChatBannerContent = useMemo(() => {
     return process.env.NEXT_PUBLIC_ILLINOIS_CHAT_BANNER_CONTENT || null
@@ -974,7 +976,7 @@ function FlagshipChatbots() {
         "Using all of Clowder's documentation, this bot will answer questions and point you to the right docs and YouTube videos about Clowder.",
     },
     {
-      course_slug: 'cropwizard-1.5',
+      course_slug: 'cropwizard-2.0',
       imageSrc: '/media/hero_courses_banners/aifarms_wide_logo.png',
       title: 'Crop Wizard',
       badge: 'AIFARMS',

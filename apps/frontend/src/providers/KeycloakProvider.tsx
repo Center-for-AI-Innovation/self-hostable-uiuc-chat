@@ -74,7 +74,8 @@ export const KeycloakProvider = ({ children }: AuthProviderProps) => {
         // Extra logic: if root path and Illinois Chat config enabled → go to /chat
         if (
           redirectPath === '/' &&
-          process.env.NEXT_PUBLIC_USE_ILLINOIS_CHAT_CONFIG === 'True'
+          process.env.NEXT_PUBLIC_USE_ILLINOIS_CHAT_CONFIG?.toLowerCase() ===
+            'true'
         ) {
           redirectPath = '/chat'
         }

@@ -62,11 +62,14 @@ const ChatPage: NextPage = () => {
 
       // Special case: Cropwizard redirect
       if (
-        ['cropwizard', 'cropwizard-1.0', 'cropwizard-1'].includes(
-          courseName.toLowerCase(),
-        )
+        [
+          'cropwizard',
+          'cropwizard-1.0',
+          'cropwizard-1',
+          'cropwizard-1.5',
+        ].includes(courseName.toLowerCase())
       ) {
-        await router.push(`/cropwizard-1.5`)
+        await router.push(`/cropwizard-2.0`)
       }
 
       // Fetch course metadata

@@ -2066,9 +2066,9 @@ describe('Chat component', () => {
   // ==========================================================================
 
   describe('cropwizard page', () => {
-    it('renders CropwizardLicenseDisclaimer on cropwizard-1.5 page', async () => {
+    it('renders CropwizardLicenseDisclaimer on cropwizard-2.0 page', async () => {
       globalThis.__TEST_ROUTER__ = {
-        asPath: '/cropwizard-1.5/chat',
+        asPath: '/cropwizard-2.0/chat',
         push: vi.fn(),
       }
 
@@ -2084,7 +2084,7 @@ describe('Chat component', () => {
         <Chat
           stopConversationRef={{ current: false }}
           courseMetadata={baseCourseMetadata}
-          courseName="cropwizard-1.5"
+          courseName="cropwizard-2.0"
           currentEmail="me@example.com"
           documentExists={false}
         />,
