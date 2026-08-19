@@ -88,7 +88,12 @@ services:
     networks:
       - uiuc-chat-network
     volumes:
-      - postgres-illinois-chat:/var/lib/postgresql
+      # Must land exactly on PGDATA. This image declares VOLUME
+      # /var/lib/postgresql/data, so mounting the parent (/var/lib/postgresql)
+      # lets Docker shadow it with an anonymous volume — the real data then dies
+      # with the container on every `compose down`. Keep this path in sync with
+      # the image's PGDATA, as sim-db already does.
+      - postgres-illinois-chat:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
@@ -102,7 +107,10 @@ services:
       retries: 5
 
   postgres-keycloak:
-    image: postgres
+    # Pinned to a major on purpose: PGDATA is /var/lib/postgresql/<major>/docker,
+    # so letting `latest` roll to the next major would point at an uninitialized
+    # path and strand the existing cluster inside the volume.
+    image: postgres:18
     networks:
       - uiuc-chat-network
     volumes:
@@ -168,7 +176,12 @@ services:
       test:
         - CMD-SHELL
         - bash -c ':> /dev/tcp/127.0.0.1/8080' || exit 1
-      interval: 30s
+      # Keycloak needs ~2min to boot here: JVM start plus realm import, slowed
+      # further by amd64 emulation on Apple Silicon. Without start_period those
+      # boot-time failures burn the retry budget and compose aborts dependents
+      # with "container ... is unhealthy" seconds before port 8080 opens.
+      start_period: 240s
+      interval: 5s
       timeout: 10s
       retries: 3
 
