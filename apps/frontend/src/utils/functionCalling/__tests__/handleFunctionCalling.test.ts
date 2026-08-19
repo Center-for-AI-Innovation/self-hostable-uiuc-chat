@@ -94,6 +94,47 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
     })
   })
 
+  it('marks authored descriptions and enriches the fallback with field info', () => {
+    const [authored, bare, bareNoFields] = getUIUCToolFromSim([
+      {
+        id: 'w1',
+        name: 'Described',
+        description: 'does stuff',
+        inputFields: [],
+      },
+      {
+        id: 'w2',
+        name: 'MRTN Tool',
+        description: '',
+        inputFields: [
+          { name: 'state', type: 'string' },
+          {
+            name: 'corn_price',
+            type: 'string',
+            description: 'Price per bushel',
+          },
+        ],
+      },
+      { id: 'w3', name: 'Bare', description: '', inputFields: [] },
+    ] as any)
+
+    expect(authored).toMatchObject({
+      description: 'does stuff',
+      hasAuthoredDescription: true,
+    })
+    // The router picks tools on this string; when the author wrote nothing,
+    // the field names and descriptions are the only signal Sim carries.
+    expect(bare).toMatchObject({
+      description:
+        'Execute the "MRTN Tool" Sim workflow. Inputs: state, corn_price (Price per bushel)',
+      hasAuthoredDescription: false,
+    })
+    expect(bareNoFields).toMatchObject({
+      description: 'Execute the "Bare" Sim workflow',
+      hasAuthoredDescription: false,
+    })
+  })
+
   it('advertises an input-less workflow as taking no arguments', () => {
     const workflows = [
       { id: 'w2', name: 'No Inputs', description: '', inputFields: [] },

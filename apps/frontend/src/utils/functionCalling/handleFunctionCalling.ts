@@ -566,11 +566,27 @@ export function getUIUCToolFromSim(workflows: SimWorkflow[]): UIUCTool[] {
       .filter((f) => !isOptionalInputField(f))
       .map((f) => f.name)
 
+    // The router LLM decides whether to call a tool almost entirely on this
+    // string. When the workflow author wrote nothing, fold the input field
+    // names and descriptions into the fallback — often (as with MRTN) the
+    // fields are well-described even when the workflow is not, and they are
+    // the only signal Sim gives us about what the workflow does.
+    const authoredDescription = wf.description?.trim()
+    const fieldSummary = wf.inputFields
+      .map((f) =>
+        f.description ? `${f.name} (${f.description})` : f.name,
+      )
+      .join(', ')
+    const fallbackDescription =
+      `Execute the "${wf.name}" Sim workflow` +
+      (fieldSummary ? `. Inputs: ${fieldSummary}` : '')
+
     return {
       id: wf.id,
       name: `sim_${slug}`,
       readableName: wf.name,
-      description: wf.description || `Execute the "${wf.name}" Sim workflow`,
+      description: authoredDescription || fallbackDescription,
+      hasAuthoredDescription: Boolean(authoredDescription),
       enabled: true,
       inputParameters: { type: 'object', properties, required },
     } satisfies UIUCTool

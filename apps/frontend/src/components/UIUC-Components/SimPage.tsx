@@ -451,9 +451,32 @@ const SimPage = ({ course_name }: { course_name: string }) => {
                             <Text weight={500}>{tool.readableName}</Text>
                           </td>
                           <td>
+                            {tool.hasAuthoredDescription === false && (
+                              <Badge
+                                color="yellow"
+                                size="sm"
+                                variant="outline"
+                                mb={4}
+                                leftSection={
+                                  <IconAlertCircle
+                                    size={12}
+                                    style={{ position: 'relative', top: 2 }}
+                                  />
+                                }
+                              >
+                                No description in Sim
+                              </Badge>
+                            )}
                             <Text size="sm" lineClamp={2}>
                               {tool.description}
                             </Text>
+                            {tool.hasAuthoredDescription === false && (
+                              <Text size="xs" style={{ opacity: 0.6 }}>
+                                The chat model decides when to use a tool from
+                                its description. Add one to this workflow in
+                                Sim so it gets picked reliably.
+                              </Text>
+                            )}
                           </td>
                           <td>
                             {tool.inputParameters?.required?.map((field) => (

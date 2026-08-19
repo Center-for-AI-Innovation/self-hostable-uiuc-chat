@@ -128,6 +128,10 @@ export interface UIUCTool {
   name: string // Openai uses this
   readableName: string
   description: string
+  // False when the workflow has no description in Sim and `description` is a
+  // synthesized fallback. The router LLM picks tools almost entirely on the
+  // description, so the config UI warns about these.
+  hasAuthoredDescription?: boolean
   inputParameters?: {
     type: 'object'
     properties: Record<string, ToolParameter>
