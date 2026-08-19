@@ -69,10 +69,7 @@ describe('getSimConfig handler', () => {
     })
     const { handler } = await import('../getSimConfig')
     const res = makeRes()
-    await handler(
-      { method: 'GET', courseName: 'cs101', user: {} } as any,
-      res,
-    )
+    await handler({ method: 'GET', courseName: 'cs101', user: {} } as any, res)
 
     expect(res.statusCode).toBe(200)
     expect(res.body).toEqual({
@@ -87,10 +84,7 @@ describe('getSimConfig handler', () => {
   it('reports an unconfigured project without inventing values', async () => {
     const { handler } = await import('../getSimConfig')
     const res = makeRes()
-    await handler(
-      { method: 'GET', courseName: 'cs101', user: {} } as any,
-      res,
-    )
+    await handler({ method: 'GET', courseName: 'cs101', user: {} } as any, res)
 
     expect(res.statusCode).toBe(200)
     expect(res.body).toEqual({

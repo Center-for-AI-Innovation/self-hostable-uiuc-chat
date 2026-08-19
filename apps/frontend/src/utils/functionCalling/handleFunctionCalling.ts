@@ -573,9 +573,7 @@ export function getUIUCToolFromSim(workflows: SimWorkflow[]): UIUCTool[] {
     // the only signal Sim gives us about what the workflow does.
     const authoredDescription = wf.description?.trim()
     const fieldSummary = wf.inputFields
-      .map((f) =>
-        f.description ? `${f.name} (${f.description})` : f.name,
-      )
+      .map((f) => (f.description ? `${f.name} (${f.description})` : f.name))
       .join(', ')
     const fallbackDescription =
       `Execute the "${wf.name}" Sim workflow` +

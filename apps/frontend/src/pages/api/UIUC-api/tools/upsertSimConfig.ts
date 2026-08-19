@@ -5,10 +5,7 @@ import { db } from '~/db/dbClient'
 import { projects } from '~/db/schema'
 import { type SimProjectConfig } from '~/types/sim'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
-import {
-  invalidateSimConfigCache,
-  validateSimBaseUrl,
-} from '~/utils/simConfig'
+import { invalidateSimConfigCache, validateSimBaseUrl } from '~/utils/simConfig'
 
 /**
  * POST /api/UIUC-api/tools/upsertSimConfig

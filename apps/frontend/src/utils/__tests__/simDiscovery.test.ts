@@ -213,10 +213,10 @@ describe('discovery of reserved input names', () => {
 
     expect(failed).toEqual([])
     expect(workflows[0]?.inputFields.map((f) => f.name)).toEqual(['state'])
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('collide'),
-      ['stream', 'workflowStateOverride'],
-    )
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('collide'), [
+      'stream',
+      'workflowStateOverride',
+    ])
   })
 })
 
@@ -254,9 +254,9 @@ describe('parseSimErrorMessage', () => {
   const FALLBACK = 'Sim API returned 401: Unauthorized'
 
   it('reads the v1 string envelope', () => {
-    expect(parseSimErrorMessage('{"error": "API key required"}', FALLBACK)).toBe(
-      'API key required',
-    )
+    expect(
+      parseSimErrorMessage('{"error": "API key required"}', FALLBACK),
+    ).toBe('API key required')
   })
 
   it('reads the v2 object envelope without surfacing [object Object]', () => {
