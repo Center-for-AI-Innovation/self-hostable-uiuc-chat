@@ -100,8 +100,10 @@ services:
       SIM_APPROVAL_ADMIN_EMAIL: ${SIM_APPROVAL_ADMIN_EMAIL:?set SIM_APPROVAL_ADMIN_EMAIL to the email that should bootstrap as the Sim platform admin}
     volumes:
       # The gate's DDL and triggers, versioned as reviewable SQL rather than a
-      # heredoc in this file. Path is relative to this compose file.
-      - ./sim/approval-setup.sql:/approval-setup.sql:ro
+      # heredoc in this file. Repo-root-relative, like every bind mount in
+      # these files — the start scripts pass --project-directory ., which
+      # resolves relative paths against the repo root, not this directory.
+      - ./infra/docker/sim/approval-setup.sql:/approval-setup.sql:ro
     depends_on:
       sim-migrations:
         condition: service_completed_successfully
