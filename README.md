@@ -94,6 +94,8 @@ bash infra/scripts/stop-dev.sh --volumes
 
 ### Sim AI Local Stack
 
+For the user-facing side — signing in to Sim via Keycloak SSO, the admin approval flow, and connecting a Sim workspace to a project's tools — see [`docs/sim-access-and-tools.md`](docs/sim-access-and-tools.md).
+
 The full and dev Docker stacks also start Sim AI against the same local Keycloak realm for SSO testing while keeping Sim's pgvector database isolated. No separate Sim checkout is required; the stack uses the upstream Sim container images.
 
 - Sim app: `http://localhost:3010`
