@@ -176,8 +176,43 @@ export function simConfigErrorResponse(reason: SimConfigError): {
 const ALLOWED_SIM_HOSTS = new Set(['www.sim.ai', 'sim.ai', 'api.sim.ai'])
 
 /**
- * Validate that a base URL points to a known Sim AI host.
- * Returns the sanitized URL or null if invalid (prevents SSRF).
+ * Origins the deployment operator has declared as trusted Sim instances:
+ * `SIM_API_BASE_URL`'s origin, plus any in `SIM_ALLOWED_SIM_ORIGINS`
+ * (comma-separated full origins, e.g. "https://sim.internal.illinois.edu").
+ * Malformed entries are skipped. Read per call — negligible cost, and env
+ * changes (tests, hot config) apply immediately.
+ */
+function operatorTrustedOrigins(): Set<string> {
+  const origins = new Set<string>()
+  const entries = [
+    process.env.SIM_API_BASE_URL ?? '',
+    ...(process.env.SIM_ALLOWED_SIM_ORIGINS ?? '').split(','),
+  ]
+  for (const entry of entries) {
+    const trimmed = entry.trim()
+    if (!trimmed) continue
+    try {
+      origins.add(new URL(trimmed).origin)
+    } catch {
+      // Ignore a malformed entry rather than poisoning the whole list.
+    }
+  }
+  return origins
+}
+
+/**
+ * Validate that a base URL points to a trusted Sim host. Returns the
+ * sanitized URL or null if invalid (prevents SSRF — attacker-influenceable
+ * outbound requests must not reach arbitrary hosts).
+ *
+ * Trusted means one of:
+ * - Sim's cloud hosts, over https.
+ * - Local/dev hostnames over http (in production only when it *is* the
+ *   configured origin).
+ * - An origin the deployment operator wrote into the environment —
+ *   `SIM_API_BASE_URL` itself or the `SIM_ALLOWED_SIM_ORIGINS` list. Project
+ *   admins can point a project at any of these but cannot introduce new
+ *   origins, which keeps the reachable set operator-controlled.
  */
 export function validateSimBaseUrl(url: string): string | null {
   try {
@@ -193,7 +228,10 @@ export function validateSimBaseUrl(url: string): string | null {
       LOCAL_SIM_HOSTS.has(parsed.hostname) &&
       (process.env.NODE_ENV !== 'production' ||
         parsed.origin === configuredOrigin)
-    if (!isAllowedSimHost && !isAllowedLocalHost) return null
+    const isOperatorTrusted = operatorTrustedOrigins().has(parsed.origin)
+    if (!isAllowedSimHost && !isAllowedLocalHost && !isOperatorTrusted) {
+      return null
+    }
     return `${parsed.protocol}//${parsed.host}`
   } catch {
     return null

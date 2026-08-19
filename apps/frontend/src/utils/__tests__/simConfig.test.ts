@@ -214,4 +214,58 @@ describe('validateSimBaseUrl', () => {
       'https://www.sim.ai',
     )
   })
+
+  describe('operator-trusted origins', () => {
+    afterEach(() => {
+      vi.unstubAllEnvs()
+    })
+
+    it("accepts SIM_API_BASE_URL's own origin, self-hosted https included", () => {
+      vi.stubEnv('SIM_API_BASE_URL', 'https://sim.internal.illinois.edu')
+      expect(validateSimBaseUrl('https://sim.internal.illinois.edu')).toBe(
+        'https://sim.internal.illinois.edu',
+      )
+      // Same host, different scheme/port is a different origin — rejected.
+      expect(validateSimBaseUrl('http://sim.internal.illinois.edu')).toBeNull()
+      expect(
+        validateSimBaseUrl('https://sim.internal.illinois.edu:8443'),
+      ).toBeNull()
+    })
+
+    it('accepts each origin in SIM_ALLOWED_SIM_ORIGINS and nothing else', () => {
+      vi.stubEnv(
+        'SIM_ALLOWED_SIM_ORIGINS',
+        'https://sim-a.example.edu, https://sim-b.example.edu:8443',
+      )
+      expect(validateSimBaseUrl('https://sim-a.example.edu')).toBe(
+        'https://sim-a.example.edu',
+      )
+      expect(validateSimBaseUrl('https://sim-b.example.edu:8443')).toBe(
+        'https://sim-b.example.edu:8443',
+      )
+      expect(validateSimBaseUrl('https://sim-c.example.edu')).toBeNull()
+    })
+
+    it('normalizes list entries to their origin before matching', () => {
+      vi.stubEnv('SIM_ALLOWED_SIM_ORIGINS', 'https://sim.example.edu/some/path')
+      expect(validateSimBaseUrl('https://sim.example.edu')).toBe(
+        'https://sim.example.edu',
+      )
+    })
+
+    it('skips malformed entries without poisoning the rest of the list', () => {
+      vi.stubEnv(
+        'SIM_ALLOWED_SIM_ORIGINS',
+        'not a url,,https://sim.example.edu',
+      )
+      expect(validateSimBaseUrl('https://sim.example.edu')).toBe(
+        'https://sim.example.edu',
+      )
+      expect(validateSimBaseUrl('https://evil.example.com')).toBeNull()
+    })
+
+    it('still rejects arbitrary hosts when nothing is configured', () => {
+      expect(validateSimBaseUrl('https://sim.internal.illinois.edu')).toBeNull()
+    })
+  })
 })
