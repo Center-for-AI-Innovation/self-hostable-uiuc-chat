@@ -289,8 +289,14 @@ describe('Chat (coverage)', () => {
     )
 
     expect(fetchPresignedUrl).toHaveBeenCalledWith('cs101/banner.png', 'CS101')
-    expect((webllm as any).__instances.length).toBeGreaterThan(0)
-    expect((webllm as any).__instances[0].loadModel).toHaveBeenCalled()
+    // ChatUI is constructed only after the dynamic import of @mlc-ai/web-llm
+    // resolves, so the instance appears asynchronously.
+    await waitFor(() =>
+      expect((webllm as any).__instances.length).toBeGreaterThan(0),
+    )
+    await waitFor(() =>
+      expect((webllm as any).__instances[0].loadModel).toHaveBeenCalled(),
+    )
   }, 15000)
 
   it('emits an error toast when tools fail to load', async () => {
