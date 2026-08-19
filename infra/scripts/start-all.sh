@@ -6,16 +6,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-COMPOSE=(docker compose --project-directory . -f infra/docker/docker-compose.yaml -f infra/docker/docker-compose.sim.yaml)
+# The Sim stack is appended after argument parsing unless --no-sim is given.
+COMPOSE=(docker compose --project-directory . -f infra/docker/docker-compose.yaml)
 QDRANT_COLLECTION_NAME="${QDRANT_COLLECTION_NAME:-illinois_chat}"
 QDRANT_VECTOR_SIZE="${QDRANT_VECTOR_SIZE:-4096}"
 
 wipe_data=false
 create_schema=false
+with_sim=true
 rebuild_services=""
 
 show_usage() {
-	echo "Usage: $0 [--wipe_data] [--create-schema] [--rebuild=service1,service2]"
+	echo "Usage: $0 [--wipe_data] [--create-schema] [--rebuild=service1,service2] [--no-sim]"
 	echo ""
 	echo "Options:"
 	echo "  --wipe_data          Factory reset Docker containers and volumes before startup"
@@ -23,6 +25,9 @@ show_usage() {
 	echo "  --create-schema      Create the database schema on an empty database"
 	echo "                       (required on first run; reruns never need it)"
 	echo "  --rebuild=SERVICES   Rebuild only selected full-stack services"
+	echo "  --no-sim             Start without the Sim AI tool stack (six fewer"
+	echo "                       services; Sim containers from a previous run are"
+	echo "                       left untouched)"
 	echo "  --help               Show this help message"
 }
 
@@ -30,6 +35,7 @@ for arg in "$@"; do
 	case "$arg" in
 	--wipe_data) wipe_data=true ;;
 	--create-schema) create_schema=true ;;
+	--no-sim) with_sim=false ;;
 	--rebuild=*) rebuild_services="${arg#*=}" ;;
 	--help | -h)
 		show_usage
@@ -45,6 +51,10 @@ done
 if [ "$wipe_data" = true ] && [ "$create_schema" = true ]; then
 	echo "[ERROR] --wipe_data and --create-schema cannot be used together (--wipe_data already recreates the schema on the fresh database)."
 	exit 1
+fi
+
+if [ "$with_sim" = true ]; then
+	COMPOSE+=(-f infra/docker/docker-compose.sim.yaml)
 fi
 
 log() {
@@ -114,10 +124,16 @@ ensure_sim_secrets() {
 	done
 }
 
-ensure_sim_secrets
+if [ "$with_sim" = true ]; then
+	ensure_sim_secrets
+	if [ -z "${SIM_APPROVAL_ADMIN_EMAIL:-}" ]; then
+		echo "[ERROR] SIM_APPROVAL_ADMIN_EMAIL is not set in .env. It names the account that bootstraps as Sim platform admin, so it must be chosen per deployment. Set it (or pass --no-sim)."
+		exit 1
+	fi
 
-log "Pulling Sim AI images"
-"${COMPOSE[@]}" pull simstudio sim-realtime sim-migrations
+	log "Pulling Sim AI images"
+	"${COMPOSE[@]}" pull simstudio sim-realtime sim-migrations
+fi
 
 if [ -n "$rebuild_services" ]; then
 	rebuild_list="$(echo "$rebuild_services" | tr ',' ' ')"
@@ -186,12 +202,15 @@ wait_for_healthy qdrant
 wait_for_healthy minio
 wait_for_healthy rabbitmq
 wait_for_healthy keycloak 240
-wait_for_healthy sim-db
-wait_for_completed sim-migrations 300
-wait_for_completed sim-keycloak-setup 180
-wait_for_completed sim-sso-setup 180
-wait_for_healthy sim-realtime
-wait_for_healthy simstudio 300
+if [ "$with_sim" = true ]; then
+	wait_for_healthy sim-db
+	wait_for_completed sim-migrations 300
+	wait_for_completed sim-approval-setup 120
+	wait_for_completed sim-keycloak-setup 180
+	wait_for_completed sim-sso-setup 180
+	wait_for_healthy sim-realtime
+	wait_for_healthy simstudio 300
+fi
 
 psql_main() {
 	"${COMPOSE[@]}" exec -T postgres-illinois-chat psql -U "$POSTGRES_USER" -d "$POSTGRES_DATABASE" "$@"
@@ -231,12 +250,12 @@ for table_name in documents conversations messages embeddings project_external_c
 		exit 1
 	fi
 done
+# The sim columns are part of the app schema whether or not the Sim stack
+# runs (the frontend's typed selects reference them). Fresh databases get
+# them from init-schema.sql; databases created before the migration get them
+# here, from the migration itself — the one place the DDL lives.
 log "Ensuring Sim AI project config columns exist"
-psql_main -v ON_ERROR_STOP=1 <<'SQL'
-ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS sim_api_key text;
-ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS sim_base_url text;
-ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS sim_workspace_id text;
-SQL
+psql_main -v ON_ERROR_STOP=1 -f - <apps/frontend/src/db/migrations/0006_add_sim_columns.sql >/dev/null
 success "PostgreSQL schema verified"
 
 qdrant_headers=(-H "Content-Type: application/json")

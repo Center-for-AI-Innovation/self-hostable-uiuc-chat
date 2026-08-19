@@ -370,7 +370,10 @@ CREATE TABLE "projects" (
 	"description" text,
 	"metadata_schema" jsonb,
 	"conversation_map_index" text,
-	"document_map_index" text
+	"document_map_index" text,
+	"sim_api_key" text,
+	"sim_base_url" text,
+	"sim_workspace_id" text
 );
 --> statement-breakpoint
 CREATE TABLE "publications" (
