@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  functionCallingModelIds,
   modelLibURLPrefix,
   modelVersion,
   prebuiltAppConfig,
@@ -13,7 +12,6 @@ describe('ConfigWebLLM', () => {
   it('exports stable config metadata', () => {
     expect(modelVersion).toMatch(/^v\d+_/)
     expect(modelLibURLPrefix).toContain('githubusercontent.com')
-    expect(Array.isArray(functionCallingModelIds)).toBe(true)
     expect(Array.isArray(recommendedModelIds)).toBe(true)
     expect(Array.isArray(warningLargeModelIds)).toBe(true)
   })

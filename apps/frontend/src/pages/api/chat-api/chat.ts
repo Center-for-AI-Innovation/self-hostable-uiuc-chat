@@ -37,7 +37,6 @@ import {
 } from '~/server/agent/agentServerUtils'
 import {
   type AllLLMProviders,
-  type AnySupportedModel,
   type GenericSupportedModel,
   ProviderNames,
 } from '~/utils/modelProviders/LLMProvider'
@@ -314,20 +313,9 @@ export default async function chat(
   // Handle tools
   let updatedConversation = conversation
   if (availableTools.length > 0) {
-    // Determine which provider's API key to use based on the selected model
-    let toolApiKey = llmProviders[ProviderNames.OpenAI]?.apiKey as string
-    // Check if model is from OpenAICompatible provider
-    const isOpenAICompatible =
-      llmProviders?.OpenAICompatible?.enabled &&
-      (llmProviders.OpenAICompatible.models || []).some(
-        (m: AnySupportedModel) =>
-          m.enabled && m.id.toLowerCase() === selectedModel.id.toLowerCase(),
-      )
-
-    if (isOpenAICompatible) {
-      toolApiKey = llmProviders[ProviderNames.OpenAICompatible]
-        ?.apiKey as string
-    }
+    // The tool-routing server resolves the provider chain; pass along the
+    // project's OpenAI key so it keeps top custom-router priority.
+    const toolApiKey = llmProviders[ProviderNames.OpenAI]?.apiKey as string
 
     updatedConversation = await handleToolsServer(
       lastMessage,
@@ -338,7 +326,6 @@ export default async function chat(
       toolApiKey,
       course_name,
       getBaseUrl(),
-      llmProviders,
       // Run tools in-process. Posting to /api/UIUC-api/runSimWorkflow would
       // require the Keycloak cookie this route does not have — it authenticates
       // callers by API key — so the call would come back 401.

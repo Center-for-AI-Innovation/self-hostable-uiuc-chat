@@ -6,12 +6,6 @@ import { type Conversation, type Message, type UIUCTool } from '~/types/chat'
 import { type ToolParameter, type OpenAICompatibleTool } from '~/types/tools'
 import { type SimInputField, type SimWorkflow } from '~/types/sim'
 import { type SimWorkflowFailure } from '~/utils/simDiscovery'
-import {
-  type AllLLMProviders,
-  type AnySupportedModel,
-  ProviderNames,
-} from '~/utils/modelProviders/LLMProvider'
-import { NCSAHostedVLMModel } from '../modelProviders/types/NCSAHostedVLM'
 
 // ---------------------------------------------------------------------------
 // handleFunctionCall — sends conversation + tools to OpenAI, gets tool_calls
@@ -26,25 +20,9 @@ export async function handleFunctionCall(
   openaiKey: string,
   course_name: string,
   base_url?: string,
-  llmProviders?: AllLLMProviders,
 ): Promise<UIUCTool[]> {
   try {
     const openAITools = getOpenAIToolFromUIUCTool(availableTools)
-
-    const isOpenAICompatible =
-      llmProviders?.OpenAICompatible?.enabled &&
-      (llmProviders.OpenAICompatible.models || []).some(
-        (m: AnySupportedModel) =>
-          m.enabled &&
-          m.id.toLowerCase() === selectedConversation.model.id.toLowerCase(),
-      )
-    const isNCSAHostedVLM =
-      llmProviders?.NCSAHostedVLM?.enabled &&
-      (llmProviders.NCSAHostedVLM.models || []).some(
-        (m: NCSAHostedVLMModel) =>
-          m.enabled &&
-          m.id.toLowerCase() === selectedConversation.model.id.toLowerCase(),
-      )
 
     const baseEndpoint = base_url
       ? `${base_url}/api/chat/openaiFunctionCall`
@@ -53,41 +31,15 @@ export async function handleFunctionCall(
       ? `${baseEndpoint}?course_name=${encodeURIComponent(course_name)}`
       : baseEndpoint
 
-    const body: any = {
+    // The server resolves the router (project providers -> NCSA default);
+    // only the client-resolved OpenAI key (project or personal) is sent.
+    const body = {
       conversation: selectedConversation,
       tools: openAITools,
       imageUrls: imageUrls,
       imageDescription: imageDescription,
       course_name: course_name,
-    }
-
-    if (isOpenAICompatible) {
-      body.providerBaseUrl = llmProviders!.OpenAICompatible.baseUrl
-      body.apiKey = llmProviders!.OpenAICompatible.apiKey
-      let modelIdToSend = selectedConversation.model.id
-      const providerBaseUrl = llmProviders!.OpenAICompatible.baseUrl
-      if (providerBaseUrl) {
-        try {
-          const parsedUrl = new URL(providerBaseUrl)
-          const hostname = parsedUrl.hostname.toLowerCase()
-          const isOpenRouter =
-            hostname === 'openrouter.ai' || hostname.endsWith('.openrouter.ai')
-          if (isOpenRouter) {
-            modelIdToSend = selectedConversation.model.id.toLowerCase()
-          }
-        } catch {
-          /* invalid URL, use original modelId */
-        }
-      }
-      body.modelId = modelIdToSend
-    } else {
-      body.openaiKey = openaiKey
-    }
-
-    if (isNCSAHostedVLM) {
-      body.providerBaseUrl = llmProviders!.NCSAHostedVLM.baseUrl
-      body.apiKey = llmProviders!.NCSAHostedVLM.apiKey
-      body.modelId = selectedConversation.model.id
+      openaiKey: openaiKey,
     }
 
     const response = await fetch(url, {
@@ -97,7 +49,15 @@ export async function handleFunctionCall(
     })
 
     if (!response.ok) {
-      console.error('Error calling openaiFunctionCall: ', response)
+      let errorBody = ''
+      try {
+        errorBody = await response.text()
+      } catch {}
+      console.error(
+        'Error calling openaiFunctionCall: ',
+        response.status,
+        errorBody,
+      )
       return []
     }
     const openaiFunctionCallResponse = await response.json()
@@ -291,7 +251,6 @@ export async function handleToolsServer(
   openaiKey: string,
   projectName: string,
   base_url?: string,
-  llmProviders?: AllLLMProviders,
   executeTool: SimToolExecutor = callSimFunction,
 ): Promise<Conversation> {
   try {
@@ -304,7 +263,6 @@ export async function handleToolsServer(
       openaiKey,
       projectName,
       base_url,
-      llmProviders,
     )
 
     if (uiucToolsToRun.length > 0) {

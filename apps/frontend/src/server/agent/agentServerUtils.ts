@@ -12,7 +12,10 @@ import {
   type ContextWithMetadata,
   type ToolOutput,
 } from '~/types/chat'
-import { decryptKeyIfNeeded } from '~/utils/crypto'
+import {
+  callToolRouter,
+  type ResolvedToolRouter,
+} from '~/utils/server/toolRouting'
 import { fetchContextsByVectorEngine } from '~/utils/fetchContexts'
 import { generatePresignedUrl } from '~/pages/api/download'
 import {
@@ -84,7 +87,7 @@ export { getOpenAIToolFromUIUCTool }
 export interface SelectToolsServerParams {
   conversation: Conversation
   availableTools: UIUCTool[]
-  openaiKey: string
+  router: ResolvedToolRouter
   imageUrls?: string[]
   imageDescription?: string
   signal?: AbortSignal
@@ -96,7 +99,7 @@ export interface SelectToolsServerResult {
 }
 
 /**
- * Server-side tool selection using OpenAI function calling.
+ * Server-side tool selection via the resolved tool router.
  * This is the server-side equivalent of calling /api/chat/openaiFunctionCall
  */
 export async function selectToolsServer(
@@ -105,7 +108,7 @@ export async function selectToolsServer(
   const {
     conversation,
     availableTools,
-    openaiKey,
+    router,
     imageUrls = [],
     imageDescription = '',
     signal,
@@ -120,22 +123,6 @@ export async function selectToolsServer(
   const openAITools: ChatCompletionTool[] = getOpenAIToolFromUIUCTool(
     availableTools,
   ) as ChatCompletionTool[]
-
-  // Decrypt the API key
-  let decryptedKey = openaiKey
-    ? await decryptKeyIfNeeded(openaiKey)
-    : process.env.VLADS_OPENAI_KEY
-
-  if (!decryptedKey?.startsWith('sk-')) {
-    decryptedKey = process.env.VLADS_OPENAI_KEY as string
-  }
-
-  if (!decryptedKey) {
-    return {
-      selectedTools: [],
-      error: 'No OpenAI key available for function calling',
-    }
-  }
 
   // Format messages (with contexts appended for agent mode)
   const messagesToSend: ChatCompletionMessageParam[] =
@@ -161,45 +148,23 @@ export async function selectToolsServer(
   }
 
   try {
-    const requestBody = {
-      model: 'gpt-4.1',
+    const result = await callToolRouter({
+      router,
       messages: messagesToSend,
       tools: openAITools,
-      stream: false,
-    }
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${decryptedKey}`,
-      },
-      body: JSON.stringify(requestBody),
       signal,
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('OpenAI API error:', response.status, errorText)
-      return {
-        selectedTools: [],
-        error: `OpenAI API error: ${response.status}`,
-      }
+    if (!result.ok) {
+      return { selectedTools: [], error: result.error }
     }
 
-    const data = await response.json()
-
-    if (!data.choices) {
-      return { selectedTools: [], error: 'No response from OpenAI' }
-    }
-
-    if (!data.choices[0]?.message?.tool_calls) {
+    if (result.toolCalls.length === 0) {
       // No tools invoked - this is normal when the AI decides not to use any tools
       return { selectedTools: [] }
     }
 
-    const toolCalls = data.choices[0].message
-      .tool_calls as ChatCompletionMessageToolCall[]
+    const toolCalls: ChatCompletionMessageToolCall[] = result.toolCalls
 
     // Map OpenAI tool calls back to UIUCTool format
     const mappedTools = toolCalls.map((openaiTool): UIUCTool | null => {
@@ -540,22 +505,6 @@ export async function fetchToolsServer(
       error,
     )
     return []
-  }
-}
-
-/**
- * Get OpenAI key from LLM providers for a course
- */
-export async function getOpenAIKeyForCourse(
-  courseName: string,
-): Promise<string | null> {
-  try {
-    // This would typically call the models API to get providers
-    // For now, fall back to env variable
-    return process.env.VLADS_OPENAI_KEY || null
-  } catch (error) {
-    console.error('Error getting OpenAI key:', error)
-    return null
   }
 }
 

@@ -31,10 +31,18 @@ import {
   clearCachedSimTools,
   useFetchAllWorkflows,
 } from '~/utils/functionCalling/handleFunctionCalling'
+import { Badge as ShadcnBadge } from '~/components/shadcn/ui/badge'
 import { useResponsiveCardWidth } from '~/utils/responsiveGrid'
 import { CannotEditCourse } from './CannotEditCourse'
 import GlobalFooter from './GlobalFooter'
 import { LoadingPlaceholderForAdminPages } from './MainPageBackground'
+
+interface ToolRoutingStatus {
+  status: 'custom' | 'default' | 'offline'
+  provider?: string
+  model?: string
+  reason?: string
+}
 
 function maskKey(key: string): string {
   if (key.length <= 8) return '*'.repeat(key.length)
@@ -63,6 +71,8 @@ const SimPage = ({ course_name }: { course_name: string }) => {
   const isSmallScreen = useMediaQuery('(max-width: 960px)')
   const cardWidthClasses = useResponsiveCardWidth(sidebarCollapsed)
 
+  const [toolRouting, setToolRouting] = useState<ToolRoutingStatus | null>(null)
+
   const {
     data: workflows,
     isSuccess,
@@ -84,9 +94,11 @@ const SimPage = ({ course_name }: { course_name: string }) => {
             sim_api_key_masked?: string | null
             sim_base_url?: string | null
             sim_workspace_id?: string | null
+            tool_routing?: ToolRoutingStatus
           } | null,
         ) => {
           if (!config) return
+          if (config.tool_routing) setToolRouting(config.tool_routing)
           if (config.sim_api_key_masked)
             setStoredKeyMasked(config.sim_api_key_masked)
           if (config.sim_workspace_id)
@@ -378,14 +390,44 @@ const SimPage = ({ course_name }: { course_name: string }) => {
               className={`mx-auto mt-[2%] items-start rounded-2xl bg-[--background] text-[--foreground] ${cardWidthClasses}`}
               style={{ zIndex: 1 }}
             >
-              <Flex direction="row" justify="space-between">
+              <Flex direction="row" justify="space-between" align="center">
                 <Title
                   order={3}
                   className={`pb-3 pt-3 ${montserrat_paragraph.variable} font-montserratParagraph`}
                 >
                   Deployed Sim AI Workflows
                 </Title>
+                {toolRouting && (
+                  <ShadcnBadge
+                    variant={
+                      toolRouting.status === 'custom'
+                        ? 'default'
+                        : toolRouting.status === 'default'
+                          ? 'secondary'
+                          : 'destructive'
+                    }
+                  >
+                    {toolRouting.status === 'custom'
+                      ? 'Custom router'
+                      : toolRouting.status === 'default'
+                        ? 'Default router'
+                        : 'Offline'}
+                  </ShadcnBadge>
+                )}
               </Flex>
+              {toolRouting && (
+                <Text size="sm" c="dimmed" className="pb-2">
+                  {toolRouting.status === 'custom'
+                    ? toolRouting.provider === 'OpenAICompatible'
+                      ? "Tool calls for this provider's models use this project's own AI provider; other models use the Illinois-hosted default."
+                      : "Tool calls are routed through this project's own AI provider."
+                    : toolRouting.status === 'default'
+                      ? `Tool calls are routed through the Illinois-hosted model${
+                          toolRouting.model ? ` (${toolRouting.model})` : ''
+                        }.`
+                      : "Tool calls can't run. Add an OpenAI key or OpenAI-compatible provider on the LLMs page."}
+                </Text>
+              )}
             </div>
 
             <Card

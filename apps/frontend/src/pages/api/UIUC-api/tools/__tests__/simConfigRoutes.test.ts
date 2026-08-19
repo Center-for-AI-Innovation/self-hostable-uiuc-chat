@@ -44,6 +44,13 @@ beforeEach(() => {
       })),
     },
   }))
+  vi.doMock('~/utils/server/toolRouting', () => ({
+    getToolRouterStatus: vi.fn(async () => ({
+      status: 'default',
+      provider: 'NCSAHostedVLM',
+      model: 'Qwen/Qwen3.6-27B',
+    })),
+  }))
   vi.doMock('~/utils/simConfig', async (importOriginal) => {
     const actual: any = await importOriginal()
     return {
@@ -58,6 +65,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.doUnmock('~/db/dbClient')
   vi.doUnmock('~/utils/simConfig')
+  vi.doUnmock('~/utils/server/toolRouting')
 })
 
 describe('getSimConfig handler', () => {
@@ -77,8 +85,17 @@ describe('getSimConfig handler', () => {
       sim_api_key_masked: 'sk-s' + '*'.repeat(26) + '5678',
       sim_base_url: null,
       sim_workspace_id: 'ws-1',
+      tool_routing: {
+        status: 'default',
+        provider: 'NCSAHostedVLM',
+        model: 'Qwen/Qwen3.6-27B',
+      },
     })
     expect(JSON.stringify(res.body)).not.toContain('super-secret')
+    // The status never carries credentials or endpoints.
+    expect(JSON.stringify(res.body.tool_routing)).not.toMatch(
+      /apiKey|endpointUrl/,
+    )
   })
 
   it('reports an unconfigured project without inventing values', async () => {
@@ -92,7 +109,26 @@ describe('getSimConfig handler', () => {
       sim_api_key_masked: null,
       sim_base_url: null,
       sim_workspace_id: null,
+      tool_routing: {
+        status: 'default',
+        provider: 'NCSAHostedVLM',
+        model: 'Qwen/Qwen3.6-27B',
+      },
     })
+  })
+
+  it('reports offline status without failing the config fetch when the resolver throws', async () => {
+    vi.doMock('~/utils/server/toolRouting', () => ({
+      getToolRouterStatus: vi.fn(async () => {
+        throw new Error('redis down')
+      }),
+    }))
+    const { handler } = await import('../getSimConfig')
+    const res = makeRes()
+    await handler({ method: 'GET', courseName: 'cs101', user: {} } as any, res)
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.tool_routing.status).toBe('offline')
   })
 })
 

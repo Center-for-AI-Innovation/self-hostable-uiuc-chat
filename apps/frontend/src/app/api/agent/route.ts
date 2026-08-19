@@ -37,6 +37,7 @@ import {
   type DBMessage,
 } from '~/pages/api/conversation'
 import { getModels } from '~/pages/api/models'
+import { resolveToolRouter } from '~/utils/server/toolRouting'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -147,8 +148,7 @@ function getOpenAIKey(
     return courseMetadata.openai_api_key
   }
 
-  // Fallback to env
-  return process.env.VLADS_OPENAI_KEY || ''
+  return ''
 }
 
 async function handler(req: AuthenticatedRequest) {
@@ -332,12 +332,21 @@ async function handler(req: AuthenticatedRequest) {
             })),
           }
 
-          // Get OpenAI key
+          // Resolve tool-routing credentials once per run, on the model the
+          // run will actually use (the stored conversation's model wins over
+          // the request body's). The client-resolved OpenAI key keeps the
+          // courseMetadata fallback, which lives outside the providers blob.
           const openaiKey = getOpenAIKey(llmProviders, courseMetadata)
-          if (!openaiKey) {
+          const toolRouter = await resolveToolRouter({
+            projectName: courseName,
+            clientOpenAIKey: openaiKey,
+            selectedModelId: conversation.model.id,
+          })
+          if (toolRouter.source === 'offline') {
             emit({
               type: 'error',
-              message: 'No OpenAI API key configured for this project',
+              message:
+                'Tool routing is unavailable for this project. Configure an OpenAI or OpenAI-compatible provider on the LLMs page.',
               recoverable: false,
             })
             return
@@ -351,6 +360,7 @@ async function handler(req: AuthenticatedRequest) {
             courseMetadata,
             llmProviders: llmProviders || ({} as AllLLMProviders),
             openaiKey,
+            toolRouter,
             userIdentifier,
             emit,
             assistantMessageId,

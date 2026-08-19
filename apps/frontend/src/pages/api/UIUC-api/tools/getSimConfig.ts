@@ -4,6 +4,10 @@ import { withCourseOwnerOrAdminAccess } from '~/pages/api/authorization'
 import { db } from '~/db/dbClient'
 import { projects } from '~/db/schema'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
+import {
+  getToolRouterStatus,
+  type ToolRouterStatus,
+} from '~/utils/server/toolRouting'
 
 /**
  * What this route tells the browser about a project's Sim configuration. The
@@ -17,6 +21,9 @@ export interface SimConfigResponse {
   sim_api_key_masked: string | null
   sim_base_url: string | null
   sim_workspace_id: string | null
+  // Project-level tool-routing status for the badge on the tools page.
+  // Carries no credentials or endpoints.
+  tool_routing: ToolRouterStatus
 }
 
 export function maskKey(key: string): string {
@@ -24,7 +31,7 @@ export function maskKey(key: string): string {
   return key.slice(0, 4) + '*'.repeat(key.length - 8) + key.slice(-4)
 }
 
-const EMPTY_CONFIG: SimConfigResponse = {
+const EMPTY_CONFIG = {
   has_api_key: false,
   sim_api_key_masked: null,
   sim_base_url: null,
@@ -55,14 +62,30 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     .limit(1)
 
   const row = rows[0]
-  const config: SimConfigResponse = row
-    ? {
-        has_api_key: Boolean(row.sim_api_key),
-        sim_api_key_masked: row.sim_api_key ? maskKey(row.sim_api_key) : null,
-        sim_base_url: row.sim_base_url,
-        sim_workspace_id: row.sim_workspace_id,
-      }
-    : EMPTY_CONFIG
+
+  // A status failure must not break the whole config fetch.
+  let tool_routing: ToolRouterStatus
+  try {
+    tool_routing = await getToolRouterStatus(courseName)
+  } catch (error) {
+    console.error('Failed to compute tool-routing status:', error)
+    tool_routing = {
+      status: 'offline',
+      reason: 'Could not determine tool-routing status.',
+    }
+  }
+
+  const config: SimConfigResponse = {
+    ...(row
+      ? {
+          has_api_key: Boolean(row.sim_api_key),
+          sim_api_key_masked: row.sim_api_key ? maskKey(row.sim_api_key) : null,
+          sim_base_url: row.sim_base_url,
+          sim_workspace_id: row.sim_workspace_id,
+        }
+      : EMPTY_CONFIG),
+    tool_routing,
+  }
 
   return res.status(200).json(config)
 }

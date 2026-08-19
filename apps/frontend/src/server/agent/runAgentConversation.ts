@@ -33,6 +33,7 @@ import {
 import { type ChatBody } from '~/types/chat'
 import { type CourseMetadata } from '~/types/courseMetadata'
 import { type AllLLMProviders } from '~/utils/modelProviders/LLMProvider'
+import { type ResolvedToolRouter } from '~/utils/server/toolRouting'
 
 export interface RunAgentParams {
   conversation: Conversation
@@ -42,6 +43,7 @@ export interface RunAgentParams {
   courseMetadata: CourseMetadata
   llmProviders: AllLLMProviders
   openaiKey: string
+  toolRouter: ResolvedToolRouter
   userIdentifier: string
   assistantMessageId: string
   // Callback to emit events to the client
@@ -73,6 +75,7 @@ export async function runAgentConversation(
     courseMetadata,
     llmProviders,
     openaiKey,
+    toolRouter,
     userIdentifier,
     assistantMessageId,
     emit,
@@ -274,7 +277,7 @@ export async function runAgentConversation(
       const { selectedTools, error: selectionError } = await selectToolsServer({
         conversation: workingConversation,
         availableTools: toolsForAgent,
-        openaiKey,
+        router: toolRouter,
         imageUrls: message.imageUrls,
         imageDescription: message.imageDescription,
         signal,

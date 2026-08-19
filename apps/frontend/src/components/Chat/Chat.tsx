@@ -1003,8 +1003,6 @@ export const Chat = memo(
               updatedConversation,
               getOpenAIKey(llmProviders, courseMetadata, apiKey),
               courseName,
-              undefined,
-              llmProviders,
             )
             homeDispatch({ field: 'isRouting', value: false })
 
