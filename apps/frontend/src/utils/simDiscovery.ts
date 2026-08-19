@@ -13,6 +13,89 @@ import {
 const DETAIL_CONCURRENCY = 5
 const DETAIL_TIMEOUT_MS = 15_000
 
+/**
+ * Body fields Sim's execute endpoint claims for itself. For API-key callers
+ * there is no nested-input channel: the whole request body is the workflow
+ * input *minus* these control fields, which Sim destructures out before the
+ * workflow ever sees them (upstream
+ * `apps/sim/app/api/workflows/[id]/execute/route.ts`). Two consequences:
+ *
+ * - A workflow input field with one of these names can never be delivered.
+ * - A model-invented argument with one of these names would be interpreted as
+ *   an execution control — `workflowStateOverride` is flagged upstream as a
+ *   code-injection risk.
+ *
+ * So execution strips them from AI-generated input, and discovery drops them
+ * from advertised schemas. Sim also reads a few body fields as controls
+ * *without* removing them from the input (`executionId`, `isClientSession`,
+ * `includeThinking`, `includeToolCalls`, `startBlockId`, `input`); those are
+ * deliberately not listed here — stripping them would break a workflow that
+ * legitimately declares them, and the worst a hallucinated one produces is a
+ * 400 from Sim, which the error path already reports.
+ */
+export const SIM_EXECUTE_CONTROL_FIELDS: ReadonlySet<string> = new Set([
+  'stream',
+  'selectedOutputs',
+  'triggerType',
+  'useDraftState',
+  'inputFromExecutionId',
+  'includeFileBase64',
+  'base64MaxBytes',
+  'workflowStateOverride',
+  'deploymentVersionId',
+  'triggerBlockId',
+  'stopAfterBlockId',
+  'runFromBlock',
+  'copilotToolCallId',
+  'workflowId',
+  'parentWorkspaceId',
+])
+
+/**
+ * Drop reserved Sim control fields from an AI-generated input object before it
+ * is spread into the execute request body. Returns the names it removed so the
+ * caller can log them.
+ */
+export function sanitizeSimWorkflowInput(input: Record<string, unknown>): {
+  input: Record<string, unknown>
+  stripped: string[]
+} {
+  const stripped = Object.keys(input).filter((key) =>
+    SIM_EXECUTE_CONTROL_FIELDS.has(key),
+  )
+  if (stripped.length === 0) return { input, stripped }
+  const sanitized = { ...input }
+  for (const key of stripped) delete sanitized[key]
+  return { input: sanitized, stripped }
+}
+
+/**
+ * Extract a human-readable message from a Sim error body. v1 responds with
+ * `{ error: "message" }`; v2 wraps it as `{ error: { code, message } }`. The
+ * result is always a string — assigning the v2 object to a message field is
+ * what surfaces "[object Object]" to the user. Falls back to `fallback` for
+ * non-JSON bodies or unrecognized shapes.
+ */
+export function parseSimErrorMessage(body: string, fallback: string): string {
+  try {
+    const parsed = JSON.parse(body) as { error?: unknown }
+    const err = parsed.error
+    if (typeof err === 'string' && err) return err
+    if (err && typeof err === 'object') {
+      const { code, message } = err as { code?: unknown; message?: unknown }
+      if (typeof message === 'string' && message) {
+        return typeof code === 'string' && code
+          ? `${message} (${code})`
+          : message
+      }
+      if (typeof code === 'string' && code) return code
+    }
+  } catch {
+    // non-JSON error body
+  }
+  return fallback
+}
+
 /** A workflow that could not be described, and why. */
 export interface SimWorkflowFailure {
   id: string
@@ -222,13 +305,29 @@ export async function discoverSimWorkflows(params: {
         }
 
         const detail = (await detailRes.json()) as Record<string, unknown>
+        const inputFields = extractInputFields(detail)
+        // A field named after one of Sim's execute-body control fields can
+        // never be delivered — Sim consumes it before the workflow runs — so
+        // advertising it would ask the model for an argument that is silently
+        // discarded. Drop it from the schema and say so.
+        const reserved = inputFields.filter((f) =>
+          SIM_EXECUTE_CONTROL_FIELDS.has(f.name),
+        )
+        if (reserved.length > 0) {
+          console.warn(
+            `[simDiscovery] workflow "${item.name}" (${item.id}) declares input field(s) that collide with Sim's execute API control fields and cannot be delivered:`,
+            reserved.map((f) => f.name),
+          )
+        }
         return {
           ok: true,
           workflow: {
             id: item.id,
             name: item.name,
             description: item.description ?? '',
-            inputFields: extractInputFields(detail),
+            inputFields: inputFields.filter(
+              (f) => !SIM_EXECUTE_CONTROL_FIELDS.has(f.name),
+            ),
           },
         }
       } catch (err) {

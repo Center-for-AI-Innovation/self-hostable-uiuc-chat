@@ -6,6 +6,8 @@ import {
   clearWorkspaceMembershipCache,
   discoverSimWorkflows,
   extractInputFields,
+  parseSimErrorMessage,
+  sanitizeSimWorkflowInput,
   SimListError,
   simUpstreamErrorResponse,
 } from '../simDiscovery'
@@ -188,6 +190,102 @@ describe('discoverSimWorkflows', () => {
 
     await expect(discover()).rejects.toBeInstanceOf(SimListError)
     await expect(discover()).rejects.toMatchObject({ status: 401 })
+  })
+})
+
+describe('discovery of reserved input names', () => {
+  it('drops input fields that collide with Sim execute control fields', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.spyOn(globalThis, 'fetch').mockImplementation(((url: string) =>
+      url.includes('/workflows/w1')
+        ? Promise.resolve(
+            detailResponse([
+              { name: 'state', type: 'string' },
+              // Sim consumes these from the execute body before the workflow
+              // runs, so they can never be delivered as inputs.
+              { name: 'stream', type: 'string' },
+              { name: 'workflowStateOverride', type: 'string' },
+            ]),
+          )
+        : Promise.resolve(listResponse([{ id: 'w1', name: 'WF' }]))) as any)
+
+    const { workflows, failed } = await discover()
+
+    expect(failed).toEqual([])
+    expect(workflows[0]?.inputFields.map((f) => f.name)).toEqual(['state'])
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('collide'),
+      ['stream', 'workflowStateOverride'],
+    )
+  })
+})
+
+describe('sanitizeSimWorkflowInput', () => {
+  it('returns the input untouched when nothing collides', () => {
+    const input = { state: 'IL', corn_price: '4.5' }
+    const result = sanitizeSimWorkflowInput(input)
+    expect(result.input).toBe(input)
+    expect(result.stripped).toEqual([])
+  })
+
+  it('strips reserved control fields and reports them', () => {
+    const result = sanitizeSimWorkflowInput({
+      state: 'IL',
+      stream: true,
+      workflowStateOverride: { blocks: [] },
+      runFromBlock: 'b1',
+    })
+    expect(result.input).toEqual({ state: 'IL' })
+    expect(result.stripped).toEqual([
+      'stream',
+      'workflowStateOverride',
+      'runFromBlock',
+    ])
+  })
+
+  it('does not strip dual-read fields a workflow may legitimately declare', () => {
+    const result = sanitizeSimWorkflowInput({ input: 'text', executionId: 'x' })
+    expect(result.input).toEqual({ input: 'text', executionId: 'x' })
+    expect(result.stripped).toEqual([])
+  })
+})
+
+describe('parseSimErrorMessage', () => {
+  const FALLBACK = 'Sim API returned 401: Unauthorized'
+
+  it('reads the v1 string envelope', () => {
+    expect(parseSimErrorMessage('{"error": "API key required"}', FALLBACK)).toBe(
+      'API key required',
+    )
+  })
+
+  it('reads the v2 object envelope without surfacing [object Object]', () => {
+    expect(
+      parseSimErrorMessage(
+        '{"error": {"code": "UNAUTHORIZED", "message": "API key required"}}',
+        FALLBACK,
+      ),
+    ).toBe('API key required (UNAUTHORIZED)')
+  })
+
+  it('falls back to the code when the v2 envelope has no message', () => {
+    expect(
+      parseSimErrorMessage('{"error": {"code": "UNAUTHORIZED"}}', FALLBACK),
+    ).toBe('UNAUTHORIZED')
+  })
+
+  it('falls back for non-JSON bodies', () => {
+    expect(parseSimErrorMessage('<html>Bad Gateway</html>', FALLBACK)).toBe(
+      FALLBACK,
+    )
+  })
+
+  it('falls back for JSON without a usable error', () => {
+    expect(parseSimErrorMessage('{"error": null}', FALLBACK)).toBe(FALLBACK)
+    expect(parseSimErrorMessage('{"error": {"nested": true}}', FALLBACK)).toBe(
+      FALLBACK,
+    )
+    expect(parseSimErrorMessage('{}', FALLBACK)).toBe(FALLBACK)
   })
 })
 

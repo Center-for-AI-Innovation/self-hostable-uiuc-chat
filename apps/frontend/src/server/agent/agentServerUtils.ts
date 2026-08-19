@@ -30,6 +30,8 @@ import {
 import {
   assertWorkflowInWorkspace,
   discoverSimWorkflows,
+  parseSimErrorMessage,
+  sanitizeSimWorkflowInput,
 } from '~/utils/simDiscovery'
 import { type SimExecutionResult } from '~/types/sim'
 
@@ -313,6 +315,19 @@ export async function executeToolServer(
     signal.addEventListener('abort', () => controller.abort(), { once: true })
   }
 
+  // Sim's execute API has no nested-input channel for API-key callers: the
+  // input is the flat body minus Sim's own control fields. Strip any
+  // AI-generated keys that collide with those before adding our own `stream`.
+  const { input: safeInput, stripped } = sanitizeSimWorkflowInput(
+    tool.aiGeneratedArgumentValues ?? {},
+  )
+  if (stripped.length > 0) {
+    console.warn('[executeToolServer] dropped reserved Sim control fields', {
+      workflowId: tool.id,
+      stripped,
+    })
+  }
+
   try {
     const simResponse = await fetch(url, {
       method: 'POST',
@@ -320,10 +335,7 @@ export async function executeToolServer(
         'Content-Type': 'application/json',
         'X-API-Key': creds.api_key,
       },
-      body: JSON.stringify({
-        ...(tool.aiGeneratedArgumentValues ?? {}),
-        stream: false,
-      }),
+      body: JSON.stringify({ ...safeInput, stream: false }),
       signal: controller.signal,
     })
 
@@ -334,13 +346,10 @@ export async function executeToolServer(
 
     if (!simResponse.ok) {
       const errText = await simResponse.text()
-      let errMessage = `Sim API returned ${simResponse.status}: ${simResponse.statusText}`
-      try {
-        const errJson = JSON.parse(errText) as { error?: string }
-        if (errJson.error) errMessage = errJson.error
-      } catch {
-        // non-JSON error body
-      }
+      const errMessage = parseSimErrorMessage(
+        errText,
+        `Sim API returned ${simResponse.status}: ${simResponse.statusText}`,
+      )
       console.error('[executeToolServer] Sim API error', errMessage)
       toolCopy.error = errMessage
       return toolCopy

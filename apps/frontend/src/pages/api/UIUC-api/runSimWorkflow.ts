@@ -8,6 +8,8 @@ import {
 } from '~/utils/simConfig'
 import {
   assertWorkflowInWorkspace,
+  parseSimErrorMessage,
+  sanitizeSimWorkflowInput,
   SimListError,
   simUpstreamErrorResponse,
 } from '~/utils/simDiscovery'
@@ -109,6 +111,17 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS)
 
+  // Sim's execute API has no nested-input channel for API-key callers: the
+  // input is the flat body minus Sim's own control fields. Strip any input
+  // keys that collide with those before adding our own `stream`.
+  const { input: safeInput, stripped } = sanitizeSimWorkflowInput(input)
+  if (stripped.length > 0) {
+    console.warn('[runSimWorkflow] dropped reserved Sim control fields', {
+      workflow_id,
+      stripped,
+    })
+  }
+
   try {
     const simResponse = await fetch(url, {
       method: 'POST',
@@ -116,7 +129,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         'Content-Type': 'application/json',
         'X-API-Key': creds.api_key,
       },
-      body: JSON.stringify({ ...input, stream: false }),
+      body: JSON.stringify({ ...safeInput, stream: false }),
       signal: controller.signal,
     })
 
@@ -124,13 +137,10 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
     if (!simResponse.ok) {
       const errText = await simResponse.text()
-      let errMessage = `Sim API returned ${simResponse.status}: ${simResponse.statusText}`
-      try {
-        const errJson = JSON.parse(errText) as { error?: string }
-        if (errJson.error) errMessage = errJson.error
-      } catch {
-        // non-JSON error body
-      }
+      const errMessage = parseSimErrorMessage(
+        errText,
+        `Sim API returned ${simResponse.status}: ${simResponse.statusText}`,
+      )
       console.error('[runSimWorkflow] Sim API error', {
         workflow_id,
         status: simResponse.status,
