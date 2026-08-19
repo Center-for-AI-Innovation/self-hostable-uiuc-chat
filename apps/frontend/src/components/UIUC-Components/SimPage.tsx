@@ -48,8 +48,13 @@ const SimPage = ({ course_name }: { course_name: string }) => {
     null,
   )
   const [currentEmail, setCurrentEmail] = useState('')
+  // The key input holds only what the admin types this session. The stored
+  // key never reaches the browser — the server sends a masked form for
+  // display, and a blank input on save means "keep the stored key".
   const [apiKeyInput, setApiKeyInput] = useState('')
+  const [storedKeyMasked, setStoredKeyMasked] = useState<string | null>(null)
   const [workspaceIdInput, setWorkspaceIdInput] = useState('')
+  const [baseUrlInput, setBaseUrlInput] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [hasSavedConfig, setHasSavedConfig] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
@@ -75,16 +80,20 @@ const SimPage = ({ course_name }: { course_name: string }) => {
       .then(
         (
           config: {
-            sim_api_key?: string | null
+            has_api_key?: boolean
+            sim_api_key_masked?: string | null
+            sim_base_url?: string | null
             sim_workspace_id?: string | null
           } | null,
         ) => {
           if (!config) return
-          if (config.sim_api_key) setApiKeyInput(config.sim_api_key)
+          if (config.sim_api_key_masked)
+            setStoredKeyMasked(config.sim_api_key_masked)
           if (config.sim_workspace_id)
             setWorkspaceIdInput(config.sim_workspace_id)
+          if (config.sim_base_url) setBaseUrlInput(config.sim_base_url)
           setHasSavedConfig(
-            Boolean(config.sim_api_key && config.sim_workspace_id),
+            Boolean(config.has_api_key && config.sim_workspace_id),
           )
         },
       )
@@ -117,14 +126,20 @@ const SimPage = ({ course_name }: { course_name: string }) => {
   const handleSave = async () => {
     setIsSaving(true)
     try {
+      // A blank key input means "keep the stored key" — the field is omitted
+      // so the partial update leaves the column alone. The other fields are
+      // always visible, so what the form shows is what gets stored.
+      const payload: Record<string, string | null> = {
+        course_name,
+        sim_workspace_id: workspaceIdInput || null,
+        sim_base_url: baseUrlInput.trim() || null,
+      }
+      if (apiKeyInput) payload.sim_api_key = apiKeyInput
+
       const upsertRes = await fetch('/api/UIUC-api/tools/upsertSimConfig', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          course_name,
-          sim_api_key: apiKeyInput || null,
-          sim_workspace_id: workspaceIdInput || null,
-        }),
+        body: JSON.stringify(payload),
       })
 
       // `fetch` only rejects on transport failure, so a 4xx/5xx save would
@@ -138,7 +153,12 @@ const SimPage = ({ course_name }: { course_name: string }) => {
         )
       }
 
-      setHasSavedConfig(Boolean(apiKeyInput && workspaceIdInput))
+      const hasKey = Boolean(apiKeyInput || storedKeyMasked)
+      setHasSavedConfig(Boolean(hasKey && workspaceIdInput))
+      if (apiKeyInput) {
+        setStoredKeyMasked(maskKey(apiKeyInput))
+        setApiKeyInput('')
+      }
       // The credentials just changed, so any tools discovered under the old
       // ones are wrong; drop the cache before refetching.
       clearCachedSimTools(course_name)
@@ -279,8 +299,12 @@ const SimPage = ({ course_name }: { course_name: string }) => {
                         <TextInput
                           type="password"
                           label="API Key"
-                          description="Your Sim AI API key (sk-sim-...). Found in Settings → Sim Keys."
-                          placeholder="sk-sim-..."
+                          description={
+                            storedKeyMasked
+                              ? 'A key is stored. Leave blank to keep it, or enter a new one to replace it.'
+                              : 'Your Sim AI API key (sk-sim-...). Found in Settings → Sim Keys.'
+                          }
+                          placeholder={storedKeyMasked ?? 'sk-sim-...'}
                           value={apiKeyInput}
                           onChange={(e) => setApiKeyInput(e.target.value)}
                           styles={{
@@ -308,6 +332,22 @@ const SimPage = ({ course_name }: { course_name: string }) => {
                           }}
                           className={`${montserrat_paragraph.variable} font-montserratParagraph`}
                         />
+                        <div className="pt-2" />
+                        <TextInput
+                          label="Base URL (optional)"
+                          description="Point this project at a self-hosted Sim instance. Leave blank to use the deployment default."
+                          placeholder="https://www.sim.ai"
+                          value={baseUrlInput}
+                          onChange={(e) => setBaseUrlInput(e.target.value)}
+                          styles={{
+                            input: {
+                              color: 'var(--foreground)',
+                              backgroundColor: 'var(--background)',
+                              margin: '.5rem 0 .1rem 0',
+                            },
+                          }}
+                          className={`${montserrat_paragraph.variable} font-montserratParagraph`}
+                        />
                         <div className="pt-3" />
                         <Button
                           onClick={handleSave}
@@ -316,14 +356,14 @@ const SimPage = ({ course_name }: { course_name: string }) => {
                         >
                           {isSaving ? 'Saving...' : 'Save'}
                         </Button>
-                        {hasSavedConfig && apiKeyInput && (
+                        {storedKeyMasked && (
                           <Text
                             size="xs"
                             mt="xs"
                             className={`${montserrat_paragraph.variable} font-montserratParagraph`}
                             style={{ color: 'var(--foreground)', opacity: 0.6 }}
                           >
-                            Stored key: {maskKey(apiKeyInput)}
+                            Stored key: {storedKeyMasked}
                           </Text>
                         )}
                       </div>

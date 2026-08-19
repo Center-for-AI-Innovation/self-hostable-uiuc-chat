@@ -5,7 +5,10 @@ import { db } from '~/db/dbClient'
 import { projects } from '~/db/schema'
 import { type SimProjectConfig } from '~/types/sim'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
-import { invalidateSimConfigCache } from '~/utils/simConfig'
+import {
+  invalidateSimConfigCache,
+  validateSimBaseUrl,
+} from '~/utils/simConfig'
 
 /**
  * POST /api/UIUC-api/tools/upsertSimConfig
@@ -15,7 +18,7 @@ import { invalidateSimConfigCache } from '~/utils/simConfig'
  * project at a self-hosted Sim — because the form never sends that field.
  * Sending an explicit `null` still clears a value.
  */
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
@@ -28,7 +31,18 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const body = req.body as Partial<SimProjectConfig>
   const update: Partial<SimProjectConfig> = {}
   if ('sim_api_key' in body) update.sim_api_key = body.sim_api_key ?? null
-  if ('sim_base_url' in body) update.sim_base_url = body.sim_base_url ?? null
+  if ('sim_base_url' in body) {
+    const baseUrl =
+      typeof body.sim_base_url === 'string' ? body.sim_base_url.trim() : null
+    // Reject a base URL the resolver would refuse anyway — a value that only
+    // ever fails at discovery time reads as a broken key, not a broken URL.
+    if (baseUrl && !validateSimBaseUrl(baseUrl.replace(/\/$/, ''))) {
+      return res.status(400).json({
+        error: 'Invalid Sim base URL — not an allowed Sim host',
+      })
+    }
+    update.sim_base_url = baseUrl || null
+  }
   if ('sim_workspace_id' in body) {
     update.sim_workspace_id = body.sim_workspace_id ?? null
   }
