@@ -24,6 +24,7 @@ import {
   GeminiModels,
 } from '~/utils/modelProviders/types/gemini'
 import {
+  CURRENT_NCSA_DEFAULT_MODEL_ID,
   findAvailableNCSAFallbackModel,
   LEGACY_NCSA_DEFAULT_MODEL_IDS,
   type NCSAHostedVLMModel,
@@ -605,6 +606,7 @@ export const selectBestModel = (
     return allModels[0]
   }
 
-  // If no enabled models are available, fallback to the static Qwen 3.5 27B descriptor.
-  return NCSAHostedVLMModels[NCSAHostedVLMModelID.QWEN3_5_27B]
+  // If no enabled models are available, fall back to the static descriptor of
+  // the current NCSA default so this stays in lockstep with the intended default.
+  return NCSAHostedVLMModels[CURRENT_NCSA_DEFAULT_MODEL_ID]
 }

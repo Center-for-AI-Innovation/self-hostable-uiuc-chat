@@ -6,6 +6,7 @@ import {
 } from '../LLMProvider'
 import { OpenAIModelID, OpenAIModels } from '../types/openai'
 import {
+  CURRENT_NCSA_DEFAULT_MODEL_ID,
   NCSAHostedVLMModelID,
   NCSAHostedVLMModels,
 } from '../types/NCSAHostedVLM'
@@ -177,18 +178,18 @@ describe('selectBestModel', () => {
     )
   })
 
-  it('falls back to Qwen 3.5 27B when no preferred models are available', () => {
+  it('falls back to the current NCSA default descriptor when no models are available', () => {
     const providers = makeAllProviders({
       [ProviderNames.OpenAI]: { enabled: false, models: [] },
       [ProviderNames.NCSAHostedVLM]: { enabled: false, models: [] },
     })
 
     expect(selectBestModel(providers)).toEqual(
-      NCSAHostedVLMModels[NCSAHostedVLMModelID.QWEN3_5_27B],
+      NCSAHostedVLMModels[CURRENT_NCSA_DEFAULT_MODEL_ID],
     )
   })
 
-  it('falls back to an available legacy NCSA model before using the static Qwen 3.5 descriptor', () => {
+  it('falls back to an available legacy NCSA model before using the static default descriptor', () => {
     const providers = makeAllProviders({
       [ProviderNames.OpenAI]: { enabled: false, models: [] },
       [ProviderNames.NCSAHostedVLM]: {
