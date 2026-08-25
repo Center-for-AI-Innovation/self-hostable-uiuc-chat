@@ -35,6 +35,99 @@ vi.mock('../UserSettings', () => ({
   modelCached: [],
 }))
 
+describe('getModelDropdownMaxHeight', () => {
+  it('uses remaining space below the trigger when that side is larger', async () => {
+    const { getModelDropdownMaxHeight } = await import('../ModelSelect')
+
+    expect(
+      getModelDropdownMaxHeight({
+        triggerRect: { top: 80, bottom: 120 },
+        containerRect: { top: 40, bottom: 500 },
+      }),
+    ).toBe(372)
+  })
+
+  it('uses remaining space above the trigger when that side is larger', async () => {
+    const { getModelDropdownMaxHeight } = await import('../ModelSelect')
+
+    expect(
+      getModelDropdownMaxHeight({
+        triggerRect: { top: 420, bottom: 460 },
+        containerRect: { top: 40, bottom: 500 },
+      }),
+    ).toBe(372)
+  })
+
+  it('stays inside a short modal instead of overflowing it', async () => {
+    const { getModelDropdownMaxHeight } = await import('../ModelSelect')
+
+    // Nest Hub-like: 600px viewport, modal shorter than the old 480px dropdown.
+    expect(
+      getModelDropdownMaxHeight({
+        triggerRect: { top: 180, bottom: 220 },
+        containerRect: { top: 40, bottom: 560 },
+      }),
+    ).toBe(332)
+
+    // Too cramped for a usable list: keep the readable floor and let the modal clip/scroll,
+    // rather than collapsing to a sliver (or to 0, which Mantine renders as an empty box).
+    expect(
+      getModelDropdownMaxHeight({
+        triggerRect: { top: 150, bottom: 180 },
+        containerRect: { top: 100, bottom: 220 },
+      }),
+    ).toBe(160)
+  })
+
+  it('never returns a height that Mantine renders as an empty dropdown', async () => {
+    const { getModelDropdownMaxHeight } = await import('../ModelSelect')
+
+    // Trigger taller than its container — both sides measure negative.
+    expect(
+      getModelDropdownMaxHeight({
+        triggerRect: { top: 100, bottom: 300 },
+        containerRect: { top: 120, bottom: 280 },
+      }),
+    ).toBe(160)
+  })
+
+  it('never exceeds the height cap', async () => {
+    const { getModelDropdownMaxHeight } = await import('../ModelSelect')
+
+    expect(
+      getModelDropdownMaxHeight({
+        triggerRect: { top: 40, bottom: 80 },
+        containerRect: { top: 0, bottom: 2000 },
+      }),
+    ).toBe(480)
+  })
+})
+
+describe('toRemScaledDropdownHeight', () => {
+  it('passes pixel heights through unchanged at a 16px root font', async () => {
+    const { toRemScaledDropdownHeight } = await import('../ModelSelect')
+
+    expect(toRemScaledDropdownHeight(332, 16)).toBe(332)
+  })
+
+  it('shrinks the value so a larger root font still resolves to the measured pixels', async () => {
+    const { toRemScaledDropdownHeight } = await import('../ModelSelect')
+
+    // Mantine emits `value / 16` rem, so at a 20px root the prop must be pre-scaled:
+    // 265.6 / 16 = 16.6rem, and 16.6rem * 20px = 332px.
+    const scaled = toRemScaledDropdownHeight(332, 20)
+    expect(scaled).toBeCloseTo(265.6)
+    expect((scaled / 16) * 20).toBeCloseTo(332)
+  })
+
+  it('falls back to 16px for a bogus root font size', async () => {
+    const { toRemScaledDropdownHeight } = await import('../ModelSelect')
+
+    expect(toRemScaledDropdownHeight(332, 0)).toBe(332)
+    expect(toRemScaledDropdownHeight(332, Number.NaN)).toBe(332)
+  })
+})
+
 describe('ModelSelect', () => {
   it('renders and toggles the details accordion', async () => {
     const user = userEvent.setup()
@@ -109,6 +202,100 @@ describe('ModelSelect', () => {
     expect(
       screen.getByText(/More details about the AI models/i),
     ).toBeInTheDocument()
+  })
+
+  it('opens a scrollable model list that stays inside the settings modal', async () => {
+    const user = userEvent.setup()
+    const { ModelSelect } = await import('../ModelSelect')
+
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement) {
+        if (
+          this.hasAttribute?.('data-settings-modal') ||
+          this.hasAttribute?.('data-settings-modal-body')
+        ) {
+          return {
+            x: 0,
+            y: 40,
+            top: 40,
+            bottom: 520,
+            left: 0,
+            right: 800,
+            width: 800,
+            height: 480,
+            toJSON: () => ({}),
+          } as DOMRect
+        }
+        return {
+          x: 0,
+          y: 140,
+          top: 140,
+          bottom: 180,
+          left: 0,
+          right: 320,
+          width: 320,
+          height: 40,
+          toJSON: () => ({}),
+        } as DOMRect
+      },
+    )
+
+    const models = Array.from({ length: 20 }, (_, index) => ({
+      id: `model-${index}`,
+      name: `Model ${index}`,
+      tokenLimit: 128000,
+      enabled: true,
+    }))
+
+    renderWithProviders(
+      <div data-settings-modal-body>
+        <ModelSelect chat_ui={{} as any} />
+      </div>,
+      {
+        homeState: {
+          llmProviders: {
+            [ProviderNames.OpenAI]: {
+              provider: ProviderNames.OpenAI,
+              enabled: true,
+              models,
+            },
+          } as any,
+          defaultModelId: 'model-0' as any,
+          selectedConversation: {
+            id: 'c1',
+            name: 'Test',
+            messages: [],
+            model: {
+              id: 'model-0',
+              name: 'Model 0',
+              tokenLimit: 128000,
+              enabled: true,
+              provider: ProviderNames.OpenAI,
+            },
+            prompt: 'p',
+            temperature: 0.3,
+            folderId: null,
+          } as any,
+        },
+        homeContext: {
+          handleUpdateConversation: vi.fn(),
+        },
+      },
+    )
+
+    await user.click(screen.getByRole('searchbox', { name: /select a model/i }))
+
+    const listbox = await screen.findByRole('listbox')
+    expect(listbox).toBeInTheDocument()
+    expect(screen.getByText('Model 19')).toBeInTheDocument()
+
+    const constrained = listbox.closest('[style*="max-height"]') as HTMLElement
+    expect(constrained).toBeTruthy()
+    const maxHeightPx =
+      Number.parseFloat(constrained.style.maxHeight) *
+      (constrained.style.maxHeight.endsWith('rem') ? 16 : 1)
+    expect(maxHeightPx).toBeGreaterThan(0)
+    expect(maxHeightPx).toBeLessThanOrEqual(332)
   })
 
   it('renders ModelItem states for WebLLM downloads', async () => {
