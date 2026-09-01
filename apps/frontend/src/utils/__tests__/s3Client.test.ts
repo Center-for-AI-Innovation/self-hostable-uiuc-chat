@@ -80,6 +80,107 @@ describe('s3Client', () => {
   })
 })
 
+describe('vyriadMinioClient', () => {
+  it('creates a vyriadMinioClient when MINIO_KEY/MINIO_SECRET/MINIO_ENDPOINT are all set', async () => {
+    const ctor = vi.fn()
+    vi.doMock('@aws-sdk/client-s3', () => ({ S3Client: ctor }))
+
+    vi.stubEnv('MINIO_KEY', 'minio-key')
+    vi.stubEnv('MINIO_SECRET', 'minio-secret')
+    vi.stubEnv('MINIO_ENDPOINT', 'http://minio:9000')
+    vi.stubEnv('MINIO_REGION', 'us-west-2')
+
+    vi.resetModules()
+    const mod = await import('../s3Client')
+    expect(mod.vyriadMinioClient).toBeTruthy()
+    expect(ctor).toHaveBeenCalledWith(
+      expect.objectContaining({
+        region: 'us-west-2',
+        endpoint: 'http://minio:9000',
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: 'minio-key',
+          secretAccessKey: 'minio-secret',
+        },
+      }),
+    )
+  })
+
+  it('stays null when MINIO_KEY/MINIO_SECRET/MINIO_ENDPOINT are not all set', async () => {
+    vi.stubEnv('MINIO_KEY', '')
+    vi.stubEnv('MINIO_SECRET', '')
+    vi.stubEnv('MINIO_ENDPOINT', '')
+
+    vi.resetModules()
+    const mod = await import('../s3Client')
+    expect(mod.vyriadMinioClient).toBeNull()
+  })
+})
+
+describe('getPresignedUrlVyriadClient', () => {
+  it('creates a presigned client from VYRIAD_MINIO_* credentials + public endpoint', async () => {
+    const ctor = vi.fn()
+    vi.doMock('@aws-sdk/client-s3', () => ({ S3Client: ctor }))
+
+    vi.stubEnv('VYRIAD_MINIO_KEY', 'vyriad-key')
+    vi.stubEnv('VYRIAD_MINIO_SECRET', 'vyriad-secret')
+    vi.stubEnv('VYRIAD_MINIO_PUBLIC_ENDPOINT', 'http://localhost:9100')
+    vi.stubEnv('VYRIAD_MINIO_ENDPOINT', 'http://vyriad-minio:9100')
+    vi.stubEnv('VYRIAD_MINIO_REGION', 'eu-west-1')
+
+    vi.resetModules()
+    const mod = await import('../s3Client')
+    ctor.mockClear()
+    mod.getPresignedUrlVyriadClient()
+    expect(ctor).toHaveBeenCalledWith(
+      expect.objectContaining({
+        region: 'eu-west-1',
+        endpoint: 'http://localhost:9100',
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: 'vyriad-key',
+          secretAccessKey: 'vyriad-secret',
+        },
+      }),
+    )
+  })
+
+  it('falls back to VYRIAD_MINIO_ENDPOINT when VYRIAD_MINIO_PUBLIC_ENDPOINT is unset', async () => {
+    const ctor = vi.fn()
+    vi.doMock('@aws-sdk/client-s3', () => ({ S3Client: ctor }))
+
+    vi.stubEnv('VYRIAD_MINIO_KEY', 'vyriad-key')
+    vi.stubEnv('VYRIAD_MINIO_SECRET', 'vyriad-secret')
+    vi.stubEnv('VYRIAD_MINIO_PUBLIC_ENDPOINT', '')
+    vi.stubEnv('VYRIAD_MINIO_ENDPOINT', 'http://vyriad-minio:9100')
+
+    vi.resetModules()
+    const mod = await import('../s3Client')
+    ctor.mockClear()
+    mod.getPresignedUrlVyriadClient()
+    expect(ctor).toHaveBeenCalledWith(
+      expect.objectContaining({ endpoint: 'http://vyriad-minio:9100' }),
+    )
+  })
+
+  it('falls back to the module-level vyriadMinioClient when credentials are missing', async () => {
+    const ctor = vi.fn()
+    vi.doMock('@aws-sdk/client-s3', () => ({ S3Client: ctor }))
+
+    vi.stubEnv('MINIO_KEY', 'minio-key')
+    vi.stubEnv('MINIO_SECRET', 'minio-secret')
+    vi.stubEnv('MINIO_ENDPOINT', 'http://minio:9000')
+    vi.stubEnv('VYRIAD_MINIO_KEY', '')
+    vi.stubEnv('VYRIAD_MINIO_SECRET', '')
+    vi.stubEnv('VYRIAD_MINIO_PUBLIC_ENDPOINT', '')
+    vi.stubEnv('VYRIAD_MINIO_ENDPOINT', '')
+
+    vi.resetModules()
+    const mod = await import('../s3Client')
+    expect(mod.getPresignedUrlVyriadClient()).toBe(mod.vyriadMinioClient)
+  })
+})
+
 describe('normalizeS3Key', () => {
   it('strips a leading bucket segment (path-style MinIO / legacy AWS)', async () => {
     vi.resetModules()

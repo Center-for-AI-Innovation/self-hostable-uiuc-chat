@@ -109,10 +109,7 @@ const Sidebar = <T,>({
             <button
               tabIndex={0}
               aria-label="Close Sidebar"
-              className="flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-[--foreground] 
-              transition-colors duration-200
-              hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground]
-              focus:text-[--dashboard-button] hover:focus:text-[--dashboard-button-foreground]"
+              className="flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-[--foreground] transition-colors duration-200 hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground] focus:text-[--dashboard-button] hover:focus:text-[--dashboard-button-foreground]"
               onClick={toggleOpen}
             >
               <IconLayoutSidebarLeftCollapse
@@ -126,10 +123,7 @@ const Sidebar = <T,>({
           <button
             tabIndex={0}
             aria-label="Add Folder"
-            className="flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-[--foreground] 
-            transition-colors duration-200
-            hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground]
-            focus:text-[--dashboard-button] hover:focus:text-[--dashboard-button-foreground]"
+            className="flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-[--foreground] transition-colors duration-200 hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground] focus:text-[--dashboard-button] hover:focus:text-[--dashboard-button-foreground]"
             onClick={handleCreateFolder}
           >
             <IconFolderPlus size={20} stroke={1.5} aria-hidden="true" />
@@ -138,10 +132,7 @@ const Sidebar = <T,>({
           <button
             tabIndex={0}
             aria-label="Edit"
-            className="flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-[--foreground] 
-            transition-colors duration-200
-            hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground]
-            focus:text-[--dashboard-button] hover:focus:text-[--dashboard-button-foreground]"
+            className="flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-[--foreground] transition-colors duration-200 hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground] focus:text-[--dashboard-button] hover:focus:text-[--dashboard-button-foreground]"
             onClick={() => {
               handleCreateItem()
               handleSearchTerm('')
@@ -319,10 +310,7 @@ const Sidebar = <T,>({
         <button
           tabIndex={0}
           aria-label="Open Sidebar"
-          className="flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-[--foreground] 
-          transition-colors duration-200
-          hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground]
-          focus:text-[--dashboard-button] hover:focus:text-[--dashboard-button-foreground]"
+          className="flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-[--foreground] transition-colors duration-200 hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground] focus:text-[--dashboard-button] hover:focus:text-[--dashboard-button-foreground]"
           onClick={toggleOpen}
         >
           <IconLayoutSidebarLeftExpand

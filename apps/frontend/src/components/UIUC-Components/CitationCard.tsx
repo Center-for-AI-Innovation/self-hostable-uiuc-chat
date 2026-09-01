@@ -235,9 +235,7 @@ export const CitationCard = ({
       className="-m-0.5 w-full rounded-md p-0.5 transition-all duration-300 hover:opacity-100"
     >
       <Paper
-        className="flex flex-col overflow-hidden border-[1px] border-[--sources-border] bg-[--sources-item-background] text-[--sources-foreground] transition-all
-        duration-300 ease-in-out
-        hover:border-[--sources-border-hover]"
+        className="flex flex-col overflow-hidden border-[1px] border-[--sources-border] bg-[--sources-item-background] text-[--sources-foreground] transition-all duration-300 ease-in-out hover:border-[--sources-border-hover]"
         radius="md"
       >
         <div className="flex h-full flex-col">

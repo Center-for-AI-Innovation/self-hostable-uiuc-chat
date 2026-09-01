@@ -76,9 +76,8 @@ describe('useFetchAllWorkflows', () => {
   })
 
   it('persists the discovered tools so a reload can skip discovery', async () => {
-    const { useFetchAllWorkflows, readCachedSimTools } = await import(
-      '../handleFunctionCalling'
-    )
+    const { useFetchAllWorkflows, readCachedSimTools } =
+      await import('../handleFunctionCalling')
 
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
       workflowsResponse([
@@ -112,9 +111,8 @@ describe('useFetchAllWorkflows', () => {
 
   it('ignores an expired cache so the next mount rediscovers', async () => {
     vi.useFakeTimers()
-    const { useFetchAllWorkflows, readCachedSimTools } = await import(
-      '../handleFunctionCalling'
-    )
+    const { useFetchAllWorkflows, readCachedSimTools } =
+      await import('../handleFunctionCalling')
 
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
       workflowsResponse([
@@ -130,9 +128,8 @@ describe('useFetchAllWorkflows', () => {
   })
 
   it('treats an unparseable cache entry as a miss', async () => {
-    const { useFetchAllWorkflows, readCachedSimTools } = await import(
-      '../handleFunctionCalling'
-    )
+    const { useFetchAllWorkflows, readCachedSimTools } =
+      await import('../handleFunctionCalling')
     localStorage.setItem('sim_tools_proj', 'not json')
 
     expect(readCachedSimTools('proj')).toBeNull()
@@ -156,9 +153,8 @@ describe('useFetchAllWorkflows', () => {
   })
 
   it('caches per project', async () => {
-    const { useFetchAllWorkflows, readCachedSimTools } = await import(
-      '../handleFunctionCalling'
-    )
+    const { useFetchAllWorkflows, readCachedSimTools } =
+      await import('../handleFunctionCalling')
 
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
       workflowsResponse([

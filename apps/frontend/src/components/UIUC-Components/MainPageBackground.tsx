@@ -43,7 +43,7 @@ export const MainPageBackground: React.FC<MainPageBackgroundProps> = ({
            */}
           {children}
         </div>
-        <div className="items-left container flex flex-col justify-center gap-12 px-20 py-16 "></div>
+        <div className="items-left container flex flex-col justify-center gap-12 px-20 py-16"></div>
       </main>
     </>
   )
@@ -75,7 +75,7 @@ export const LoadingPlaceholderForAdminPages = ({}) => {
           {courseName ? `Loading ${courseName}` : 'Loading'}
         </h1>
         <Navbar course_name={courseName} />
-        <div className="container flex flex-col items-center justify-center gap-8 px-4 py-5 ">
+        <div className="container flex flex-col items-center justify-center gap-8 px-4 py-5">
           <div className="pt-4" />
           <LoadingSpinner />
         </div>

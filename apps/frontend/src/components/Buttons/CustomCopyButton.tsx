@@ -29,15 +29,7 @@ const CustomCopyButton: React.FC<CustomCopyButtonProps> = ({
       onClick={onClick}
     >
       <Button
-        className={`
-          relative flex items-center 
-          justify-center bg-[--dashboard-button]
-          px-3 py-2
-          text-center text-[--dashboard-button-foreground] transition-colors
-          duration-200
-          hover:bg-[--dashboard-button-hover] active:bg-[--dashboard-button]
-          ${montserrat_paragraph.variable} font-montserratParagraph
-        `}
+        className={`relative flex items-center justify-center bg-[--dashboard-button] px-3 py-2 text-center text-[--dashboard-button-foreground] transition-colors duration-200 hover:bg-[--dashboard-button-hover] active:bg-[--dashboard-button] ${montserrat_paragraph.variable} font-montserratParagraph`}
         styles={{
           root: {
             height: 'auto',

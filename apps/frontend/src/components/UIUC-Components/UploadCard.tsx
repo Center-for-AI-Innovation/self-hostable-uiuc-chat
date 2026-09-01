@@ -192,12 +192,7 @@ export const UploadCard = memo(function UploadCard({
                   variant="subtle"
                   size="xs"
                   onClick={() => setIsShareModalOpen(true)}
-                  className={`relative transform rounded-3xl bg-[--dashboard-button] text-[--dashboard-button-foreground] hover:bg-[--dashboard-button-hover] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]
-                    ${montserrat_paragraph.variable} min-h-[2rem]
-                    px-2 font-montserratParagraph
-                    text-sm sm:min-h-[2.5rem]
-                    sm:px-4 sm:text-base
-                  `}
+                  className={`relative transform rounded-3xl bg-[--dashboard-button] text-[--dashboard-button-foreground] hover:bg-[--dashboard-button-hover] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button] ${montserrat_paragraph.variable} min-h-[2rem] px-2 font-montserratParagraph text-sm sm:min-h-[2.5rem] sm:px-4 sm:text-base`}
                 >
                   <span className="hidden sm:inline">Sharing and Access</span>
                   <span className="inline sm:hidden">Access</span>

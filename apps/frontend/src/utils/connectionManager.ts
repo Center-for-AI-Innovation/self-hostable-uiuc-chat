@@ -341,8 +341,8 @@ class ConnectionManager {
       // existing Qdrant projects until they migrate to the new column.
       const legacyEmbedding =
         !embedding && qdrant && typeof qdrant === 'object'
-          ? (qdrant as unknown as { embedding?: EmbeddingOverrideConfig })
-              .embedding ?? null
+          ? ((qdrant as unknown as { embedding?: EmbeddingOverrideConfig })
+              .embedding ?? null)
           : null
       resolved = {
         is_active: true,

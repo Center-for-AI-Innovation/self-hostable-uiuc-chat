@@ -110,13 +110,11 @@ export const ConversationComponent = ({
     <div className="relative flex items-start text-[--sidebar]">
       {isRenaming && selectedConversation?.id === conversation.id ? (
         <div
-          className={`flex w-full items-start gap-3 rounded-lg p-3
-          ${
+          className={`flex w-full items-start gap-3 rounded-lg p-3 ${
             selectedConversation?.id === conversation.id
               ? 'border border-[--sidebar-selected]'
               : ''
-          }
-        `}
+          } `}
         >
           <IconMessage
             size={16}

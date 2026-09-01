@@ -44,9 +44,8 @@ describe('ChatMessage - accessibility', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    const { ChatMessage, SourcesSidebarProvider } = await import(
-      '../ChatMessage'
-    )
+    const { ChatMessage, SourcesSidebarProvider } =
+      await import('../ChatMessage')
 
     const assistantMsg = makeMessage({
       id: 'a1',

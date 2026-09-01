@@ -32,11 +32,11 @@ lint:
     - git-diff-check
     - markdownlint@0.39.0
     - oxipng@9.0.0
-    - prettier@3.2.5
+    - prettier@3.8.4
     - ruff@0.2.2
     - shellcheck@0.9.0
     - shfmt@3.6.0
-    - trivy@0.49.1
+    - trivy@0.74.0
     - yamllint@1.35.1
   ignore:
     - linters: [ALL]
@@ -46,6 +46,32 @@ lint:
         - .DS_Store
         - .vscode/**/*
         - README.md
+    # Frontend-only for now: apps/backend and everything else outside
+    # apps/frontend has a lint backlog that isn't ready to be gated on.
+    # Keeps CI diff-only (pull_request/push check-mode) while only ever
+    # surfacing frontend issues. Drop this once those trees are linted.
+    - linters: [ALL]
+      paths:
+        - apps/backend/**
+        - apps/crawlee/**
+        - docs/**
+        - infra/**
+        - media/**
+        - qdrant_data/**
+        - scripts/**
+        - test-docs/**
+        - DEV_SETUP.md
+        - LICENSE
+        - qdrant_config.yaml
+    - linters: [prettier]
+      paths:
+        - apps/frontend/**
+    # Checked-in GitBook screenshots. oxipng rewrites all ~49 of them, which
+    # is pure binary churn in any PR that happens to touch the docs tree and
+    # tells us nothing about code quality.
+    - linters: [oxipng]
+      paths:
+        - "**/.gitbook/assets/**"
 actions:
   enabled:
     - trunk-announce

@@ -18,7 +18,7 @@ const config = {
       sizeLimit: '100mb',
     },
   },
-  webpack(config, { isServer }) {
+  webpack(config, { isServer, webpack }) {
     // Merge existing experiments with the required ones
     config.experiments = {
       ...(config.experiments || {}),
@@ -43,6 +43,13 @@ const config = {
         net: false,
         perf_hooks: false,
       }
+
+      // mathjax-full falls back to eval('require') for its version unless this is defined.
+      config.plugins.push(
+        new webpack.DefinePlugin({
+          PACKAGE_VERSION: JSON.stringify('3.2.1'),
+        }),
+      )
     }
 
     return config
@@ -73,8 +80,14 @@ const config = {
   },
   experimental: {
     esmExternals: false, // To make certain packages work with the /pages router.
-    // Keep Node-only packages (postgres uses tls, perf_hooks) out of the bundle; required for API routes that use dbClient/vectorSearch.
-    serverComponentsExternalPackages: ['postgres'],
+    // Let Node require() these directly instead of webpack bundling them:
+    // postgres is Node-only; sanitize-html/undici trip up webpack's ESM/CJS resolution.
+    serverComponentsExternalPackages: [
+      'postgres',
+      'sanitize-html',
+      'undici',
+      '@qdrant/js-client-rest',
+    ],
   },
   async headers() {
     return [

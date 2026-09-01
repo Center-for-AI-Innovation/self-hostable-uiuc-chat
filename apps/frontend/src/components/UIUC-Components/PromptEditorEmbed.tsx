@@ -933,14 +933,14 @@ CRITICAL: The optimized prompt must:
               <div className="flex items-center gap-2">
                 <Title
                   order={2}
-                  className={` text-lg text-[--foreground] sm:text-2xl`}
+                  className={`text-lg text-[--foreground] sm:text-2xl`}
                 >
                   Prompting
                 </Title>
                 <Text className="text-[--foreground]">/</Text>
                 <Title
                   order={3}
-                  className={` text-base text-[--illinois-orange] sm:text-xl`}
+                  className={`text-base text-[--illinois-orange] sm:text-xl`}
                 >
                   {project_name}
                 </Title>
@@ -1019,7 +1019,7 @@ CRITICAL: The optimized prompt must:
                     >
                       <List.Item>
                         <a
-                          className={`text-sm text-[--dashboard-button] transition-colors duration-200 hover:text-[--dashboard-button-hover] `}
+                          className={`text-sm text-[--dashboard-button] transition-colors duration-200 hover:text-[--dashboard-button-hover]`}
                           href="https://platform.openai.com/docs/guides/prompt-engineering"
                           target="_blank"
                           rel="noopener noreferrer"
@@ -1038,7 +1038,7 @@ CRITICAL: The optimized prompt must:
                       </List.Item>
                       <List.Item>
                         <a
-                          className={`text-sm text-[--dashboard-button] transition-colors duration-200 hover:text-[--dashboard-button-hover] `}
+                          className={`text-sm text-[--dashboard-button] transition-colors duration-200 hover:text-[--dashboard-button-hover]`}
                           href="https://docs.anthropic.com/claude/prompt-library"
                           target="_blank"
                           rel="noopener noreferrer"

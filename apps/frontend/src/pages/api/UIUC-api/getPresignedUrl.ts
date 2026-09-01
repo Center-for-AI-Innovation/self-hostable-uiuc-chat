@@ -30,7 +30,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     // Default path: sign against the browser-reachable MinIO endpoint.
     const signingClient = isOverride
       ? client
-      : getPresignedUrlClient() ?? client
+      : (getPresignedUrlClient() ?? client)
     const command = new GetObjectCommand({
       Bucket: bucket,
       Key: normalizeS3Key(s3_path, bucket),

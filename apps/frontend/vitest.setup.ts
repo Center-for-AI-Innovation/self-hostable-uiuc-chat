@@ -159,6 +159,18 @@ if (typeof window !== 'undefined' && typeof Element !== 'undefined') {
   }
 }
 
+if (typeof window !== 'undefined') {
+  const nativeGetComputedStyle = window.getComputedStyle.bind(window)
+  window.getComputedStyle = ((elt: Element, pseudoElt?: string | null) => {
+    try {
+      return nativeGetComputedStyle(elt, pseudoElt)
+    } catch (err: any) {
+      if (err instanceof TypeError) return document.createElement('div').style
+      throw err
+    }
+  }) as typeof window.getComputedStyle
+}
+
 // Common Next.js runtime mocks used across components.
 const defaultTestRouter = {
   push: vi.fn(),

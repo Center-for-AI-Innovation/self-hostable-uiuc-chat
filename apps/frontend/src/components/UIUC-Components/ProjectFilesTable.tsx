@@ -534,7 +534,7 @@ export function ProjectFilesTable({
       <GlobalStyle />
       {/* Fixed Header Section */}
       <div className="flex-none">
-        <div className="flex items-center justify-between px-4 pt-4 sm:px-6 md:px-8 ">
+        <div className="flex items-center justify-between px-4 pt-4 sm:px-6 md:px-8">
           <div className="flex items-center md:space-x-4">
             <button
               onClick={() => onTabChange('success')}

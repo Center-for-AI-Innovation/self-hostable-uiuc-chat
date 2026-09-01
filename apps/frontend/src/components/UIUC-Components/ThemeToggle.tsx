@@ -8,7 +8,7 @@ export function ThemeToggle() {
     <div className="flex items-center gap-1 rounded-lg bg-[--background-faded] p-1">
       <button
         onClick={() => setTheme('system')}
-        className={`rounded-md p-1.5  ${
+        className={`rounded-md p-1.5 ${
           theme === 'system'
             ? 'bg-[--background] shadow-sm'
             : 'hover:bg-[--background]'

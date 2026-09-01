@@ -40,7 +40,7 @@ const handler = async (req: AuthenticatedRequest, res: NextApiResponse) => {
     // Default path: sign against the browser-reachable MinIO endpoint.
     const signingClient = isOverride
       ? client
-      : getPresignedUrlClient() ?? client
+      : (getPresignedUrlClient() ?? client)
 
     const post = await createPresignedPost(signingClient, {
       Bucket: bucket,

@@ -116,7 +116,8 @@ export default function Unsubscribe() {
           size="sm"
           className={`label ${montserrat_paragraph.className}select-text p-0 text-neutral-200`}
         >
-          I guess your inbox just got a little bit cleaner, but less exciting 😒{' '}
+          I guess your inbox just got a little bit cleaner, but less exciting
+          😒{' '}
         </Text>
         <Group>
           <Text

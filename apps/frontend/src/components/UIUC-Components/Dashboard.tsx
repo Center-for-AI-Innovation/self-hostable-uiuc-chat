@@ -116,20 +116,14 @@ const Dashboard = ({
           <div className="px-8">
             <Title
               order={1}
-              className={`
-                text-2xl font-bold sm:pt-2
-                ${montserrat_heading.variable} font-montserratHeading
-              `}
+              className={`text-2xl font-bold sm:pt-2 ${montserrat_heading.variable} font-montserratHeading`}
               style={{ color: 'var(--foreground)' }}
             >
               My Chatbots
             </Title>
 
             <p
-              className={`
-              text-md mt-2
-              ${montserrat_paragraph.variable} font-montserratParagraph
-            `}
+              className={`text-md mt-2 ${montserrat_paragraph.variable} font-montserratParagraph`}
               style={{ color: 'var(--foreground-faded)' }}
             >
               These are chatbots you&apos;ve created, or where you are an admin.

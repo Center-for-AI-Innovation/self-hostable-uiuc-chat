@@ -58,7 +58,7 @@ export const PermissionGate = ({
         tabIndex={-1}
         className="course-page-main flex min-h-screen flex-col items-center justify-center"
       >
-        <div className="container flex flex-col items-center justify-center gap-8 px-4 py-8 ">
+        <div className="container flex flex-col items-center justify-center gap-8 px-4 py-8">
           <Link href="/">
             <h1
               className={`text-5xl font-extrabold tracking-tight text-white sm:text-[5rem] ${montserrat_heading.variable} font-montserratHeading`}
@@ -94,7 +94,7 @@ export const PermissionGate = ({
             {errorType === 403 && (
               <Link href="/chatbots">
                 <Button
-                  className=" login-btn btn bg-[--button] text-white hover:bg-[--button-hover]"
+                  className="login-btn btn bg-[--button] text-white hover:bg-[--button-hover]"
                   style={{ fontSize: '24px' }}
                 >
                   My Chatbots →
@@ -110,7 +110,7 @@ export const PermissionGate = ({
                 }
               >
                 <Button
-                  className=" login-btn btn bg-[--button] text-white hover:bg-[--button-hover]"
+                  className="login-btn btn bg-[--button] text-white hover:bg-[--button-hover]"
                   style={{ fontSize: '24px' }}
                 >
                   Create New →
@@ -120,7 +120,7 @@ export const PermissionGate = ({
             {errorType !== 404 && errorType !== 403 && (
               <Link href="/sign-in">
                 <Button
-                  className=" login-btn btn bg-[--button] text-white hover:bg-[--button-hover]"
+                  className="login-btn btn bg-[--button] text-white hover:bg-[--button-hover]"
                   style={{ fontSize: '24px' }}
                   onClick={handleSignIn}
                 >

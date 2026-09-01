@@ -27,7 +27,9 @@ export async function generatePresignedUrl(
     )
   }
   // Default path: sign against the browser-reachable MinIO endpoint.
-  const signingClient = isOverride ? client : getPresignedUrlClient() ?? client
+  const signingClient = isOverride
+    ? client
+    : (getPresignedUrlClient() ?? client)
 
   const command = new GetObjectCommand({
     Bucket: bucket,

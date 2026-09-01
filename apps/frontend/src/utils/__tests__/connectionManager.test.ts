@@ -423,9 +423,8 @@ describe('ConnectionManager — caching and invalidation', () => {
 
     vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] })
     try {
-      const { connectionManager, DISPOSE_GRACE_MS } = await import(
-        '../connectionManager'
-      )
+      const { connectionManager, DISPOSE_GRACE_MS } =
+        await import('../connectionManager')
       await connectionManager.getDocumentsDb('p')
       expect(pgFn).toHaveBeenCalledTimes(1)
 
@@ -872,9 +871,8 @@ describe('ConnectionManager — error and degraded paths', () => {
 
     vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] })
     try {
-      const { connectionManager, DISPOSE_GRACE_MS } = await import(
-        '../connectionManager'
-      )
+      const { connectionManager, DISPOSE_GRACE_MS } =
+        await import('../connectionManager')
       await connectionManager.getDocumentsDb('p')
       vi.setSystemTime(Date.now() + 31 * 60 * 1000)
       await connectionManager.getDocumentsDb('p')

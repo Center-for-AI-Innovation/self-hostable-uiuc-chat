@@ -2377,15 +2377,14 @@ export const ChatMessage = memo(
                             <button
                               type="button"
                               aria-label="Edit message"
-                              className={`text-[--foreground-faded] hover:text-[--foreground]
-                                ${
-                                  Array.isArray(message.content) &&
-                                  message.content.some(
-                                    (content) => content.type === 'image_url',
-                                  )
-                                    ? 'hidden'
-                                    : ''
-                                }`}
+                              className={`text-[--foreground-faded] hover:text-[--foreground] ${
+                                Array.isArray(message.content) &&
+                                message.content.some(
+                                  (content) => content.type === 'image_url',
+                                )
+                                  ? 'hidden'
+                                  : ''
+                              }`}
                               onClick={toggleEditing}
                             >
                               <IconEdit

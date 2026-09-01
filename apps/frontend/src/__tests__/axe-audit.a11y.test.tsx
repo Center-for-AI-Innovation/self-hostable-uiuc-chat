@@ -242,9 +242,8 @@ describe('axe accessibility audit', () => {
       AuthMenu: () => React.createElement('div', null, 'AuthMenu'),
     }))
 
-    const { LandingPageHeader } = await import(
-      '~/components/UIUC-Components/navbars/GlobalHeader'
-    )
+    const { LandingPageHeader } =
+      await import('~/components/UIUC-Components/navbars/GlobalHeader')
 
     const { container } = renderWithProviders(<LandingPageHeader />)
 
@@ -306,9 +305,8 @@ describe('axe accessibility audit', () => {
     const ChatbarContext = (
       await import('~/components/Chatbar/Chatbar.context')
     ).default
-    const { ConversationComponent } = await import(
-      '~/components/Chatbar/components/Conversation'
-    )
+    const { ConversationComponent } =
+      await import('~/components/Chatbar/components/Conversation')
 
     const conversation = makeConversation({
       id: 'c1',

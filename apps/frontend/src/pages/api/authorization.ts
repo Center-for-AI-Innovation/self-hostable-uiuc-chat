@@ -367,7 +367,7 @@ export function withCourseAccessFromRequest(
           // Determine required access for this HTTP method
           const method = (req.method || 'GET').toUpperCase() as Method
           const requiredLevel: AccessLevel =
-            typeof access === 'string' ? access : access[method] ?? 'any'
+            typeof access === 'string' ? access : (access[method] ?? 'any')
 
           // Check access
           if (!hasAccessForLevel(requiredLevel, req.user, courseMetadata)) {

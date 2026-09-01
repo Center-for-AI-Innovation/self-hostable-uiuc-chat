@@ -248,7 +248,7 @@ const ChatNavbar = ({ bannerUrl = '', isgpt4 = true }: ChatNavbarProps) => {
           className="navbar"
         >
           <Link href="/" style={{ flex: 'none', flexWrap: 'nowrap' }}>
-            <h2 className="cursor-pointer font-extrabold tracking-tight text-[--primary] sm:ms-3 sm:text-[2rem] sm:text-[2rem] md:text-3xl">
+            <h2 className="cursor-pointer font-extrabold tracking-tight text-[--primary] sm:ms-3 sm:text-[2rem] md:text-3xl">
               Illinois <span className="text-[--navbar-text]">Chat</span>
             </h2>
           </Link>

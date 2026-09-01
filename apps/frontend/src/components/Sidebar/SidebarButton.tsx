@@ -20,9 +20,7 @@ export const SidebarButton: FC<Props> = ({
     <button
       tabIndex={0}
       aria-label={ariaLabel}
-      className="relative flex w-full cursor-pointer select-none items-center gap-3 rounded-md px-3 py-3 text-[14px] leading-3 text-[--foreground] transition-colors
-      duration-200
-      hover:bg-[--button-hover] hover:text-[--button-text-color]"
+      className="relative flex w-full cursor-pointer select-none items-center gap-3 rounded-md px-3 py-3 text-[14px] leading-3 text-[--foreground] transition-colors duration-200 hover:bg-[--button-hover] hover:text-[--button-text-color]"
       onClick={onClick}
     >
       <div className="flex items-center gap-3">
