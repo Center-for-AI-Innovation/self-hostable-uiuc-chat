@@ -44,6 +44,7 @@ vi.mock('~/db/schema', () => ({
 import {
   invalidateSimConfigCache,
   resolveSimCredentials,
+  simConfigErrorResponse,
   validateSimBaseUrl,
 } from '../simConfig'
 
@@ -267,5 +268,69 @@ describe('validateSimBaseUrl', () => {
     it('still rejects arbitrary hosts when nothing is configured', () => {
       expect(validateSimBaseUrl('https://sim.internal.illinois.edu')).toBeNull()
     })
+  })
+})
+
+describe('simConfigErrorResponse', () => {
+  it('maps each resolution failure to a status and an actionable message', () => {
+    expect(simConfigErrorResponse('missing_workspace_id')).toEqual({
+      status: 400,
+      error: 'Sim workspace ID is not set for this project',
+    })
+    expect(simConfigErrorResponse('db_error')).toEqual({
+      status: 503,
+      error: 'Could not read the Sim configuration for this project',
+    })
+    expect(simConfigErrorResponse('not_configured')).toEqual({
+      status: 400,
+      error: 'Sim AI is not configured for this project',
+    })
+  })
+
+  it('treats an unknown reason as unconfigured rather than throwing', () => {
+    expect(simConfigErrorResponse('something_new' as any)).toEqual({
+      status: 400,
+      error: 'Sim AI is not configured for this project',
+    })
+  })
+})
+
+describe('config cache bound', () => {
+  it('evicts the oldest project once more than 500 are cached', async () => {
+    // 501 distinct projects: the first one written is pushed out by the cap.
+    for (let i = 0; i <= 500; i += 1) {
+      await resolveSimCredentials(`p${i}`)
+    }
+    expect(hoisted.selectCalls).toBe(501)
+
+    await resolveSimCredentials('p0')
+    expect(hoisted.selectCalls).toBe(502)
+
+    // Re-inserting p0 pushed the cache over the cap again, evicting p1; p2 is
+    // the oldest survivor and is still served from cache.
+    await resolveSimCredentials('p2')
+    expect(hoisted.selectCalls).toBe(502)
+  })
+})
+
+describe('validateSimBaseUrl in production', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it('accepts a local http host only when it is the configured origin', () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('SIM_API_BASE_URL', 'http://localhost:3010')
+    expect(validateSimBaseUrl('http://localhost:3010/api')).toBe(
+      'http://localhost:3010',
+    )
+    expect(validateSimBaseUrl('http://localhost:9999')).toBeNull()
+    expect(validateSimBaseUrl('http://127.0.0.1:3010')).toBeNull()
+  })
+
+  it('rejects every local http host when no origin is configured', () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('SIM_API_BASE_URL', '')
+    expect(validateSimBaseUrl('http://localhost:3010')).toBeNull()
   })
 })

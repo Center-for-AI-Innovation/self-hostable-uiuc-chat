@@ -167,3 +167,58 @@ describe('useFetchAllWorkflows', () => {
     expect(readCachedSimTools('other-proj')).toBeNull()
   })
 })
+
+describe('sim tool cache resilience', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  afterEach(() => {
+    localStorage.clear()
+  })
+
+  it('treats a cache entry with the wrong shape as a miss', async () => {
+    const { readCachedSimTools } = await import('../handleFunctionCalling')
+
+    localStorage.setItem(
+      'sim_tools_proj',
+      JSON.stringify({ tools: 'not-a-list', cachedAt: Date.now() }),
+    )
+    expect(readCachedSimTools('proj')).toBeNull()
+
+    localStorage.setItem(
+      'sim_tools_proj',
+      JSON.stringify({ tools: [], cachedAt: 'yesterday' }),
+    )
+    expect(readCachedSimTools('proj')).toBeNull()
+  })
+
+  it('still returns discovered tools when the cache cannot be written', async () => {
+    const { useFetchAllWorkflows, readCachedSimTools } =
+      await import('../handleFunctionCalling')
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      workflowsResponse([
+        { id: 'w1', name: 'My Workflow', description: 'desc', inputFields: [] },
+      ]),
+    )
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError')
+    })
+
+    const tools = await (useFetchAllWorkflows('proj') as any).queryFn()
+
+    expect(tools).toHaveLength(1)
+    expect(readCachedSimTools('proj')).toBeNull()
+  })
+
+  it('does not throw when the cache cannot be cleared', async () => {
+    const { clearCachedSimTools } = await import('../handleFunctionCalling')
+
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new Error('storage disabled')
+    })
+
+    expect(() => clearCachedSimTools('proj')).not.toThrow()
+  })
+})

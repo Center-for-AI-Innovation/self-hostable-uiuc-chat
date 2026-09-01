@@ -13,8 +13,10 @@ vi.mock('~/utils/redisClient', () => ({
 import { encryptKeyIfNeeded } from '~/utils/crypto'
 import {
   OPENAI_ROUTER_MODEL_ID,
+  callToolRouter,
   getToolRouterStatus,
   resolveToolRouter,
+  type ResolvedToolRouter,
 } from '../toolRouting'
 
 const PROJECT = 'CS101'
@@ -284,5 +286,187 @@ describe('getToolRouterStatus', () => {
     const status = await getToolRouterStatus(PROJECT)
     expect(status.status).toBe('offline')
     expect(status.reason).toBeTruthy()
+  })
+})
+
+describe('resolveToolRouter with an unparseable compat base URL', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    process.env.NEXT_PUBLIC_SIGNING_KEY = 'test-signing-key'
+  })
+
+  afterEach(() => {
+    process.env = { ...ORIGINAL_ENV }
+  })
+
+  it('treats a base URL that is not a URL as non-OpenRouter rather than failing', async () => {
+    storeProviders({
+      OpenAICompatible: { ...COMPAT_PROVIDER, baseUrl: 'not a url' },
+    })
+    const result = await resolveToolRouter({
+      projectName: PROJECT,
+      selectedModelId: 'Org/Compat-Model',
+    })
+    expect(result).toMatchObject({
+      source: 'custom',
+      provider: 'OpenAICompatible',
+      endpointUrl: 'not a url/chat/completions',
+      // Not lowercased and no OpenRouter headers: the URL did not parse.
+      modelId: 'Org/Compat-Model',
+    })
+    expect((result as any).extraHeaders).toBeUndefined()
+  })
+})
+
+describe('callToolRouter', () => {
+  const router: ResolvedToolRouter = {
+    source: 'custom',
+    provider: 'OpenAI',
+    endpointUrl: 'https://api.openai.com/v1/chat/completions',
+    apiKey: 'sk-router',
+    modelId: OPENAI_ROUTER_MODEL_ID,
+  }
+  const messages: any[] = [{ role: 'user', content: 'hi' }]
+  const tools: any[] = [
+    { type: 'function', function: { name: 't', parameters: {} } },
+  ]
+
+  function jsonResponse(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { 'content-type': 'application/json' },
+    })
+  }
+
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  it('posts the model, messages and tools with the bearer key and extra headers', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      jsonResponse({
+        choices: [
+          {
+            message: {
+              content: 'calling',
+              tool_calls: [
+                {
+                  id: 'call_1',
+                  type: 'function',
+                  function: { name: 't', arguments: '{}' },
+                },
+              ],
+            },
+          },
+        ],
+      }),
+    )
+
+    const result = await callToolRouter({
+      router: { ...router, extraHeaders: { 'X-Title': 'Illinois Chat' } },
+      messages,
+      tools,
+    })
+
+    expect(result).toEqual({
+      ok: true,
+      content: 'calling',
+      toolCalls: [
+        {
+          id: 'call_1',
+          type: 'function',
+          function: { name: 't', arguments: '{}' },
+        },
+      ],
+    })
+    const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe(router.endpointUrl)
+    expect(init.method).toBe('POST')
+    expect(init.headers).toMatchObject({
+      Authorization: 'Bearer sk-router',
+      'X-Title': 'Illinois Chat',
+    })
+    expect(JSON.parse(init.body as string)).toEqual({
+      model: OPENAI_ROUTER_MODEL_ID,
+      messages,
+      tools,
+      stream: false,
+    })
+  })
+
+  it('normalizes a plain-text answer to no tool calls and empty content to a string', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      jsonResponse({ choices: [{ message: { content: null } }] }),
+    )
+    expect(await callToolRouter({ router, messages, tools })).toEqual({
+      ok: true,
+      toolCalls: [],
+      content: '',
+    })
+  })
+
+  it('reports an upstream error status without throwing', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response('rate limited', { status: 429, statusText: 'Too Many' }),
+    )
+    expect(await callToolRouter({ router, messages, tools })).toEqual({
+      ok: false,
+      error: 'Tool router error: 429',
+      status: 429,
+    })
+  })
+
+  it('still reports the status when the error body cannot be read', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      statusText: 'Internal',
+      text: () => Promise.reject(new Error('body stream lost')),
+    } as any)
+    expect(await callToolRouter({ router, messages, tools })).toEqual({
+      ok: false,
+      error: 'Tool router error: 500',
+      status: 500,
+    })
+  })
+
+  it('reports a response with no choices as no response', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(jsonResponse({}))
+    expect(await callToolRouter({ router, messages, tools })).toEqual({
+      ok: false,
+      error: 'No response from tool router (OpenAI)',
+    })
+  })
+
+  it('reports an aborted request as aborted, not as a network failure', async () => {
+    const controller = new AbortController()
+    vi.spyOn(globalThis, 'fetch').mockImplementationOnce(() => {
+      controller.abort()
+      return Promise.reject(new DOMException('aborted', 'AbortError'))
+    })
+    expect(
+      await callToolRouter({
+        router,
+        messages,
+        tools,
+        signal: controller.signal,
+      }),
+    ).toEqual({ ok: false, error: 'Tool router request aborted' })
+  })
+
+  it('surfaces a thrown Error message and falls back for non-Error throws', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(
+      new Error('ECONNREFUSED'),
+    )
+    expect(await callToolRouter({ router, messages, tools })).toEqual({
+      ok: false,
+      error: 'ECONNREFUSED',
+    })
+
+    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce('kaput')
+    expect(await callToolRouter({ router, messages, tools })).toEqual({
+      ok: false,
+      error: 'Tool router request failed',
+    })
   })
 })

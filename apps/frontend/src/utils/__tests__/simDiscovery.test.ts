@@ -407,3 +407,38 @@ describe('assertWorkflowInWorkspace', () => {
     await expect(check('wf-1')).rejects.toBeInstanceOf(SimListError)
   })
 })
+
+describe('parseSimErrorMessage v2 envelope without a code', () => {
+  it('returns the bare message when the envelope carries no string code', () => {
+    expect(
+      parseSimErrorMessage(
+        '{"error": {"message": "Workflow not deployed"}}',
+        'x',
+      ),
+    ).toBe('Workflow not deployed')
+    expect(
+      parseSimErrorMessage(
+        '{"error": {"code": 42, "message": "Workflow not deployed"}}',
+        'x',
+      ),
+    ).toBe('Workflow not deployed')
+  })
+})
+
+describe('discoverSimWorkflows detail failures that are not Errors', () => {
+  afterEach(() => {
+    clearWorkspaceMembershipCache()
+  })
+
+  it('stringifies a non-Error rejection into the failure reason', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(((url: string) =>
+      url.includes('/workflows/w1')
+        ? Promise.reject('kaput')
+        : Promise.resolve(listResponse([{ id: 'w1', name: 'Odd' }]))) as any)
+
+    const { workflows, failed } = await discover()
+
+    expect(workflows).toEqual([])
+    expect(failed).toEqual([{ id: 'w1', name: 'Odd', reason: 'kaput' }])
+  })
+})

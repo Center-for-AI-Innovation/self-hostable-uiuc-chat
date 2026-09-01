@@ -1075,3 +1075,52 @@ describe('optional input detection', () => {
     expect(Object.keys(tool?.inputParameters?.properties ?? {})).toHaveLength(7)
   })
 })
+
+describe('handleFunctionCalling Sim edge cases', () => {
+  it('getUIUCToolFromSim maps boolean and number input types to the tool schema', () => {
+    const [tool] = getUIUCToolFromSim([
+      {
+        id: 'w-typed',
+        name: 'Typed',
+        description: 'd',
+        inputFields: [
+          { name: 'count', type: 'number' },
+          { name: 'flag', type: 'boolean' },
+          { name: 'text', type: 'string' },
+        ],
+      },
+    ] as any)
+
+    expect(tool?.inputParameters?.properties).toMatchObject({
+      count: { type: 'number', description: 'count' },
+      flag: { type: 'Boolean', description: 'flag' },
+      text: { type: 'string', description: 'text' },
+    })
+  })
+
+  it('handleToolCall falls back to the status text when the error body is not JSON', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response('<html>Bad Gateway</html>', {
+        status: 502,
+        statusText: 'Bad Gateway',
+      }),
+    )
+
+    const tool: any = {
+      id: 'w1',
+      invocationId: 'inv1',
+      name: 'sim_t',
+      readableName: 'Tool',
+      description: 'd',
+      aiGeneratedArgumentValues: {},
+    }
+    const conversation: any = {
+      id: 'c1',
+      messages: [{ id: 'm1', role: 'user', content: 'hi', tools: [tool] }],
+    }
+
+    await handleToolCall([tool], conversation, 'proj')
+    expect(conversation.messages[0].tools[0].error).toMatch(/Bad Gateway/)
+  })
+})
