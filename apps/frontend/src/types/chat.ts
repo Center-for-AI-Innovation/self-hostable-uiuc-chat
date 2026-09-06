@@ -225,6 +225,7 @@ export interface ChatApiBody {
   retrieval_only?: boolean
   conversation_id?: string
   doc_groups?: string[]
+  top_n?: number
 }
 
 export interface Action {

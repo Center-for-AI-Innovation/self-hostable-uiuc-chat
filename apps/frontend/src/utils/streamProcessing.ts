@@ -391,6 +391,15 @@ export async function validateRequestBody(body: ChatApiBody): Promise<void> {
     throw new Error("Invalid stream provided. 'stream' must be a boolean.")
   }
 
+  if (
+    body.top_n !== undefined &&
+    (!Number.isSafeInteger(body.top_n) || body.top_n < 1)
+  ) {
+    throw new Error(
+      "Invalid top_n provided. 'top_n' must be a positive safe integer.",
+    )
+  }
+
   const hasImageContent = body.messages.some(
     (message) =>
       Array.isArray(message.content) &&
@@ -433,6 +442,7 @@ export const handleContextSearch = async (
   selectedConversation: Conversation,
   searchQuery: string,
   documentGroups: string[],
+  topN = 100,
 ): Promise<ContextWithMetadata[]> => {
   // Check if this message already has contexts (from file upload)
   if (
@@ -446,14 +456,22 @@ export const handleContextSearch = async (
     const token_limit = selectedConversation.model.tokenLimit
     const useMQRetrieval = false
 
-    const fetchContextsFunc = useMQRetrieval ? fetchMQRContexts : fetchContexts
-    const curr_contexts = await fetchContextsFunc(
-      courseName,
-      searchQuery,
-      token_limit,
-      documentGroups,
-      '',
-    )
+    const curr_contexts = useMQRetrieval
+      ? await fetchMQRContexts(
+          courseName,
+          searchQuery,
+          token_limit,
+          documentGroups,
+          '',
+        )
+      : await fetchContexts(
+          courseName,
+          searchQuery,
+          token_limit,
+          documentGroups,
+          '',
+          topN,
+        )
 
     message.contexts = curr_contexts as ContextWithMetadata[]
     return curr_contexts as ContextWithMetadata[]

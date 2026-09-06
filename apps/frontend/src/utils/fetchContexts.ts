@@ -100,6 +100,7 @@ export const fetchContexts = async (
   token_limit = 4000,
   doc_groups: string[] = [],
   conversation_id?: string,
+  top_n = 100,
 ): Promise<ContextWithMetadata[]> => {
   // Check if we're running on client-side (browser) or server-side
   const isClientSide = typeof window !== 'undefined'
@@ -139,6 +140,7 @@ export const fetchContexts = async (
         token_limit,
         doc_groups,
         conversation_id,
+        top_n,
       )
     }
   } catch (error) {

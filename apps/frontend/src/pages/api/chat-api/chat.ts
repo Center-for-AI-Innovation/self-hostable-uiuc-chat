@@ -94,6 +94,7 @@ export default async function chat(
     retrieval_only,
     conversation_id,
     doc_groups: requestedDocGroups,
+    top_n = 100,
   } = body
 
   // Validate the API key and retrieve user data
@@ -280,6 +281,7 @@ export default async function chat(
     conversation,
     searchQuery,
     doc_groups,
+    top_n,
   )
   // Check if contexts were found
   if (contexts.length === 0) {
