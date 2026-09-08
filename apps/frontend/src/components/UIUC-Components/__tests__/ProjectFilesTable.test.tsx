@@ -388,6 +388,54 @@ describe('ProjectFilesTable', () => {
     else delete (HTMLElement.prototype as any).clientHeight
   }, 20_000)
 
+  it('refreshes both queries when the refresh button is clicked', async () => {
+    const user = userEvent.setup()
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    const countCalls = (pattern: RegExp) =>
+      fetchSpy.mock.calls.filter(([url]) => pattern.test(String(url))).length
+
+    server.use(
+      http.get('*/api/materialsTable/fetchProjectMaterials*', async () => {
+        return HttpResponse.json({ final_docs: [], total_count: 0 })
+      }),
+      http.get('*/api/materialsTable/fetchFailedDocuments*', async () => {
+        return HttpResponse.json({
+          final_docs: [],
+          total_count: 0,
+          recent_fail_count: 0,
+        })
+      }),
+    )
+
+    globalThis.__TEST_ROUTER__ = { asPath: '/CS101/dashboard' }
+    const { ProjectFilesTable } = await import('../ProjectFilesTable')
+    renderWithProviders(
+      <ProjectFilesTable
+        course_name="CS101"
+        tabValue="success"
+        onTabChange={vi.fn()}
+        setFailedCount={vi.fn()}
+        failedCount={0}
+      />,
+      { homeContext: { dispatch: vi.fn() } },
+    )
+
+    await screen.findByText(/Success/i)
+
+    const materialsBefore = countCalls(/fetchProjectMaterials/)
+    const failedBefore = countCalls(/fetchFailedDocuments/)
+    await user.click(
+      screen.getByRole('button', { name: /refresh documents table/i }),
+    )
+    await waitFor(() => {
+      expect(countCalls(/fetchProjectMaterials/)).toBeGreaterThan(
+        materialsBefore,
+      )
+      expect(countCalls(/fetchFailedDocuments/)).toBeGreaterThan(failedBefore)
+    })
+  }, 20_000)
+
   it('renders an error-state table when document fetch fails', async () => {
     const { showErrorToast } = await import('~/utils/toastUtils')
 

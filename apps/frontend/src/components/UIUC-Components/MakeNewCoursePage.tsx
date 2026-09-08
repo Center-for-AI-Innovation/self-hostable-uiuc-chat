@@ -145,6 +145,7 @@ const MakeNewCoursePage = ({
     <StepUpload
       key="upload"
       project_name={projectName}
+      uploadFiles={uploadFiles}
       setUploadFiles={handleSetUploadFiles}
       courseMetadata={
         queryClient.getQueryData(['courseMetadata', projectName]) as

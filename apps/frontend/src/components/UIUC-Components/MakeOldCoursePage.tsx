@@ -1,4 +1,3 @@
-import { Flex } from '@mantine/core'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
@@ -92,7 +91,7 @@ const MakeOldCoursePage = ({
       >
         <h1 className="sr-only">{course_name} Dashboard</h1>
         <div className="items-left flex w-full flex-col justify-center py-0">
-          <Flex direction="column" align="center" w="100%">
+          <div className="flex w-full flex-col items-center">
             {/* Upload Card Section */}
             <UploadCard
               projectName={course_name}
@@ -115,7 +114,7 @@ const MakeOldCoursePage = ({
             />
 
             {/* <NomicDocumentsCard course_name={course_name} metadata={metadata} /> */}
-          </Flex>
+          </div>
         </div>
       </main>
 
