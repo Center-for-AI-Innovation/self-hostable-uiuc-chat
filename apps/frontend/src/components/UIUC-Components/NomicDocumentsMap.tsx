@@ -89,12 +89,12 @@ function NomicDocumentMap({ course_name }: { course_name: string }) {
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
-                    className=" overflow-hidden"
+                    className="overflow-hidden"
                   >
                     <div className="flex bg-[--background] backdrop-blur-sm">
                       <div className="w-1 bg-[--illinois-orange]" />
                       <div
-                        className={`${montserrat_paragraph.variable}  flex-1 p-4 font-montserratParagraph`}
+                        className={`${montserrat_paragraph.variable} flex-1 p-4 font-montserratParagraph`}
                       >
                         <Text
                           className={`${montserrat_paragraph.variable} mb-4 font-montserratParagraph text-[--foreground]`}

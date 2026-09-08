@@ -337,8 +337,12 @@ export const docGroups = pgTable(
 export const documentsDocGroups = pgTable(
   'documents_doc_groups',
   {
-    document_id: bigint('document_id', { mode: 'number' }).notNull(),
-    doc_group_id: bigint('doc_group_id', { mode: 'number' }).notNull(),
+    document_id: bigint('document_id', { mode: 'number' })
+      .notNull()
+      .references(() => documents.id, { onDelete: 'cascade' }),
+    doc_group_id: bigint('doc_group_id', { mode: 'number' })
+      .notNull()
+      .references(() => docGroups.id, { onDelete: 'cascade' }),
     created_at: timestamp('created_at').defaultNow(),
   },
   (table) => {

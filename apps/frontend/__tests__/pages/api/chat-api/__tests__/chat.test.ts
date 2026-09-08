@@ -45,7 +45,7 @@ const hoisted = vi.hoisted(() => ({
 vi.mock('~/pages/api/chat-api/util/fetchCourseMetadataServer', () => ({
   default: hoisted.fetchCourseMetadataServer,
 }))
-vi.mock('~/pages/api/chat-api/util/determineAndValidateModelServer', () => ({
+vi.mock('~/server/determineAndValidateModelServer', () => ({
   determineAndValidateModelServer: hoisted.determineAndValidateModelServer,
 }))
 vi.mock('~/pages/api/chat-api/keys/validate', () => ({

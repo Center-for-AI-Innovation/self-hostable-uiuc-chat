@@ -29,13 +29,8 @@ vi.mock('@/hooks/queries/useUpdateProjectLLMProviders', () => ({
   }),
 }))
 
-vi.mock('@mantine/notifications', () => ({
-  notifications: {
-    show: vi.fn(),
-    update: vi.fn(),
-    hide: vi.fn(),
-    clean: vi.fn(),
-  },
+vi.mock('~/utils/toastUtils', () => ({
+  showToast: vi.fn(),
 }))
 
 vi.mock('@mantine/core', async (importOriginal) => {
@@ -230,23 +225,22 @@ describe('findDefaultModel', () => {
 // showConfirmationToast
 // ===========================================================================
 describe('showConfirmationToast', () => {
-  it('calls notifications.show with success styling by default', async () => {
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications.show as ReturnType<typeof vi.fn>).mockClear()
+  it('calls showToast with the success type by default', async () => {
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as ReturnType<typeof vi.fn>).mockClear()
 
     showConfirmationToast({ title: 'Success', message: 'Saved!' })
 
-    expect(notifications.show).toHaveBeenCalledTimes(1)
-    const call = (notifications.show as ReturnType<typeof vi.fn>).mock
-      .calls[0]![0]
+    expect(showToast).toHaveBeenCalledTimes(1)
+    const call = (showToast as ReturnType<typeof vi.fn>).mock.calls[0]![0]
     expect(call.title).toBe('Success')
     expect(call.message).toBe('Saved!')
-    expect(call.color).toBe('green')
+    expect(call.type).toBe('success')
   })
 
-  it('calls notifications.show with error styling when isError=true', async () => {
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications.show as ReturnType<typeof vi.fn>).mockClear()
+  it('calls showToast with the error type when isError=true', async () => {
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as ReturnType<typeof vi.fn>).mockClear()
 
     showConfirmationToast({
       title: 'Error',
@@ -254,14 +248,13 @@ describe('showConfirmationToast', () => {
       isError: true,
     })
 
-    const call = (notifications.show as ReturnType<typeof vi.fn>).mock
-      .calls[0]![0]
-    expect(call.color).toBe('red')
+    const call = (showToast as ReturnType<typeof vi.fn>).mock.calls[0]![0]
+    expect(call.type).toBe('error')
   })
 
   it('respects custom autoClose value', async () => {
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications.show as ReturnType<typeof vi.fn>).mockClear()
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as ReturnType<typeof vi.fn>).mockClear()
 
     showConfirmationToast({
       title: 'Quick',
@@ -269,8 +262,7 @@ describe('showConfirmationToast', () => {
       autoClose: 1000,
     })
 
-    const call = (notifications.show as ReturnType<typeof vi.fn>).mock
-      .calls[0]![0]
+    const call = (showToast as ReturnType<typeof vi.fn>).mock.calls[0]![0]
     expect(call.autoClose).toBe(1000)
   })
 })
@@ -678,8 +670,8 @@ describe('LLMsApiKeyInputForm – default model selection', () => {
 describe('LLMsApiKeyInputForm – form submission callbacks', () => {
   it('shows success toast on mutation success', async () => {
     const user = userEvent.setup()
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications.show as ReturnType<typeof vi.fn>).mockClear()
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as ReturnType<typeof vi.fn>).mockClear()
 
     setUpGlobals()
     mocks.query.data = makeProviders({
@@ -712,10 +704,10 @@ describe('LLMsApiKeyInputForm – form submission callbacks', () => {
     await user.selectOptions(screen.getByLabelText('Select a model'), 'gpt-4o')
 
     await waitFor(() => {
-      expect(notifications.show).toHaveBeenCalledWith(
+      expect(showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           title: 'Updated LLM providers',
-          color: 'green',
+          type: 'success',
         }),
       )
     })
@@ -723,8 +715,8 @@ describe('LLMsApiKeyInputForm – form submission callbacks', () => {
 
   it('shows error toast on mutation failure', async () => {
     const user = userEvent.setup()
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications.show as ReturnType<typeof vi.fn>).mockClear()
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as ReturnType<typeof vi.fn>).mockClear()
 
     setUpGlobals()
     mocks.query.data = makeProviders({
@@ -760,10 +752,10 @@ describe('LLMsApiKeyInputForm – form submission callbacks', () => {
     await user.selectOptions(screen.getByLabelText('Select a model'), 'gpt-4o')
 
     await waitFor(() => {
-      expect(notifications.show).toHaveBeenCalledWith(
+      expect(showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           title: 'Error updating LLM providers',
-          color: 'red',
+          type: 'error',
         }),
       )
     })
@@ -774,9 +766,9 @@ describe('LLMsApiKeyInputForm – form submission callbacks', () => {
 // LLMsApiKeyInputForm – error state
 // ===========================================================================
 describe('LLMsApiKeyInputForm – error loading providers', () => {
-  it('shows error notification when providers fail to load', async () => {
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications.show as ReturnType<typeof vi.fn>).mockClear()
+  it('shows error toast when providers fail to load', async () => {
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as ReturnType<typeof vi.fn>).mockClear()
 
     setUpGlobals()
     mocks.query.data = null
@@ -787,10 +779,10 @@ describe('LLMsApiKeyInputForm – error loading providers', () => {
     )
 
     await waitFor(() => {
-      expect(notifications.show).toHaveBeenCalledWith(
+      expect(showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           title: 'Error',
-          color: 'red',
+          type: 'error',
         }),
       )
     })
@@ -1058,42 +1050,43 @@ describe('LLMsApiKeyInputForm – full page form submit', () => {
 })
 
 // ===========================================================================
-// showConfirmationToast – onOpen / onClose callbacks
+// showConfirmationToast – toast options
 // ===========================================================================
-describe('showConfirmationToast – callbacks and styles', () => {
-  it('passes onOpen and onClose callbacks to notifications.show', async () => {
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications.show as ReturnType<typeof vi.fn>).mockClear()
+describe('showConfirmationToast – toast options', () => {
+  it('passes only the supported toast options to showToast', async () => {
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as ReturnType<typeof vi.fn>).mockClear()
 
     showConfirmationToast({ title: 'Test', message: 'msg' })
 
-    const call = (notifications.show as ReturnType<typeof vi.fn>).mock
-      .calls[0]![0]
+    expect(showToast).toHaveBeenCalledWith({
+      title: 'Test',
+      message: 'msg',
+      type: 'success',
+      autoClose: 5000,
+    })
 
-    // onOpen and onClose should be functions
-    expect(typeof call.onOpen).toBe('function')
-    expect(typeof call.onClose).toBe('function')
-
-    // Calling them should not throw
-    expect(() => call.onOpen()).not.toThrow()
-    expect(() => call.onClose()).not.toThrow()
+    // Legacy Mantine-only options must not leak through
+    const call = (showToast as ReturnType<typeof vi.fn>).mock.calls[0]![0]
+    expect(call.onOpen).toBeUndefined()
+    expect(call.onClose).toBeUndefined()
+    expect(call.styles).toBeUndefined()
   })
 
-  it('uses green color and non-error icon for success toast', async () => {
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications.show as ReturnType<typeof vi.fn>).mockClear()
+  it('uses the success type and no custom icon for success toast', async () => {
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as ReturnType<typeof vi.fn>).mockClear()
 
     showConfirmationToast({ title: 'OK', message: 'done' })
 
-    const call = (notifications.show as ReturnType<typeof vi.fn>).mock
-      .calls[0]![0]
-    expect(call.color).toBe('green')
-    expect(call.styles.root.borderColor).not.toBe('#E53935')
+    const call = (showToast as ReturnType<typeof vi.fn>).mock.calls[0]![0]
+    expect(call.type).toBe('success')
+    expect(call.icon).toBeUndefined()
   })
 
-  it('uses red color and error icon for error toast', async () => {
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications.show as ReturnType<typeof vi.fn>).mockClear()
+  it('uses the error type and no custom icon for error toast', async () => {
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as ReturnType<typeof vi.fn>).mockClear()
 
     showConfirmationToast({
       title: 'Fail',
@@ -1101,21 +1094,19 @@ describe('showConfirmationToast – callbacks and styles', () => {
       isError: true,
     })
 
-    const call = (notifications.show as ReturnType<typeof vi.fn>).mock
-      .calls[0]![0]
-    expect(call.color).toBe('red')
-    expect(call.styles.root.borderColor).toBe('#E53935')
-    expect(call.styles.icon.color).toBe('#E53935')
+    const call = (showToast as ReturnType<typeof vi.fn>).mock.calls[0]![0]
+    expect(call.type).toBe('error')
+    expect(call.message).toBe('error')
+    expect(call.icon).toBeUndefined()
   })
 
   it('uses default autoClose of 5000ms', async () => {
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications.show as ReturnType<typeof vi.fn>).mockClear()
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as ReturnType<typeof vi.fn>).mockClear()
 
     showConfirmationToast({ title: 'Default', message: 'auto' })
 
-    const call = (notifications.show as ReturnType<typeof vi.fn>).mock
-      .calls[0]![0]
+    const call = (showToast as ReturnType<typeof vi.fn>).mock.calls[0]![0]
     expect(call.autoClose).toBe(5000)
   })
 })

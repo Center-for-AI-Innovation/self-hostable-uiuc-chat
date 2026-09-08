@@ -10,7 +10,7 @@ import {
   IconRepeat,
 } from '@tabler/icons-react'
 import { type Message, Content } from '@/types/chat'
-import { useTranslation } from 'next-i18next'
+import { useTranslation } from 'next-i18next/pages'
 
 interface MessageActionsProps {
   message: Message

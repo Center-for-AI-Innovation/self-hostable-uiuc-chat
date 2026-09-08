@@ -1,6 +1,6 @@
 import { type NextApiResponse } from 'next'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
+import { withCourseAccessFromRequest } from '~/server/authorization'
 import { fetchContextsByVectorEngine } from '~/utils/fetchContexts'
 
 export default withCourseAccessFromRequest('any')(handler)

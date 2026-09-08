@@ -1,45 +1,55 @@
 import { describe, expect, it, vi } from 'vitest'
 
+const makeToastMock = () => ({
+  success: vi.fn(),
+  error: vi.fn(),
+  warning: vi.fn(),
+  info: vi.fn(),
+})
+
 describe('toastUtils', () => {
-  it('showToast uses default config by type', async () => {
-    const show = vi.fn()
-    vi.doMock('@mantine/notifications', () => ({ notifications: { show } }))
+  it('showToast maps the type to the matching sonner method with a default duration', async () => {
+    const toast = makeToastMock()
+    vi.doMock('sonner', () => ({ toast }))
 
     vi.resetModules()
     const { showToast } = await import('../toastUtils')
 
     showToast({ message: 'm', type: 'success' })
-    expect(show).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: 'm',
-        color: 'green',
-        autoClose: 5000,
-      }),
+    expect(toast.success).toHaveBeenCalledWith(
+      'm',
+      expect.objectContaining({ duration: 5000, description: undefined }),
     )
   })
 
-  it('showToast allows overriding icon + autoClose', async () => {
-    const show = vi.fn()
-    vi.doMock('@mantine/notifications', () => ({ notifications: { show } }))
+  it('uses title as heading + message as description, and allows overriding duration + icon', async () => {
+    const toast = makeToastMock()
+    vi.doMock('sonner', () => ({ toast }))
 
     vi.resetModules()
     const { showToast } = await import('../toastUtils')
 
     const customIcon = { type: 'icon' } as any
-    showToast({ message: 'm', type: 'error', autoClose: 123, icon: customIcon })
-    expect(show).toHaveBeenCalledWith(
+    showToast({
+      title: 't',
+      message: 'm',
+      type: 'error',
+      autoClose: 123,
+      icon: customIcon,
+    })
+    expect(toast.error).toHaveBeenCalledWith(
+      't',
       expect.objectContaining({
-        color: 'red',
-        autoClose: 123,
+        description: 'm',
+        duration: 123,
         icon: customIcon,
-        styles: expect.any(Object),
       }),
     )
   })
 
-  it('convenience helpers call showToast with correct types', async () => {
-    const show = vi.fn()
-    vi.doMock('@mantine/notifications', () => ({ notifications: { show } }))
+  it('convenience helpers call the correct sonner method', async () => {
+    const toast = makeToastMock()
+    vi.doMock('sonner', () => ({ toast }))
 
     vi.resetModules()
     const {
@@ -54,17 +64,9 @@ describe('toastUtils', () => {
     showWarningToast('c')
     showInfoToast('d')
 
-    expect(show).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'a', color: 'green' }),
-    )
-    expect(show).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'b', color: 'red' }),
-    )
-    expect(show).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'c', color: 'yellow' }),
-    )
-    expect(show).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'd', color: 'blue' }),
-    )
+    expect(toast.success).toHaveBeenCalledWith('a', expect.any(Object))
+    expect(toast.error).toHaveBeenCalledWith('b', expect.any(Object))
+    expect(toast.warning).toHaveBeenCalledWith('c', expect.any(Object))
+    expect(toast.info).toHaveBeenCalledWith('d', expect.any(Object))
   })
 })

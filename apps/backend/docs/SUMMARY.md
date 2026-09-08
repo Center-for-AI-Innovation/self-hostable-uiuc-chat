@@ -34,6 +34,7 @@
 
 * [Developer Quickstart](developers/developer-quickstart.md)
 * [External Connections Config](developers/external-connections-config.md)
+* [Lightweight Ingest via the HTTP Bridge](developers/lightweight-ingest-bridge.md)
 
 ## MIGRATION
 

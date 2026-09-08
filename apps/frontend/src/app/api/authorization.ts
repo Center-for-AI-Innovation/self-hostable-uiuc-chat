@@ -3,7 +3,7 @@ import { AuthenticatedRequest } from '~/utils/appRouterAuth'
 import { NextRequest, NextResponse } from 'next/server'
 import { withAppRouterAuth } from '~/utils/appRouterAuth'
 import { ensureRedisConnected } from '~/utils/redisClient'
-import { AuthenticatedUser } from '~/middleware'
+import { AuthenticatedUser } from '~/proxy'
 
 // Helper function to get course metadata from Redis
 export async function getCourseMetadata(

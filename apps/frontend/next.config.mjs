@@ -13,12 +13,7 @@ const bundleAnalyzerConfig = {
 /** @type {import("next").NextConfig} */
 const config = {
   i18n: nextI18NextConfig.i18n,
-  serverRuntimeConfig: {
-    bodyParser: {
-      sizeLimit: '100mb',
-    },
-  },
-  webpack(config, { isServer }) {
+  webpack(config, { isServer, webpack }) {
     // Merge existing experiments with the required ones
     config.experiments = {
       ...(config.experiments || {}),
@@ -43,6 +38,13 @@ const config = {
         net: false,
         perf_hooks: false,
       }
+
+      // mathjax-full falls back to eval('require') for its version unless this is defined.
+      config.plugins.push(
+        new webpack.DefinePlugin({
+          PACKAGE_VERSION: JSON.stringify('3.2.1'),
+        }),
+      )
     }
 
     return config
@@ -58,24 +60,36 @@ const config = {
   //   locales: ['en'],
   //   defaultLocale: 'en',
   // },
+  // `next build` type-checks every file tsconfig `include` matches. Point it at a
+  // build-only tsconfig that omits tests so a spec's type error cannot fail the
+  // production build; tests are still checked against tsconfig.json.
+  typescript: {
+    tsconfigPath: 'tsconfig.build.json',
+  },
   images: {
     unoptimized: true,
-    domains: [
-      'images.unsplash.com',
-      'github.com',
-      'uiuc-chatbot.s3.us-east-1.amazonaws.com',
-      'images.squarespace-cdn.com',
-      'raw.githubusercontent.com',
-      'avatars.githubusercontent.com',
-      'anthropic.com',
-      'via.placeholder.com',
+    remotePatterns: [
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'github.com' },
+      {
+        protocol: 'https',
+        hostname: 'uiuc-chatbot.s3.us-east-1.amazonaws.com',
+      },
+      { protocol: 'https', hostname: 'images.squarespace-cdn.com' },
+      { protocol: 'https', hostname: 'raw.githubusercontent.com' },
+      { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
+      { protocol: 'https', hostname: 'anthropic.com' },
+      { protocol: 'https', hostname: 'via.placeholder.com' },
     ],
   },
-  experimental: {
-    esmExternals: false, // To make certain packages work with the /pages router.
-    // Keep Node-only packages (postgres uses tls, perf_hooks) out of the bundle; required for API routes that use dbClient/vectorSearch.
-    serverComponentsExternalPackages: ['postgres'],
-  },
+  // Let Node require() these directly instead of webpack bundling them:
+  // postgres is Node-only; sanitize-html/undici trip up webpack's ESM/CJS resolution.
+  serverExternalPackages: [
+    'postgres',
+    'sanitize-html',
+    'undici',
+    '@qdrant/js-client-rest',
+  ],
   async headers() {
     return [
       {

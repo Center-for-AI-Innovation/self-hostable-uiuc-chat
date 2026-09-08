@@ -1,75 +1,13 @@
-import { Menu, Avatar, type MantineNumberSize, rem } from '@mantine/core'
 import { useAuth } from 'react-oidc-context'
 import { montserrat_heading } from 'fonts'
-import { createStyles } from '@mantine/core'
+import { Avatar, AvatarFallback } from '@/components/shadcn/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/shadcn/ui/dropdown-menu'
 import { getKeycloakBaseUrl, initiateSignIn } from '~/utils/authHelpers'
-
-const useStyles = createStyles((theme) => ({
-  link: {
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '2.2rem',
-    minWidth: '100px',
-    width: 'auto',
-    padding: '0 0.75rem',
-    color: 'var(--illinois-orange)',
-    backgroundColor: 'transparent',
-    fontSize: rem(14),
-    fontWeight: 500,
-    border: `1px solid var(--illinois-orange)`,
-    borderRadius: '0.375rem',
-    transition: 'background-color 100ms ease',
-    '&:hover': {
-      backgroundColor: 'rgba(255, 95, 5, 0.05)',
-    },
-  },
-  userAvatar: {
-    cursor: 'pointer',
-    transition: 'all 200ms ease',
-    position: 'relative',
-    overflow: 'hidden',
-    border: '2px solid var(--border)',
-    '&:hover': {
-      transform: 'translateY(-1px)',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-      '&::after': {
-        transform: 'translateX(100%)',
-      },
-    },
-    '&::after': {
-      content: '""',
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      background:
-        'linear-gradient(120deg, transparent 0%, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%, transparent 100%)',
-      transform: 'translateX(-100%)',
-      transition: 'transform 650ms ease',
-    },
-  },
-  userMenu: {
-    backgroundColor: 'var(--background)',
-    border: '1px solid var(--border)',
-    borderRadius: '12px',
-    padding: '6px',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
-    '.mantine-Menu-item': {
-      color: 'var(--foreground)',
-      borderRadius: '8px',
-      fontSize: '14px',
-      padding: '10px 16px',
-      margin: '2px 0',
-      fontWeight: 500,
-      '&:hover': {
-        backgroundColor: 'var(--muted)',
-      },
-    },
-  },
-}))
 
 const getInitials = (name: string) => {
   const names = name.split(' ')
@@ -80,44 +18,39 @@ const getInitials = (name: string) => {
 }
 
 interface AuthMenuProps {
-  size?: MantineNumberSize
+  size?: number
 }
 
 export const AuthMenu = ({ size = 34 }: AuthMenuProps) => {
-  const { classes } = useStyles()
   const auth = useAuth()
 
   if (auth.isAuthenticated) {
     return (
-      <Menu
-        position="bottom-end"
-        offset={5}
-        classNames={{
-          dropdown: classes.userMenu,
-        }}
-      >
-        <Menu.Target>
-          <Avatar
-            size={size}
-            radius="xl"
-            variant="gradient"
-            gradient={{
-              from: 'var(--illinois-industrial)',
-              to: 'var(--illinois-blue)',
-              deg: 135,
-            }}
-            className={classes.userAvatar}
-            role="button"
-            tabIndex={0}
-            aria-label="User Menu"
-          >
-            {getInitials(auth.user?.profile.name || '')}
-          </Avatar>
-        </Menu.Target>
+      <DropdownMenu>
+        {/* Gradient avatar with a diagonal "shine" that sweeps across on hover.
+            Shine + lift reproduced from the former Mantine createStyles ::after. */}
+        <DropdownMenuTrigger
+          nativeButton={false}
+          render={
+            <Avatar
+              aria-label="User Menu"
+              style={{ width: size, height: size }}
+              className="relative cursor-pointer overflow-hidden border-2 border-[--border] transition-all duration-200 after:absolute after:inset-0 after:-translate-x-full after:bg-[linear-gradient(120deg,transparent_0%,transparent_30%,rgba(255,255,255,0.2)_50%,transparent_70%,transparent_100%)] after:content-[''] after:[transition:transform_650ms] hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] hover:after:translate-x-full"
+            >
+              <AvatarFallback className="bg-[linear-gradient(135deg,var(--illinois-industrial),var(--illinois-blue))] text-sm font-medium text-white">
+                {getInitials(auth.user?.profile.name || '')}
+              </AvatarFallback>
+            </Avatar>
+          }
+        />
 
-        <Menu.Dropdown>
-          <Menu.Item
-            tabIndex={0}
+        <DropdownMenuContent
+          align="end"
+          sideOffset={5}
+          className="rounded-xl border border-[--border] bg-[--background] p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
+        >
+          <DropdownMenuItem
+            className="my-0.5 cursor-pointer rounded-lg px-4 py-2.5 text-sm font-medium text-[--foreground] focus:bg-[--muted]"
             onClick={() => {
               // Fixed URL construction to avoid realm duplication
               window.open(
@@ -127,19 +60,22 @@ export const AuthMenu = ({ size = 34 }: AuthMenuProps) => {
             }}
           >
             Manage Account
-          </Menu.Item>
-          <Menu.Item onClick={() => auth.signoutRedirect()} tabIndex={0}>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="my-0.5 cursor-pointer rounded-lg px-4 py-2.5 text-sm font-medium text-[--foreground] focus:bg-[--muted]"
+            onClick={() => auth.signoutRedirect()}
+          >
             Sign Out
-          </Menu.Item>
-        </Menu.Dropdown>
-      </Menu>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     )
   }
 
   return (
     <button
       tabIndex={0}
-      className={`${classes.link} login-btn`}
+      className="login-btn flex h-[2.2rem] min-w-[100px] cursor-pointer items-center justify-center rounded-md border border-[--illinois-orange] bg-transparent px-3 text-sm font-bold text-[--illinois-orange] transition-colors duration-100 hover:bg-[rgb(255_95_5_/_0.05)]"
       onClick={() => void initiateSignIn(auth, window.location.pathname)}
     >
       <div

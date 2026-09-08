@@ -151,9 +151,8 @@ describe('writeCourseMetadata', () => {
     dbState.insertFn.mockImplementationOnce(() => {
       throw new Error('pg down')
     })
-    const { writeCourseMetadata, CourseMetadataWriteError } = await import(
-      '../courseMetadataStore'
-    )
+    const { writeCourseMetadata, CourseMetadataWriteError } =
+      await import('../courseMetadataStore')
     await expect(writeCourseMetadata('bot-b', makeMetadata())).rejects.toThrow(
       CourseMetadataWriteError,
     )
@@ -164,9 +163,8 @@ describe('writeCourseMetadata', () => {
     redisState.hSet.mockImplementationOnce(async () => {
       throw new Error('redis down')
     })
-    const { writeCourseMetadata, CourseMetadataWriteError } = await import(
-      '../courseMetadataStore'
-    )
+    const { writeCourseMetadata, CourseMetadataWriteError } =
+      await import('../courseMetadataStore')
     await expect(writeCourseMetadata('bot-c', makeMetadata())).rejects.toThrow(
       CourseMetadataWriteError,
     )
@@ -184,9 +182,8 @@ describe('writeCourseMetadata', () => {
       throw new Error('redis down')
     })
 
-    const { writeCourseMetadata, CourseMetadataWriteError } = await import(
-      '../courseMetadataStore'
-    )
+    const { writeCourseMetadata, CourseMetadataWriteError } =
+      await import('../courseMetadataStore')
     await expect(
       writeCourseMetadata(
         'bot-d',
@@ -201,9 +198,8 @@ describe('writeCourseMetadata', () => {
   })
 
   it('rejects when courseName is empty', async () => {
-    const { writeCourseMetadata, CourseMetadataWriteError } = await import(
-      '../courseMetadataStore'
-    )
+    const { writeCourseMetadata, CourseMetadataWriteError } =
+      await import('../courseMetadataStore')
     await expect(writeCourseMetadata('', makeMetadata())).rejects.toThrow(
       CourseMetadataWriteError,
     )
@@ -219,9 +215,8 @@ describe('writeCourseMetadata', () => {
     const consoleError = vi
       .spyOn(console, 'error')
       .mockImplementation(() => undefined)
-    const { writeCourseMetadata, CourseMetadataWriteError } = await import(
-      '../courseMetadataStore'
-    )
+    const { writeCourseMetadata, CourseMetadataWriteError } =
+      await import('../courseMetadataStore')
     await expect(
       writeCourseMetadata('bot-critical', makeMetadata()),
     ).rejects.toThrow(CourseMetadataWriteError)
@@ -232,9 +227,8 @@ describe('writeCourseMetadata', () => {
 
 describe('deleteCourseMetadata', () => {
   it('rejects when courseName is empty', async () => {
-    const { deleteCourseMetadata, CourseMetadataWriteError } = await import(
-      '../courseMetadataStore'
-    )
+    const { deleteCourseMetadata, CourseMetadataWriteError } =
+      await import('../courseMetadataStore')
     await expect(deleteCourseMetadata('')).rejects.toThrow(
       CourseMetadataWriteError,
     )
@@ -267,9 +261,8 @@ describe('deleteCourseMetadata', () => {
     redisState.hDel.mockImplementationOnce(async () => {
       throw new Error('redis down')
     })
-    const { deleteCourseMetadata, CourseMetadataWriteError } = await import(
-      '../courseMetadataStore'
-    )
+    const { deleteCourseMetadata, CourseMetadataWriteError } =
+      await import('../courseMetadataStore')
     await expect(deleteCourseMetadata('bot-z')).rejects.toThrow(
       CourseMetadataWriteError,
     )
@@ -290,9 +283,8 @@ describe('deleteCourseMetadata', () => {
     const consoleError = vi
       .spyOn(console, 'error')
       .mockImplementation(() => undefined)
-    const { deleteCourseMetadata, CourseMetadataWriteError } = await import(
-      '../courseMetadataStore'
-    )
+    const { deleteCourseMetadata, CourseMetadataWriteError } =
+      await import('../courseMetadataStore')
     await expect(deleteCourseMetadata('bot-w')).rejects.toThrow(
       CourseMetadataWriteError,
     )
@@ -306,9 +298,8 @@ describe('deleteCourseMetadata', () => {
     dbState.deleteFn.mockImplementationOnce(() => {
       throw new Error('pg down')
     })
-    const { deleteCourseMetadata, CourseMetadataWriteError } = await import(
-      '../courseMetadataStore'
-    )
+    const { deleteCourseMetadata, CourseMetadataWriteError } =
+      await import('../courseMetadataStore')
     await expect(deleteCourseMetadata('bot-v')).rejects.toThrow(
       CourseMetadataWriteError,
     )

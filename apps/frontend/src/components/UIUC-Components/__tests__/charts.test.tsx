@@ -70,17 +70,6 @@ vi.mock('recharts', () => {
   }
 })
 
-vi.mock('react-grid-heatmap', () => ({
-  __esModule: true,
-  HeatMapGrid: (props: any) => {
-    props.xLabelsStyle?.()
-    props.yLabelsStyle?.()
-    props.cellStyle?.(0, 0, 0.5)
-    props.cellRender?.(0, 0, 1)
-    return React.createElement('div', { 'data-testid': 'heatmap' })
-  },
-}))
-
 import ConversationsPerDayChart from '../ConversationsPerDayChart'
 import ConversationsPerHourChart from '../ConversationsPerHourChart'
 import ConversationsPerDayOfWeekChart from '../ConversationsPerDayOfWeekChart'

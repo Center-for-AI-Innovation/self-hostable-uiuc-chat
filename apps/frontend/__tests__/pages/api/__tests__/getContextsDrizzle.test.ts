@@ -7,7 +7,7 @@ const hoisted = vi.hoisted(() => ({
   vectorSearchWithDrizzle: vi.fn(),
 }))
 
-vi.mock('~/pages/api/authorization', () => ({
+vi.mock('~/server/authorization', () => ({
   withCourseAccessFromRequest:
     () => (h: (req: any, res: any) => Promise<void>) =>
       h,

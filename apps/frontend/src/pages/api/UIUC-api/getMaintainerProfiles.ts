@@ -1,5 +1,5 @@
 import { type NextApiResponse } from 'next'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
+import { withCourseAccessFromRequest } from '~/server/authorization'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
 import { getCourseMetadata } from './getCourseMetadata'
 import { getKeycloakBaseUrl } from '~/utils/authHelpers'

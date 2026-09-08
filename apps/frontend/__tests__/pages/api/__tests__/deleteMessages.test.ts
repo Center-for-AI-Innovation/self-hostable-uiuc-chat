@@ -20,7 +20,7 @@ const hoisted = vi.hoisted(() => {
   return { db: { delete: del }, messages, conversations, returning, del, where }
 })
 
-vi.mock('~/pages/api/authorization', () => ({
+vi.mock('~/server/authorization', () => ({
   withCourseAccessFromRequest: () => (h: any) => h,
 }))
 

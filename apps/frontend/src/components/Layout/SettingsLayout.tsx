@@ -94,10 +94,7 @@ export default function SettingsLayout({
 
         {/* Main Content */}
         <div
-          className={`flex-1 transition-all duration-300
-            ${sidebarOpen && !sidebarCollapsed ? 'md:ml-[280px]' : ''}
-            ${sidebarOpen && sidebarCollapsed ? 'md:ml-[80px]' : ''}
-          `}
+          className={`flex-1 transition-all duration-300 ${sidebarOpen && !sidebarCollapsed ? 'md:ml-[280px]' : ''} ${sidebarOpen && sidebarCollapsed ? 'md:ml-[80px]' : ''} `}
         >
           {/* <div className="min-h-[calc(100vh-80px)] px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-4"> */}
           {children}

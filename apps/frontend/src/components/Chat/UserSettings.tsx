@@ -1,6 +1,6 @@
 import { useContext, useEffect } from 'react'
 import { Divider, Flex, Modal, Title, createStyles, Tabs } from '@mantine/core'
-import HomeContext from '~/pages/api/home/home.context'
+import HomeContext from '~/components/home/home.context'
 import { useDisclosure, useMediaQuery } from '@mantine/hooks'
 import React from 'react'
 import { ModelSelect } from './ModelSelect'
@@ -21,6 +21,9 @@ const useStyles = createStyles((theme) => ({
     borderRadius: '.25rem',
     color: 'var(--modal-text)',
     backgroundColor: 'var(--modal)',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
   },
   modalHeader: {
     width: '100%',
@@ -107,7 +110,8 @@ export const UserSettings = () => {
         style={{ width: '100%', color: 'var(--background-faded)' }}
       />
       <Modal.Content
-        className={`${classes.modalContent} ${isSmallScreen ? 'p-2' : 'p-4'} overflow-x-hidden bg-[--modal] text-[--modal-text] md:rounded-lg`}
+        data-settings-modal
+        className={`${classes.modalContent} ${isSmallScreen ? 'p-2' : 'p-4'} overflow-hidden bg-[--modal] text-[--modal-text] md:rounded-lg`}
       >
         <Modal.Header className={classes.modalHeader}>
           <Modal.Title
@@ -121,7 +125,11 @@ export const UserSettings = () => {
             className="text-[--foreground-faded] hover:text-[--foreground]"
           />
         </Modal.Header>
-        <Modal.Body className="mt-4" p={isSmallScreen ? 'xs' : 'md'}>
+        <Modal.Body
+          data-settings-modal-body
+          className="mt-4 min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
+          p={isSmallScreen ? 'xs' : 'md'}
+        >
           <Tabs
             orientation="vertical"
             defaultValue="model"

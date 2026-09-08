@@ -82,9 +82,8 @@ export async function fetchContextsByVectorEngine(
     )
   }
 
-  const { fetchContextsViaDrizzleVectorSearch } = await import(
-    '~/server/fetchContextsForVectorSearch'
-  )
+  const { fetchContextsViaDrizzleVectorSearch } =
+    await import('~/server/fetchContextsForVectorSearch')
   return fetchContextsViaDrizzleVectorSearch(
     course_name,
     search_query,

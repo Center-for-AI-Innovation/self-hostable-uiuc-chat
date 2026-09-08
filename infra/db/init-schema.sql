@@ -438,6 +438,8 @@ CREATE TABLE "usage_metrics" (
 );
 --> statement-breakpoint
 ALTER TABLE "project_external_connections" ADD CONSTRAINT "project_external_connections_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "documents_doc_groups" ADD CONSTRAINT "documents_doc_groups_document_id_documents_id_fk" FOREIGN KEY ("document_id") REFERENCES "public"."documents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "documents_doc_groups" ADD CONSTRAINT "documents_doc_groups_doc_group_id_doc_groups_id_fk" FOREIGN KEY ("doc_group_id") REFERENCES "public"."doc_groups"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "doc_groups_name_course_unique" ON "doc_groups" USING btree ("name","course_name");--> statement-breakpoint
 CREATE UNIQUE INDEX "documents_doc_groups_pkey" ON "documents_doc_groups" USING btree ("document_id","doc_group_id");--> statement-breakpoint
 CREATE INDEX "embeddings_embedding_1536_hnsw_idx" ON "embeddings" USING hnsw ((subvector("embedding", 1, 1536)::vector(1536)) vector_cosine_ops) WITH (m=16,ef_construction=64);--> statement-breakpoint
@@ -486,10 +488,17 @@ BEGIN
 
         raise log 'id of document group: %', v_doc_group_id;
 
-        -- Upsert the association in documents_doc_groups
-        INSERT INTO public.documents_doc_groups(document_id, doc_group_id)
-        VALUES (v_document_id, v_doc_group_id)
-        ON CONFLICT (document_id, doc_group_id) DO NOTHING;
+        -- Upsert the association in documents_doc_groups.
+        -- Concurrent delete between SELECT and INSERT: no-op (do not fail ingest).
+        BEGIN
+            INSERT INTO public.documents_doc_groups(document_id, doc_group_id)
+            VALUES (v_document_id, v_doc_group_id)
+            ON CONFLICT (document_id, doc_group_id) DO NOTHING;
+        EXCEPTION
+            WHEN foreign_key_violation THEN
+                RAISE LOG 'add_document_to_group: skipping FK violation for document_id=% doc_group_id=%',
+                    v_document_id, v_doc_group_id;
+        END;
 
         raise log 'completed for %',v_doc_group_id;
     END LOOP;
@@ -538,10 +547,17 @@ BEGIN
 
         raise log 'id of document group: %', v_doc_group_id;
 
-        -- Upsert the association in documents_doc_groups
-        INSERT INTO public.documents_doc_groups(document_id, doc_group_id)
-        VALUES (v_document_id, v_doc_group_id)
-        ON CONFLICT (document_id, doc_group_id) DO NOTHING;
+        -- Upsert the association in documents_doc_groups.
+        -- Concurrent delete between SELECT and INSERT: no-op (do not fail ingest).
+        BEGIN
+            INSERT INTO public.documents_doc_groups(document_id, doc_group_id)
+            VALUES (v_document_id, v_doc_group_id)
+            ON CONFLICT (document_id, doc_group_id) DO NOTHING;
+        EXCEPTION
+            WHEN foreign_key_violation THEN
+                RAISE LOG 'add_document_to_group_url: skipping FK violation for document_id=% doc_group_id=%',
+                    v_document_id, v_doc_group_id;
+        END;
 
         raise log 'completed for %',v_doc_group_id;
     END LOOP;

@@ -12,7 +12,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '~/components/shadcn/accordion'
+} from '~/components/shadcn/ui/accordion'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import { useQueryClient } from '@tanstack/react-query'
 import { superAdmins } from '~/utils/superAdmins'
@@ -297,10 +297,8 @@ function EmailListAccordion({
     return (
       <div className="w-full rounded-lg bg-[--background-faded]">
         <Accordion
-          type="single"
-          collapsible
           className="w-full"
-          defaultValue={!is_private ? 'admins' : undefined}
+          defaultValue={!is_private ? ['admins'] : undefined}
         >
           <AccordionItem value="admins" className="border-none">
             <AccordionTrigger className="px-4 py-3 hover:no-underline">
@@ -360,10 +358,8 @@ function EmailListAccordion({
   return (
     <div className="w-full rounded-lg bg-[--background-faded]">
       <Accordion
-        type="single"
-        collapsible
         className="w-full"
-        defaultValue={is_private ? 'members' : undefined}
+        defaultValue={is_private ? ['members'] : undefined}
       >
         <AccordionItem value="members" className="border-none">
           <AccordionTrigger className="px-4 py-3 text-[--modal-text] hover:no-underline">

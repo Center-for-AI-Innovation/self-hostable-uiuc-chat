@@ -7,13 +7,8 @@ import { http, HttpResponse } from 'msw'
 import { server } from '~/test-utils/server'
 import { renderWithProviders } from '~/test-utils/renderWithProviders'
 
-vi.mock('@mantine/notifications', () => ({
-  notifications: {
-    show: vi.fn(),
-    update: vi.fn(),
-    hide: vi.fn(),
-    clean: vi.fn(),
-  },
+vi.mock('~/utils/toastUtils', () => ({
+  showToast: vi.fn(),
 }))
 
 vi.mock('~/components/Layout/SettingsLayout', () => ({
@@ -269,9 +264,13 @@ describe('N8NPage – API key fetch edge cases', () => {
   }, 15_000)
 })
 
+// NOTE: The API key textbox and Save button are currently hardcoded `disabled`
+// in N8NPage.tsx (feature frozen pending a future release), so these tests
+// assert the controls stay disabled and no toast fires, rather than exercising
+// the (currently unreachable) handleSaveApiKey interactions.
 describe('N8NPage – API key form controls', () => {
   it('keeps save controls disabled when workflows are in an error state', async () => {
-    const { notifications } = await import('@mantine/notifications')
+    const { showToast } = await import('~/utils/toastUtils')
 
     globalThis.__TEST_ROUTER__ = { asPath: '/CS101/tools' }
     globalThis.__TEST_AUTH__ = {
@@ -308,11 +307,11 @@ describe('N8NPage – API key form controls', () => {
     const saveButton = screen.getByRole('button', { name: /Save/i })
     expect(input).toBeDisabled()
     expect(saveButton).toBeDisabled()
-    expect((notifications as any).show).not.toHaveBeenCalled()
+    expect(showToast).not.toHaveBeenCalled()
   }, 20_000)
 
   it('keeps save controls disabled when workflows table is empty', async () => {
-    const { notifications } = await import('@mantine/notifications')
+    const { showToast } = await import('~/utils/toastUtils')
 
     globalThis.__TEST_ROUTER__ = { asPath: '/CS101/tools' }
     globalThis.__TEST_AUTH__ = {
@@ -349,11 +348,11 @@ describe('N8NPage – API key form controls', () => {
     const saveButton = screen.getByRole('button', { name: /Save/i })
     expect(input).toBeDisabled()
     expect(saveButton).toBeDisabled()
-    expect((notifications as any).show).not.toHaveBeenCalled()
+    expect(showToast).not.toHaveBeenCalled()
   }, 20_000)
 
   it('keeps save controls disabled when upsert would fail', async () => {
-    const { notifications } = await import('@mantine/notifications')
+    const { showToast } = await import('~/utils/toastUtils')
 
     globalThis.__TEST_ROUTER__ = { asPath: '/CS101/tools' }
     globalThis.__TEST_AUTH__ = {
@@ -390,11 +389,11 @@ describe('N8NPage – API key form controls', () => {
     const saveButton = screen.getByRole('button', { name: /Save/i })
     expect(input).toBeDisabled()
     expect(saveButton).toBeDisabled()
-    expect((notifications as any).show).not.toHaveBeenCalled()
+    expect(showToast).not.toHaveBeenCalled()
   }, 20_000)
 
   it('keeps save controls disabled even when upsert would succeed', async () => {
-    const { notifications } = await import('@mantine/notifications')
+    const { showToast } = await import('~/utils/toastUtils')
 
     globalThis.__TEST_ROUTER__ = { asPath: '/CS101/tools' }
     globalThis.__TEST_AUTH__ = {
@@ -431,7 +430,7 @@ describe('N8NPage – API key form controls', () => {
     const saveButton = screen.getByRole('button', { name: /Save/i })
     expect(input).toBeDisabled()
     expect(saveButton).toBeDisabled()
-    expect((notifications as any).show).not.toHaveBeenCalled()
+    expect(showToast).not.toHaveBeenCalled()
   }, 20_000)
 })
 

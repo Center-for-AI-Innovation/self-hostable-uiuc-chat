@@ -4,7 +4,7 @@
 
 // import { PluginID, PluginKey } from '@/types/plugin'
 
-// import HomeContext from '~/pages/api/home/home.context'
+// import HomeContext from '~/components/home/home.context'
 
 // import { SidebarButton } from '@/components/Sidebar/SidebarButton'
 

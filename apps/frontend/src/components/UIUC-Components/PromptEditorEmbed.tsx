@@ -22,12 +22,10 @@ import {
 } from '@mantine/core'
 import { Button } from '@/components/shadcn/ui/button'
 import { useDisclosure, useMediaQuery } from '@mantine/hooks'
-import { notifications } from '@mantine/notifications'
 import {
   IconAlertTriangle,
   IconAlertTriangleFilled,
   IconBook,
-  IconCheck,
   IconChevronDown,
   IconExternalLink,
   IconInfoCircle,
@@ -68,6 +66,7 @@ import {
   type AnySupportedModel,
 } from '~/utils/modelProviders/LLMProvider'
 import { type AnthropicModel } from '~/utils/modelProviders/types/anthropic'
+import { showToast } from '~/utils/toastUtils'
 import { LoadingSpinner } from './LoadingSpinner'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -129,39 +128,12 @@ export const showPromptToast = (
     Math.min(15000, message.length * durationPerChar),
   )
 
-  notifications.show({
-    withCloseButton: true,
-    autoClose: duration,
+  showToast({
     title: title,
     message: message,
-    icon: icon || (isError ? <IconAlertTriangle /> : <IconCheck />),
-    styles: {
-      root: {
-        backgroundColor: 'var(--notification)', // Dark background to match the page
-        borderColor: isError ? '#E53935' : 'var(--notification-border)', // Red for errors,  for success
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderRadius: '8px', // Added rounded corners
-      },
-      title: {
-        color: 'var(--notification-title)', // White text for the title
-        fontWeight: 600,
-      },
-      description: {
-        color: 'var(--notification-message)', // Light gray text for the message
-      },
-      closeButton: {
-        color: 'var(--notification-title)', // White color for the close button
-        borderRadius: '4px', // Added rounded corners to close button
-        '&:hover': {
-          backgroundColor: 'rgba(255, 255, 255, 0.1)', // Subtle hover effect
-        },
-      },
-      icon: {
-        backgroundColor: 'transparent', // Transparent background for the icon
-        color: isError ? '#E53935' : 'var(--notification-title)', // Icon color matches the border
-      },
-    },
+    type: isError ? 'error' : 'success',
+    autoClose: duration,
+    ...(icon ? { icon } : {}),
   })
 }
 
@@ -197,39 +169,11 @@ export const showToastNotification = (
     Math.min(15000, message.length * durationPerChar),
   )
 
-  notifications.show({
-    withCloseButton: true,
-    autoClose: duration,
+  showToast({
     title: title,
     message: message,
-    icon: isError ? <IconAlertTriangle /> : <IconCheck />,
-    styles: {
-      root: {
-        backgroundColor: 'var(--notification)',
-        borderColor: isError ? '#E53935' : 'var(--notification-border)',
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderRadius: '8px',
-      },
-      title: {
-        color: 'var(--notification-title)',
-        fontWeight: 600,
-      },
-      description: {
-        color: 'var(--notification-message)',
-      },
-      closeButton: {
-        color: 'var(--notification-title)',
-        borderRadius: '4px',
-        '&:hover': {
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        },
-      },
-      icon: {
-        backgroundColor: 'transparent',
-        color: isError ? '#E53935' : 'var(--notification-title)',
-      },
-    },
+    type: isError ? 'error' : 'success',
+    autoClose: duration,
   })
 }
 
@@ -933,14 +877,14 @@ CRITICAL: The optimized prompt must:
               <div className="flex items-center gap-2">
                 <Title
                   order={2}
-                  className={` text-lg text-[--foreground] sm:text-2xl`}
+                  className={`text-lg text-[--foreground] sm:text-2xl`}
                 >
                   Prompting
                 </Title>
                 <Text className="text-[--foreground]">/</Text>
                 <Title
                   order={3}
-                  className={` text-base text-[--illinois-orange] sm:text-xl`}
+                  className={`text-base text-[--illinois-orange] sm:text-xl`}
                 >
                   {project_name}
                 </Title>
@@ -1019,7 +963,7 @@ CRITICAL: The optimized prompt must:
                     >
                       <List.Item>
                         <a
-                          className={`text-sm text-[--dashboard-button] transition-colors duration-200 hover:text-[--dashboard-button-hover] `}
+                          className={`text-sm text-[--dashboard-button] transition-colors duration-200 hover:text-[--dashboard-button-hover]`}
                           href="https://platform.openai.com/docs/guides/prompt-engineering"
                           target="_blank"
                           rel="noopener noreferrer"
@@ -1038,7 +982,7 @@ CRITICAL: The optimized prompt must:
                       </List.Item>
                       <List.Item>
                         <a
-                          className={`text-sm text-[--dashboard-button] transition-colors duration-200 hover:text-[--dashboard-button-hover] `}
+                          className={`text-sm text-[--dashboard-button] transition-colors duration-200 hover:text-[--dashboard-button-hover]`}
                           href="https://docs.anthropic.com/claude/prompt-library"
                           target="_blank"
                           rel="noopener noreferrer"

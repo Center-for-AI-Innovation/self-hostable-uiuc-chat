@@ -192,7 +192,12 @@ function UploadNotificationContent({
       case 'jsx':
         return <IconCode {...iconProps} className="text-cyan-500" />
       default:
-        return <IconFileTypeTxt {...iconProps} className="text-white" />
+        return (
+          <IconFileTypeTxt
+            {...iconProps}
+            className="text-[--foreground-faded]"
+          />
+        )
     }
   }
 

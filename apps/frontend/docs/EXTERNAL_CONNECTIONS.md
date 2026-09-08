@@ -274,19 +274,19 @@ Zod validators are in `src/utils/projectConnections/validation.ts`.
 
 Every mutation writes a row to `project_connection_audit_log`:
 
-| field            | meaning                                                                                |
-| ---------------- | -------------------------------------------------------------------------------------- |
-| `occurred_at`    | timestamptz, defaults to `now()`                                                       |
-| `actor_email`    | from the verified JWT                                                                  |
-| `action`         | `upsert` \| `delete` \| `set_active` \| `test`                                         |
+| field            | meaning                                                                                           |
+| ---------------- | ------------------------------------------------------------------------------------------------- |
+| `occurred_at`    | timestamptz, defaults to `now()`                                                                  |
+| `actor_email`    | from the verified JWT                                                                             |
+| `action`         | `upsert` \| `delete` \| `set_active` \| `test`                                                    |
 | `project_name`   | target project; NULL for supplied-config `/test` probes (stored-config probes record the project) |
-| `kind`           | `s3` \| `database` \| `qdrant` \| NULL                                                 |
-| `outcome`        | `success` \| `failure`                                                                 |
-| `failure_reason` | short reason code; never an upstream error body                                        |
-| `changed_fields` | **field NAMES only** — never values. Helpful for "who rotated what when?"              |
-| `source_ip`      | `X-Forwarded-For` first hop, else socket peer                                          |
-| `user_agent`     | request header                                                                         |
-| `request_id`     | `X-Request-Id` or `X-Correlation-Id` if present                                        |
+| `kind`           | `s3` \| `database` \| `qdrant` \| NULL                                                            |
+| `outcome`        | `success` \| `failure`                                                                            |
+| `failure_reason` | short reason code; never an upstream error body                                                   |
+| `changed_fields` | **field NAMES only** — never values. Helpful for "who rotated what when?"                         |
+| `source_ip`      | `X-Forwarded-For` first hop, else socket peer                                                     |
+| `user_agent`     | request header                                                                                    |
+| `request_id`     | `X-Request-Id` or `X-Correlation-Id` if present                                                   |
 
 Operational rule: **do not grant `UPDATE` or `DELETE` to the application
 role on this table.** Treat it as append-only.

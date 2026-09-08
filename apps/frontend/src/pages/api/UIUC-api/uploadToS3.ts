@@ -4,7 +4,7 @@ import { type AuthenticatedRequest } from '~/utils/authMiddleware'
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post'
 import { connectionManager } from '~/utils/connectionManager'
 import { getPresignedUrlClient } from '~/utils/s3Client'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
+import { withCourseAccessFromRequest } from '~/server/authorization'
 
 const handler = async (req: AuthenticatedRequest, res: NextApiResponse) => {
   try {
@@ -29,9 +29,8 @@ const handler = async (req: AuthenticatedRequest, res: NextApiResponse) => {
         ? `users/${user_id}/${uniqueFileName}`
         : `courses/${courseName}/${uniqueFileName}`
 
-    const { client, bucket, isOverride } = await connectionManager.getS3Client(
-      courseName,
-    )
+    const { client, bucket, isOverride } =
+      await connectionManager.getS3Client(courseName)
     if (!bucket) {
       throw new Error(
         `S3 bucket not configured for project '${courseName}' (no s3_config.bucket_name and S3_BUCKET_NAME unset)`,
@@ -41,7 +40,7 @@ const handler = async (req: AuthenticatedRequest, res: NextApiResponse) => {
     // Default path: sign against the browser-reachable MinIO endpoint.
     const signingClient = isOverride
       ? client
-      : getPresignedUrlClient() ?? client
+      : (getPresignedUrlClient() ?? client)
 
     const post = await createPresignedPost(signingClient, {
       Bucket: bucket,

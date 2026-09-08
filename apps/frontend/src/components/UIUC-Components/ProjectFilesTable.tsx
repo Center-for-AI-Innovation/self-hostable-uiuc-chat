@@ -17,14 +17,12 @@ import {
   TextInput,
   Tooltip,
   createStyles,
-  type MantineTheme,
 } from '@mantine/core'
-import { notifications, showNotification } from '@mantine/notifications'
 import {
-  IconAlertTriangle,
   IconCheck,
   IconCopy,
   IconEye,
+  IconRefresh,
   IconTrash,
   IconX,
 } from '@tabler/icons-react'
@@ -45,8 +43,9 @@ import { useAppendToDocGroup } from '@/hooks/queries/useAppendToDocGroup'
 import { useFetchDocumentGroups } from '@/hooks/queries/useFetchDocumentGroups'
 import { useDeleteFromDocGroup } from '@/hooks/queries/useDeleteFromDocGroup'
 
-import handleExport from '~/pages/util/handleExport'
+import { handleExport } from '~/utils/handleExport'
 import { fetchPresignedUrl } from '~/utils/apiUtils'
+import { showErrorToast, showToast } from '~/utils/toastUtils'
 import { LoadingSpinner } from './LoadingSpinner'
 import { showToastOnUpdate } from './MakeQueryAnalysisPage'
 
@@ -65,6 +64,11 @@ const GlobalStyle = createGlobalStyle`
 `
 
 const PAGE_SIZE = 100
+
+// The table refreshes on a slow interval (plus window-focus refetch and the
+// event-driven invalidations fired by the upload pollers); the refresh button
+// refetches immediately, which also restarts this countdown.
+const TABLE_REFRESH_INTERVAL_MS = 5 * 60_000
 
 const dataTableTitleStyles = {
   color: 'var(--table-header)',
@@ -149,9 +153,9 @@ export function ProjectFilesTable({
   }>({})
 
   // Refs for each row of failed documents
-  const textRefs = useRef<{ [key: number]: React.RefObject<HTMLDivElement> }>(
-    {},
-  )
+  const textRefs = useRef<{
+    [key: number]: React.RefObject<HTMLDivElement | null>
+  }>({})
   const multiSelectRef = useRef<HTMLDivElement>(null)
   const [selectedDocGroups, setSelectedDocGroups] = useState<string[]>([])
 
@@ -171,7 +175,7 @@ export function ProjectFilesTable({
     error: documentsError,
     refetch: refetchDocuments,
   } = useQuery({
-    refetchInterval: 12_000,
+    refetchInterval: TABLE_REFRESH_INTERVAL_MS,
     queryKey: [
       'documents',
       course_name,
@@ -203,8 +207,9 @@ export function ProjectFilesTable({
     isLoading: isLoadingFailedDocuments,
     isError: isErrorFailedDocuments,
     error: failedDocumentsError,
+    refetch: refetchFailedDocuments,
   } = useQuery({
-    refetchInterval: 20_000,
+    refetchInterval: TABLE_REFRESH_INTERVAL_MS,
     queryKey: [
       'failedDocuments',
       course_name,
@@ -235,6 +240,18 @@ export function ProjectFilesTable({
     isError: isErrorDocumentGroups,
     refetch: refetchDocumentGroups,
   } = useFetchDocumentGroups(course_name)
+
+  // react-query re-arms refetchInterval after every successful fetch, so a
+  // manual refresh also restarts the countdown.
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false)
+  const handleManualRefresh = () => {
+    setIsManualRefreshing(true)
+    void Promise.allSettled([
+      refetchDocuments(),
+      refetchFailedDocuments(),
+      refetchDocumentGroups(),
+    ]).finally(() => setIsManualRefreshing(false))
+  }
 
   useEffect(() => {
     if (tabValue === 'failed') {
@@ -362,12 +379,17 @@ export function ProjectFilesTable({
         ['documentGroups', course_name],
         (old = []) => {
           return old.map((doc_group) => {
-            recordsToDelete.forEach((record) => {
-              if (doc_group.name in record.doc_groups) {
-                doc_group.doc_count -= 1
+            const decrement = recordsToDelete.reduce((count, record) => {
+              if (record.doc_groups?.includes(doc_group.name)) {
+                return count + 1
               }
-            })
-            return doc_group
+              return count
+            }, 0)
+            if (decrement === 0) return doc_group
+            return {
+              ...doc_group,
+              doc_count: Math.max(0, (doc_group.doc_count || 0) - decrement),
+            }
           })
         },
       )
@@ -390,10 +412,12 @@ export function ProjectFilesTable({
         )
       }
 
-      showToastOnFileDeleted(theme, true)
+      showToastOnFileDeleted(true)
+    },
+    onSuccess: () => {
+      showToastOnFileDeleted()
     },
     onSettled: async () => {
-      showToastOnFileDeleted(theme)
       setShowDeleteButton(false)
       setSelectedCount(0)
       const sleep = (ms: number) =>
@@ -409,102 +433,19 @@ export function ProjectFilesTable({
   })
 
   if (isErrorDocuments) {
-    showNotification({
-      title: 'Error',
-      message: 'Failed to fetch documents',
-      color: 'red',
-      icon: <IconTrash size={24} />,
-    })
+    showErrorToast('Failed to fetch documents', 'Error')
 
     return errorStateForProjectFilesTable()
   }
 
-  const showToastOnFileDeleted = (theme: MantineTheme, was_error = false) => {
-    return (
-      // docs: https://mantine.dev/others/notifications/
-      notifications.show({
-        id: 'file-deleted-from-materials',
-        withCloseButton: true,
-        // onClose: () => console.debug('unmounted'),
-        // onOpen: () => console.debug('mounted'),
-        autoClose: 5000,
-        // position="top-center",
-        title: was_error ? 'Error deleting file' : 'Deleting file...',
-        message: was_error
-          ? "An error occurred while deleting the file. Please try again and I'd be so grateful if you email rohan13@illinois.edu to report this bug."
-          : 'The file is being deleted in the background.',
-        icon: was_error ? <IconAlertTriangle /> : <IconCheck />,
-        styles: {
-          root: {
-            backgroundColor: theme.colors.nearlyWhite,
-            borderColor: was_error
-              ? theme.colors.errorBorder
-              : 'var(--dashboard-background-dark)',
-          },
-          title: {
-            color: theme.colors.nearlyBlack,
-          },
-          description: {
-            color: theme.colors.nearlyBlack,
-          },
-          closeButton: {
-            color: theme.colors.nearlyBlack,
-            '&:hover': {
-              backgroundColor: theme.colors.dark[1],
-            },
-          },
-          icon: {
-            backgroundColor: was_error
-              ? theme.colors.errorBackground
-              : theme.colors.successBackground,
-            padding: '4px',
-          },
-        },
-        loading: false,
-      })
-    )
-  }
-
-  const showToast = (
-    theme: MantineTheme,
-    title: string,
-    message: string,
-    was_error = false,
-  ) => {
-    return notifications.show({
-      id: 'file-deleted-from-materials',
-      withCloseButton: true,
-      autoClose: 12000,
-      title: title,
-      message: message,
-      icon: was_error ? <IconAlertTriangle /> : <IconCheck />,
-      styles: {
-        root: {
-          backgroundColor: theme.colors.nearlyWhite,
-          borderColor: was_error
-            ? theme.colors.errorBorder
-            : 'var(--dashboard-background-dark)',
-        },
-        title: {
-          color: theme.colors.nearlyBlack,
-        },
-        description: {
-          color: theme.colors.nearlyBlack,
-        },
-        closeButton: {
-          color: theme.colors.nearlyBlack,
-          '&:hover': {
-            backgroundColor: theme.colors.dark[1],
-          },
-        },
-        icon: {
-          backgroundColor: was_error
-            ? theme.colors.errorBackground
-            : theme.colors.successBackground,
-          padding: '4px',
-        },
-      },
-      loading: false,
+  const showToastOnFileDeleted = (was_error = false) => {
+    return showToast({
+      autoClose: 5000,
+      title: was_error ? 'Error deleting file' : 'Deleting file...',
+      message: was_error
+        ? "An error occurred while deleting the file. Please try again and I'd be so grateful if you email rohan13@illinois.edu to report this bug."
+        : 'The file is being deleted in the background.',
+      type: was_error ? 'error' : 'success',
     })
   }
 
@@ -534,7 +475,7 @@ export function ProjectFilesTable({
       <GlobalStyle />
       {/* Fixed Header Section */}
       <div className="flex-none">
-        <div className="flex items-center justify-between px-4 pt-4 sm:px-6 md:px-8 ">
+        <div className="flex items-center justify-between px-4 pt-4 sm:px-6 md:px-8">
           <div className="flex items-center md:space-x-4">
             <button
               onClick={() => onTabChange('success')}
@@ -569,10 +510,33 @@ export function ProjectFilesTable({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Tooltip
+              label="Table auto-refreshes every 5 minutes (and when you return to this tab). Click to refresh now."
+              position="top"
+              withArrow
+              multiline
+              width={260}
+              style={{
+                color: 'var(--tooltip)',
+                backgroundColor: 'var(--tooltip-background)',
+              }}
+            >
+              <ActionIcon
+                onClick={handleManualRefresh}
+                aria-label="Refresh documents table"
+                size="lg"
+                variant="subtle"
+                loading={isManualRefreshing}
+                className="text-[--foreground] transition-colors duration-300 hover:bg-[--dashboard-background-faded] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+              >
+                <IconRefresh size={20} />
+              </ActionIcon>
+            </Tooltip>
             {tabValue !== 'failed' && (
               <Button
+                variant="dashboard"
                 onClick={() => setExportModalOpened(true)}
-                className={`w-full border-0 bg-[--dashboard-button] px-4 py-2 text-xs transition-colors duration-300 hover:bg-[--dashboard-button-hover] sm:w-auto sm:px-6 sm:py-3 ${montserrat_paragraph.variable} font-montserratParagraph focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]`}
+                className={`w-full border-0 bg-[--dashboard-button] px-4 py-2 text-xs text-[--dashboard-button-foreground] transition-colors duration-300 hover:bg-[--dashboard-button-hover] sm:w-auto sm:px-6 sm:py-3 ${montserrat_paragraph.variable} font-montserratParagraph focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]`}
               >
                 Export
               </Button>
@@ -590,10 +554,11 @@ export function ProjectFilesTable({
                     }}
                   >
                     <Button
+                      variant="dashboard"
                       onClick={() => {
                         setShowMultiSelect(true)
                       }}
-                      className={`mb-2 w-full bg-[--dashboard-button] px-4 py-2 text-xs transition-colors duration-300 hover:bg-[--dashboard-button-hover] sm:mb-0 sm:w-auto sm:px-6 sm:py-3 ${montserrat_paragraph.variable} border-0 font-montserratParagraph focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]`}
+                      className={`mb-2 w-full bg-[--dashboard-button] px-4 py-2 text-xs text-[--dashboard-button-foreground] transition-colors duration-300 hover:bg-[--dashboard-button-hover] sm:mb-0 sm:w-auto sm:px-6 sm:py-3 ${montserrat_paragraph.variable} border-0 font-montserratParagraph focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]`}
                     >
                       <span className="block sm:hidden">Add to Groups</span>
                       <span className="hidden sm:block">
@@ -834,12 +799,13 @@ export function ProjectFilesTable({
                       disabled={!selectedCount}
                       onClick={() => {
                         if (selectedCount > 100) {
-                          showToast(
-                            theme,
-                            'Selection Limit Exceeded',
-                            'You have selected more than 100 documents. Please select less than or equal to 100 documents.',
-                            true,
-                          )
+                          showToast({
+                            title: 'Selection Limit Exceeded',
+                            message:
+                              'You have selected more than 100 documents. Please select less than or equal to 100 documents.',
+                            type: 'error',
+                            autoClose: 12000,
+                          })
                         } else {
                           setRecordsToDelete(selectedRecords)
                           setModalOpened(true)
@@ -1351,7 +1317,7 @@ export function ProjectFilesTable({
               Cancel
             </Button>
             <Button
-              className="btext-[--dashboard-button-foreground] min-w-[3rem] -translate-x-1 transform rounded-s-md bg-[--dashboard-button] hover:bg-[--dashboard-button-hover] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+              className="text-[--dashboard-button-foreground] min-w-[3rem] -translate-x-1 transform rounded-s-md bg-[--dashboard-button] hover:bg-[--dashboard-button-hover] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
               onClick={async () => {
                 setModalOpened(false)
                 setIsDeletingDocuments(true)

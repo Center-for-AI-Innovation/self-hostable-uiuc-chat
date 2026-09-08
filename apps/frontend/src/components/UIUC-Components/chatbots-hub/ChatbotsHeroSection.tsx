@@ -1,6 +1,7 @@
 import { montserrat_heading } from 'fonts'
 import Link from 'next/link'
-import { Button } from '~/components/shadcn/ui/button'
+import { buttonVariants } from '~/components/shadcn/ui/button'
+import { cn } from '~/components/shadcn/lib/utils'
 
 export function ChatbotsHeroSection() {
   return (
@@ -26,19 +27,24 @@ export function ChatbotsHeroSection() {
           everything you need to succeed at Illinois.
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-4">
-          <Button
-            asChild
-            className="h-10 bg-[--illinois-blue] px-8 text-sm text-white hover:bg-[--foreground-dark] dark:bg-white dark:text-[--illinois-blue] dark:hover:bg-[#e5e7eb]"
+          <Link
+            href="/chat"
+            className={cn(
+              buttonVariants(),
+              'h-10 bg-[--illinois-blue] px-8 text-sm text-white hover:bg-[--foreground-dark] dark:bg-white dark:text-[--illinois-blue] dark:hover:bg-[#e5e7eb]',
+            )}
           >
-            <Link href="/chat">Start Chatting</Link>
-          </Button>
-          <Button
-            asChild
-            variant="secondary"
-            className="h-10 bg-[hsl(var(--muted))] px-8 text-sm text-[--illinois-blue] dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+            Start Chatting
+          </Link>
+          <Link
+            href="/disclaimer"
+            className={cn(
+              buttonVariants({ variant: 'secondary' }),
+              'h-10 bg-[hsl(var(--muted))] px-8 text-sm text-[--illinois-blue] dark:bg-white/10 dark:text-white dark:hover:bg-white/15',
+            )}
           >
-            <Link href="/disclaimer">More Info</Link>
-          </Button>
+            More Info
+          </Link>
         </div>
       </div>
     </section>

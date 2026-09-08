@@ -23,7 +23,7 @@ import {
   IconFile,
   IconPaperclip,
 } from '@tabler/icons-react'
-import { useTranslation } from 'next-i18next'
+import { useTranslation } from 'next-i18next/pages'
 import {
   type KeyboardEvent,
   type MutableRefObject,
@@ -36,7 +36,7 @@ import {
 } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
-import HomeContext from '~/pages/api/home/home.context'
+import HomeContext from '~/components/home/home.context'
 
 import { PluginSelect } from './PluginSelect'
 import { PromptList } from './PromptList'

@@ -58,9 +58,8 @@ function setupRedisFake() {
 beforeEach(() => {
   // The manager is cached on globalThis (survives vi.resetModules()); drop it
   // so every test gets a fresh instance wired to that test's mocks.
-  delete (
-    globalThis as { __illinoisChatConnectionManager?: unknown }
-  ).__illinoisChatConnectionManager
+  delete (globalThis as { __illinoisChatConnectionManager?: unknown })
+    .__illinoisChatConnectionManager
   vi.resetModules()
   vi.unstubAllEnvs()
   vi.stubEnv('ENCRYPTION_MASTER_KEY', MASTER_KEY)
@@ -424,9 +423,8 @@ describe('ConnectionManager — caching and invalidation', () => {
 
     vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] })
     try {
-      const { connectionManager, DISPOSE_GRACE_MS } = await import(
-        '../connectionManager'
-      )
+      const { connectionManager, DISPOSE_GRACE_MS } =
+        await import('../connectionManager')
       await connectionManager.getDocumentsDb('p')
       expect(pgFn).toHaveBeenCalledTimes(1)
 
@@ -873,9 +871,8 @@ describe('ConnectionManager — error and degraded paths', () => {
 
     vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] })
     try {
-      const { connectionManager, DISPOSE_GRACE_MS } = await import(
-        '../connectionManager'
-      )
+      const { connectionManager, DISPOSE_GRACE_MS } =
+        await import('../connectionManager')
       await connectionManager.getDocumentsDb('p')
       vi.setSystemTime(Date.now() + 31 * 60 * 1000)
       await connectionManager.getDocumentsDb('p')

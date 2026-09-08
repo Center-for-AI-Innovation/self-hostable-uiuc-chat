@@ -22,7 +22,10 @@ describe('superAdmins', () => {
       'SUPER_ADMIN_EMAILS',
       'Foo@Example.com,  bar@example.com  , foo@example.com',
     )
-    vi.stubEnv('NEXT_PUBLIC_SUPER_ADMIN_EMAILS', 'BAR@example.com,baz@example.com')
+    vi.stubEnv(
+      'NEXT_PUBLIC_SUPER_ADMIN_EMAILS',
+      'BAR@example.com,baz@example.com',
+    )
     const { superAdmins } = await import('../superAdmins')
     expect(superAdmins).toContain('foo@example.com')
     expect(superAdmins).toContain('bar@example.com')

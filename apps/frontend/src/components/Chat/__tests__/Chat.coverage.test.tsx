@@ -15,13 +15,12 @@ declare global {
   var __TEST_WORKFLOWS_DATA__: any[] | undefined
 }
 
-vi.mock('@mantine/notifications', () => ({
-  notifications: {
-    show: vi.fn(),
-    update: vi.fn(),
-    hide: vi.fn(),
-    clean: vi.fn(),
-  },
+vi.mock('~/utils/toastUtils', () => ({
+  showToast: vi.fn(),
+  showSuccessToast: vi.fn(),
+  showErrorToast: vi.fn(),
+  showWarningToast: vi.fn(),
+  showInfoToast: vi.fn(),
 }))
 
 vi.mock('@mlc-ai/web-llm', () => ({
@@ -294,7 +293,7 @@ describe('Chat (coverage)', () => {
   }, 15000)
 
   it('emits an error toast when tools fail to load', async () => {
-    const { notifications } = await import('@mantine/notifications')
+    const { showToast } = await import('~/utils/toastUtils')
 
     globalThis.__TEST_WORKFLOWS_ERROR__ = true
     globalThis.__TEST_ROUTER__ = { asPath: '/CS101/chat' }
@@ -324,7 +323,7 @@ describe('Chat (coverage)', () => {
       },
     )
 
-    expect((notifications as any).show).toHaveBeenCalled()
+    expect(showToast as any).toHaveBeenCalled()
     globalThis.__TEST_WORKFLOWS_ERROR__ = false
   })
 
@@ -435,8 +434,8 @@ describe('Chat (coverage)', () => {
   it('emits an error toast when WebLLM chat completion fails', async () => {
     const user = userEvent.setup()
     globalThis.__TEST_ROUTER__ = { asPath: '/CS101/chat' }
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications as any).show.mockClear()
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as any).mockClear()
 
     const conversation = makeConversation({
       id: 'conv-1',
@@ -471,7 +470,7 @@ describe('Chat (coverage)', () => {
 
     expect((webllm as any).__instances.length).toBeGreaterThan(0)
     await user.click(screen.getByRole('button', { name: /send-webllm/i }))
-    await waitFor(() => expect((notifications as any).show).toHaveBeenCalled())
+    await waitFor(() => expect(showToast as any).toHaveBeenCalled())
   })
 
   it('handles plugin-style responses via JSON', async () => {
@@ -519,8 +518,8 @@ describe('Chat (coverage)', () => {
 
   it('shows an error toast when fetching llmProviders fails', async () => {
     const user = userEvent.setup()
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications as any).show.mockClear()
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as any).mockClear()
 
     globalThis.__TEST_ROUTER__ = { asPath: '/CS101/chat' }
     server.use(
@@ -558,12 +557,9 @@ describe('Chat (coverage)', () => {
     )
 
     await user.click(screen.getByRole('button', { name: /^send$/i }))
-    await waitFor(
-      () => expect((notifications as any).show).toHaveBeenCalled(),
-      {
-        timeout: 3000,
-      },
-    )
+    await waitFor(() => expect(showToast as any).toHaveBeenCalled(), {
+      timeout: 3000,
+    })
   })
 
   it('names a conversation from the first message text', async () => {
@@ -635,9 +631,8 @@ describe('Chat (coverage)', () => {
     globalThis.__TEST_ROUTER__ = { asPath: '/CS101/chat' }
     const tools = [{ name: 'tool-1', enabled: true }]
 
-    const toolMod = await import(
-      '~/utils/functionCalling/handleFunctionCalling'
-    )
+    const toolMod =
+      await import('~/utils/functionCalling/handleFunctionCalling')
     ;(toolMod as any).handleFunctionCall.mockResolvedValueOnce([
       { name: 'tool-1' },
     ])
@@ -838,8 +833,8 @@ describe('Chat (coverage)', () => {
 
   it('shows the default LLM error message when /api/allNewRoutingChat returns an empty error object', async () => {
     const user = userEvent.setup()
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications as any).show.mockClear()
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as any).mockClear()
 
     globalThis.__TEST_ROUTER__ = { asPath: '/CS101/chat' }
     server.use(
@@ -877,7 +872,7 @@ describe('Chat (coverage)', () => {
     )
 
     await user.click(screen.getByRole('button', { name: /^send$/i }))
-    await waitFor(() => expect((notifications as any).show).toHaveBeenCalled())
+    await waitFor(() => expect(showToast as any).toHaveBeenCalled())
   })
 
   it('streams responses via WebLLM async iterables', async () => {
@@ -1053,9 +1048,8 @@ describe('Chat (coverage)', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     globalThis.__TEST_ROUTER__ = { asPath: '/CS101/chat' }
 
-    const toolMod = await import(
-      '~/utils/functionCalling/handleFunctionCalling'
-    )
+    const toolMod =
+      await import('~/utils/functionCalling/handleFunctionCalling')
     ;(toolMod as any).handleFunctionCall.mockRejectedValueOnce(
       new Error('boom'),
     )

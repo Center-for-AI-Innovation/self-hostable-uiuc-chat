@@ -4,7 +4,7 @@ import { type AuthenticatedRequest } from '~/utils/authMiddleware'
 import { db } from '~/db/dbClient'
 import { projects } from '~/db/schema'
 import { eq } from 'drizzle-orm'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
+import { withCourseAccessFromRequest } from '~/server/authorization'
 
 const handler = async (req: AuthenticatedRequest, res: NextApiResponse) => {
   const { course_name } = req.query as { course_name: string }

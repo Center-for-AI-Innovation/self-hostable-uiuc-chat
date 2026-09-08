@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import * as SwitchPrimitives from '@radix-ui/react-switch'
+import { Switch as SwitchPrimitives } from '@base-ui/react/switch'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { IconCheck, IconX, IconInfoCircle } from '@tabler/icons-react'
 import {
@@ -13,15 +13,19 @@ import {
 
 import { cn } from '@/components/shadcn/lib/utils'
 
+// Ported from the Radix-based custom Switch to Base UI (@base-ui/react/switch).
+// Base UI exposes state via data-checked / data-unchecked (vs Radix's
+// data-[state=checked|unchecked]); the custom variants/labels/tooltip are unchanged.
+
 const switchVariants = cva(
   'peer relative inline-flex shrink-0 cursor-pointer items-center rounded-full border-2 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60',
   {
     variants: {
       variant: {
         default:
-          'border-transparent data-[state=checked]:bg-primary data-[state=unchecked]:bg-input dark:data-[state=unchecked]:bg-white/15',
+          'border-transparent data-[checked]:bg-primary data-[unchecked]:bg-input dark:data-[unchecked]:bg-white/15',
         labeled:
-          'data-[state=checked]:border-[var(--dashboard-button)] data-[state=checked]:bg-[var(--dashboard-button)] data-[state=unchecked]:border-[var(--dashboard-background-darker)] data-[state=unchecked]:bg-[var(--dashboard-background-dark)] dark:data-[state=unchecked]:border-white/25 dark:data-[state=unchecked]:bg-white/15',
+          'data-[checked]:border-[var(--dashboard-button)] data-[checked]:bg-[var(--dashboard-button)] data-[unchecked]:border-[var(--dashboard-background-darker)] data-[unchecked]:bg-[var(--dashboard-background-dark)] dark:data-[unchecked]:border-white/25 dark:data-[unchecked]:bg-white/15',
       },
       size: {
         sm: 'h-5 w-10',
@@ -41,10 +45,10 @@ const switchThumbVariants = cva(
   {
     variants: {
       size: {
-        sm: 'h-4 w-4 data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0',
+        sm: 'h-4 w-4 data-[checked]:translate-x-5 data-[unchecked]:translate-x-0',
         default:
-          'h-5 w-5 data-[state=checked]:translate-x-6 data-[state=unchecked]:translate-x-0',
-        lg: 'h-[24px] w-[24px] data-[state=checked]:translate-x-7 data-[state=unchecked]:translate-x-0',
+          'h-5 w-5 data-[checked]:translate-x-6 data-[unchecked]:translate-x-0',
+        lg: 'h-[24px] w-[24px] data-[checked]:translate-x-7 data-[unchecked]:translate-x-0',
       },
     },
     defaultVariants: {
@@ -90,7 +94,8 @@ const switchContainerVariants = cva(
 )
 
 interface SwitchProps
-  extends React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>,
+  extends
+    Omit<SwitchPrimitives.Root.Props, 'onCheckedChange'>,
     VariantProps<typeof switchVariants> {
   /** Show ON/OFF labels on track */
   showLabels?: boolean
@@ -104,12 +109,11 @@ interface SwitchProps
   label?: string
   /** Tooltip text for the info icon */
   tooltip?: string
+  /** Fired with the next checked value */
+  onCheckedChange?: (checked: boolean) => void
 }
 
-const Switch = React.forwardRef<
-  React.ElementRef<typeof SwitchPrimitives.Root>,
-  SwitchProps
->(
+const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
   (
     {
       className,
@@ -136,7 +140,7 @@ const Switch = React.forwardRef<
         className={cn(switchVariants({ variant, size }), className)}
         disabled={disabled}
         checked={checked}
-        onCheckedChange={onCheckedChange}
+        onCheckedChange={(value) => onCheckedChange?.(value)}
         onClick={(e) => e.stopPropagation()}
         {...props}
         ref={ref}
@@ -218,17 +222,19 @@ const Switch = React.forwardRef<
             {tooltip && (
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span
-                      className="ml-2 cursor-pointer transition-transform duration-200 ease-in-out"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <IconInfoCircle
-                        size={16}
-                        className="text-gray-400 transition-all duration-200 ease-in-out group-hover:text-gray-500 dark:text-gray-300 dark:group-hover:text-gray-200"
-                      />
-                    </span>
-                  </TooltipTrigger>
+                  <TooltipTrigger
+                    render={
+                      <span
+                        className="ml-2 cursor-pointer transition-transform duration-200 ease-in-out"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <IconInfoCircle
+                          size={16}
+                          className="text-gray-400 transition-all duration-200 ease-in-out group-hover:text-gray-500 dark:text-gray-300 dark:group-hover:text-gray-200"
+                        />
+                      </span>
+                    }
+                  />
                   <TooltipContent
                     side="bottom"
                     className="max-w-[220px] bg-[var(--tooltip-background,hsl(var(--popover)))] text-[var(--tooltip,hsl(var(--popover-foreground)))] shadow-lg"
@@ -244,7 +250,7 @@ const Switch = React.forwardRef<
     )
   },
 )
-Switch.displayName = SwitchPrimitives.Root.displayName
+Switch.displayName = 'Switch'
 
 export {
   Switch,

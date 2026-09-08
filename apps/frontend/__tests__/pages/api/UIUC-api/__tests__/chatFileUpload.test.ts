@@ -10,7 +10,7 @@ const hoisted = vi.hoisted(() => ({
   uuid: vi.fn(() => 'file-upload-id'),
 }))
 
-vi.mock('~/pages/api/authorization', () => ({
+vi.mock('~/server/authorization', () => ({
   withCourseAccessFromRequest: () => (handler: any) => handler,
 }))
 

@@ -5,13 +5,8 @@ import userEvent from '@testing-library/user-event'
 
 import { renderWithProviders } from '~/test-utils/renderWithProviders'
 
-vi.mock('@mantine/notifications', () => ({
-  notifications: {
-    show: vi.fn(),
-    update: vi.fn(),
-    hide: vi.fn(),
-    clean: vi.fn(),
-  },
+vi.mock('~/utils/toastUtils', () => ({
+  showToast: vi.fn(),
 }))
 
 vi.mock('axios', () => ({
@@ -84,7 +79,7 @@ describe('WebScrape', () => {
 
   it('downloads MIT OCW content and shows a notification toast', async () => {
     const user = userEvent.setup()
-    const { notifications } = await import('@mantine/notifications')
+    const { showToast } = await import('~/utils/toastUtils')
     const axiosMod = await import('axios')
 
     const { WebScrape } = await import('../WebScrape')
@@ -112,7 +107,12 @@ describe('WebScrape', () => {
         }),
       }),
     )
-    expect((notifications as any).show).toHaveBeenCalled()
+    expect(showToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Web scraping started',
+        type: 'info',
+      }),
+    )
   })
 
   it('alerts for Coursera URLs (not automated yet)', async () => {
@@ -284,7 +284,7 @@ describe('WebScrape', () => {
     const user = userEvent.setup()
     vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    const { notifications } = await import('@mantine/notifications')
+    const { showToast } = await import('~/utils/toastUtils')
     const axiosMod = await import('axios')
     let rejectPost: ((err: any) => void) | undefined
     ;(axiosMod as any).default.post.mockImplementationOnce(
@@ -330,7 +330,15 @@ describe('WebScrape', () => {
 
     rejectPost?.(new Error('boom'))
 
-    await waitFor(() => expect((notifications as any).show).toHaveBeenCalled())
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Error during web scraping. Please try again.',
+          message: 'boom',
+          type: 'error',
+        }),
+      ),
+    )
     await waitFor(() =>
       expect(console.error).toHaveBeenCalledWith(
         expect.stringContaining('Error while scraping web:'),

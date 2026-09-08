@@ -16,6 +16,11 @@
 -- Source of truth: apps/frontend/src/db/schema.ts (documents/doc-group/
 -- embeddings subset) + apps/frontend/src/db/migrations/0001_custom_functions.sql.
 -- See docs/external-connections-setup.md for the full setup walkthrough.
+--
+-- This script provisions a NEW store and must always reflect the latest schema.
+-- Bringing an ALREADY-provisioned store up to date is the job of the ordered
+-- scripts in infra/db/external-migrations/ — any document-related change made
+-- here needs a matching numbered file there. See that directory's README.
 
 BEGIN;
 
@@ -55,12 +60,69 @@ CREATE TABLE IF NOT EXISTS public.doc_groups (
 );
 
 -- documents_doc_groups: many-to-many junction (composite PK)
+-- ON DELETE CASCADE on document_id keeps doc_groups.doc_count in sync via
+-- trg_update_doc_count_after_insert when documents are deleted.
 CREATE TABLE IF NOT EXISTS public.documents_doc_groups (
   document_id  bigint NOT NULL,
   doc_group_id bigint NOT NULL,
   created_at   timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT documents_doc_groups_pkey PRIMARY KEY (document_id, doc_group_id)
 );
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'documents_doc_groups_document_id_documents_id_fk'
+  ) THEN
+    -- Disable count trigger while cleaning orphans so already-drifted
+    -- doc_count values are not driven further negative, then recompute.
+    IF EXISTS (
+      SELECT 1 FROM pg_trigger
+      WHERE tgname = 'trg_update_doc_count_after_insert'
+        AND tgrelid = 'public.documents_doc_groups'::regclass
+    ) THEN
+      ALTER TABLE public.documents_doc_groups
+        DISABLE TRIGGER trg_update_doc_count_after_insert;
+    END IF;
+
+    DELETE FROM public.documents_doc_groups ddg
+    WHERE NOT EXISTS (
+      SELECT 1 FROM public.documents d WHERE d.id = ddg.document_id
+    );
+    DELETE FROM public.documents_doc_groups ddg
+    WHERE NOT EXISTS (
+      SELECT 1 FROM public.doc_groups dg WHERE dg.id = ddg.doc_group_id
+    );
+    UPDATE public.doc_groups dg
+    SET doc_count = (
+      SELECT COUNT(*) FROM public.documents_doc_groups ddg
+      WHERE ddg.doc_group_id = dg.id
+    );
+
+    IF EXISTS (
+      SELECT 1 FROM pg_trigger
+      WHERE tgname = 'trg_update_doc_count_after_insert'
+        AND tgrelid = 'public.documents_doc_groups'::regclass
+    ) THEN
+      ALTER TABLE public.documents_doc_groups
+        ENABLE TRIGGER trg_update_doc_count_after_insert;
+    END IF;
+
+    ALTER TABLE public.documents_doc_groups
+      ADD CONSTRAINT documents_doc_groups_document_id_documents_id_fk
+      FOREIGN KEY (document_id) REFERENCES public.documents(id) ON DELETE CASCADE;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'documents_doc_groups_doc_group_id_doc_groups_id_fk'
+  ) THEN
+    ALTER TABLE public.documents_doc_groups
+      ADD CONSTRAINT documents_doc_groups_doc_group_id_doc_groups_id_fk
+      FOREIGN KEY (doc_group_id) REFERENCES public.doc_groups(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- documents_in_progress: ingest job tracking (beam_task_id == queue job_id)
 CREATE TABLE IF NOT EXISTS public.documents_in_progress (
@@ -218,10 +280,17 @@ BEGIN
 
         raise log 'id of document group: %', v_doc_group_id;
 
-        -- Upsert the association in documents_doc_groups
-        INSERT INTO public.documents_doc_groups(document_id, doc_group_id)
-        VALUES (v_document_id, v_doc_group_id)
-        ON CONFLICT (document_id, doc_group_id) DO NOTHING;
+        -- Upsert the association in documents_doc_groups.
+        -- Concurrent delete between SELECT and INSERT: no-op (do not fail ingest).
+        BEGIN
+            INSERT INTO public.documents_doc_groups(document_id, doc_group_id)
+            VALUES (v_document_id, v_doc_group_id)
+            ON CONFLICT (document_id, doc_group_id) DO NOTHING;
+        EXCEPTION
+            WHEN foreign_key_violation THEN
+                RAISE LOG 'add_document_to_group: skipping FK violation for document_id=% doc_group_id=%',
+                    v_document_id, v_doc_group_id;
+        END;
 
         raise log 'completed for %',v_doc_group_id;
     END LOOP;
@@ -268,10 +337,17 @@ BEGIN
 
         raise log 'id of document group: %', v_doc_group_id;
 
-        -- Upsert the association in documents_doc_groups
-        INSERT INTO public.documents_doc_groups(document_id, doc_group_id)
-        VALUES (v_document_id, v_doc_group_id)
-        ON CONFLICT (document_id, doc_group_id) DO NOTHING;
+        -- Upsert the association in documents_doc_groups.
+        -- Concurrent delete between SELECT and INSERT: no-op (do not fail ingest).
+        BEGIN
+            INSERT INTO public.documents_doc_groups(document_id, doc_group_id)
+            VALUES (v_document_id, v_doc_group_id)
+            ON CONFLICT (document_id, doc_group_id) DO NOTHING;
+        EXCEPTION
+            WHEN foreign_key_violation THEN
+                RAISE LOG 'add_document_to_group_url: skipping FK violation for document_id=% doc_group_id=%',
+                    v_document_id, v_doc_group_id;
+        END;
 
         raise log 'completed for %',v_doc_group_id;
     END LOOP;

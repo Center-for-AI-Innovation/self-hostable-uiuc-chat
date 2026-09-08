@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 import { Bot, Info, Settings, Share2 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
-import { Button } from '~/components/shadcn/ui/button'
+import { Button, buttonVariants } from '~/components/shadcn/ui/button'
+import { cn } from '~/components/shadcn/lib/utils'
 import { Card, CardContent } from '~/components/shadcn/ui/card'
 import { Separator } from '~/components/shadcn/ui/separator'
 import {
@@ -74,7 +74,7 @@ export function ChatbotHubCard(card: ChatbotCardData) {
   return (
     <>
       <Card
-        className={`group relative flex min-h-[380px] w-full flex-col overflow-hidden rounded-[14px] bg-white transition-transform duration-200 ease-out hover:scale-[1.03] dark:bg-[#13294b] [&:has(a:focus-visible)]:ring-2 [&:has(a:focus-visible)]:ring-[--illinois-orange] [&:has(a:focus-visible)]:ring-offset-2 ${
+        className={`group relative flex min-h-[380px] w-full flex-col gap-0 overflow-hidden rounded-[14px] bg-white py-0 transition-transform duration-200 ease-out hover:scale-[1.03] dark:bg-[#13294b] [&:has(a:focus-visible)]:ring-2 [&:has(a:focus-visible)]:ring-[--illinois-orange] [&:has(a:focus-visible)]:ring-offset-2 ${
           hasAdminAccess
             ? 'border border-[--illinois-orange-branding] dark:border-[#32517a]'
             : 'border border-[#e5e7eb] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:border-[#32517a] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]'
@@ -138,38 +138,39 @@ export function ChatbotHubCard(card: ChatbotCardData) {
                     <ChatbotOrganizationBadge label={projectType} />
                   )}
                   {overflowTagCount > 0 && generalTags && (
-                    <TooltipProvider delayDuration={150}>
+                    <TooltipProvider delay={150}>
                       <Tooltip>
-                        <TooltipTrigger asChild>
-                          {/* `relative z-10` lifts the trigger above the
-                              title <Link>'s `after:inset-0` pseudo-overlay
-                              that covers the whole card; without it the
-                              overlay swallows hover and the tooltip never
-                              opens. `tabIndex={0}` makes it keyboard-
-                              reachable since the badge itself isn't
-                              focusable. */}
-                          <span
-                            tabIndex={0}
-                            aria-label={`Other tags: ${generalTags.join(', ')}`}
-                            className="relative z-10 inline-flex cursor-default rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--illinois-orange] focus-visible:ring-offset-2"
-                          >
-                            <ChatbotOrganizationBadge
-                              label={`+${overflowTagCount} more ${
-                                overflowTagCount === 1 ? 'tag' : 'tags'
-                              }`}
+                        {/* `relative z-10` lifts the trigger above the
+                            title <Link>'s `after:inset-0` pseudo-overlay
+                            that covers the whole card; without it the
+                            overlay swallows hover and the tooltip never
+                            opens. `tabIndex={0}` makes it keyboard-
+                            reachable since the badge itself isn't
+                            focusable. */}
+                        <TooltipTrigger
+                          render={
+                            <span
+                              tabIndex={0}
+                              aria-label={`Other tags: ${generalTags.join(', ')}`}
+                              className="relative z-10 inline-flex cursor-default rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--illinois-orange] focus-visible:ring-offset-2"
                             />
-                          </span>
+                          }
+                        >
+                          <ChatbotOrganizationBadge
+                            label={`+${overflowTagCount} more ${
+                              overflowTagCount === 1 ? 'tag' : 'tags'
+                            }`}
+                          />
                         </TooltipTrigger>
-                        {/* Portal escapes the card's `overflow-hidden` so
-                            the tooltip isn't clipped at the card edge. */}
-                        <TooltipPrimitive.Portal>
-                          <TooltipContent
-                            side="top"
-                            className="max-w-[260px] whitespace-normal break-words"
-                          >
-                            {generalTags.join(', ')}
-                          </TooltipContent>
-                        </TooltipPrimitive.Portal>
+                        {/* TooltipContent portals itself, which escapes the
+                            card's `overflow-hidden` so the tooltip isn't
+                            clipped at the card edge. */}
+                        <TooltipContent
+                          side="top"
+                          className="max-w-[260px] whitespace-normal break-words"
+                        >
+                          {generalTags.join(', ')}
+                        </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   )}
@@ -207,17 +208,16 @@ export function ChatbotHubCard(card: ChatbotCardData) {
               {metadata && (
                 <div className="relative z-10 flex shrink-0 items-center gap-1">
                   {hasAdminAccess && (
-                    <Button
-                      asChild
-                      variant="ghost"
-                      size="icon"
-                      className="h-9 w-9"
+                    <Link
+                      href={`/${course_name}/dashboard`}
                       aria-label={`Settings for ${title}`}
+                      className={cn(
+                        buttonVariants({ variant: 'ghost', size: 'icon' }),
+                        'h-9 w-9',
+                      )}
                     >
-                      <Link href={`/${course_name}/dashboard`}>
-                        <Settings className="h-4 w-4 text-[--illinois-blue] dark:text-white" />
-                      </Link>
-                    </Button>
+                      <Settings className="h-4 w-4 text-[--illinois-blue] dark:text-white" />
+                    </Link>
                   )}
                   <Button
                     variant="ghost"

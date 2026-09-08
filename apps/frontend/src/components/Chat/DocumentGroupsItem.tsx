@@ -2,7 +2,7 @@ import { Switch, Table, TextInput, Title, Text, Tooltip } from '@mantine/core'
 import { IconSearch } from '@tabler/icons-react'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import { useContext, useMemo, useState } from 'react'
-import HomeContext from '~/pages/api/home/home.context'
+import HomeContext from '~/components/home/home.context'
 import { useMediaQuery } from '@mantine/hooks'
 
 export const DocumentGroupsItem = ({}) => {

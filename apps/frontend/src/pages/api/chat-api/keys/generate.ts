@@ -5,7 +5,7 @@ import type { NextApiResponse } from 'next'
 import posthog from 'posthog-js'
 import { v4 as uuidv4 } from 'uuid'
 import { apiKeys, db } from '~/db/dbClient'
-import { withCourseOwnerOrAdminAccess } from '~/pages/api/authorization'
+import { withCourseOwnerOrAdminAccess } from '~/server/authorization'
 import type { AuthenticatedRequest } from '~/utils/authMiddleware'
 type ApiResponse = {
   message?: string

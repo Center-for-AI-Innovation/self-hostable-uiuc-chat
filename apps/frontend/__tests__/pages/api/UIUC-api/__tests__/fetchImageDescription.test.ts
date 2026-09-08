@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fetchImageDescription } from '~/pages/api/UIUC-api/fetchImageDescription'
+import { fetchImageDescription } from '~/utils/fetchImageDescription'
 
 describe('fetchImageDescription', () => {
   it('returns description on success and aborts on error', async () => {
@@ -43,6 +43,30 @@ describe('fetchImageDescription', () => {
       ),
     ).rejects.toThrow('bad')
     expect(abortSpy).toHaveBeenCalled()
+
+    fetchSpy.mockRestore()
+  })
+
+  it('returns fallback message when the response has no content', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+
+    fetchSpy.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ choices: [{ message: { content: '' } }] }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      ),
+    )
+    await expect(
+      fetchImageDescription(
+        'CS101',
+        {
+          model: { id: 'gpt-4o' },
+          messages: [{ role: 'user', content: 'hi' }],
+        } as any,
+        { OpenAI: { models: [] } } as any,
+        new AbortController(),
+      ),
+    ).resolves.toBe('Error: no image description available...')
 
     fetchSpy.mockRestore()
   })

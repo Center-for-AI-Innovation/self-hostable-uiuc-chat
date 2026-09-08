@@ -43,9 +43,8 @@ describe('Sidebar', () => {
 
   it('renders open mode, supports search and drop events, and navigates to dashboard when permitted', async () => {
     globalThis.__TEST_ROUTER__ = { push: vi.fn() }
-    const { get_user_permission } = await import(
-      '~/components/UIUC-Components/runAuthCheck'
-    )
+    const { get_user_permission } =
+      await import('~/components/UIUC-Components/runAuthCheck')
     vi.mocked(get_user_permission).mockReturnValue('edit' as any)
 
     const handleDrop = vi.fn()

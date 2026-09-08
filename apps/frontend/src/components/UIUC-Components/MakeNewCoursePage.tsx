@@ -6,13 +6,13 @@ import { Card, Flex, Title } from '@mantine/core'
 import { Button } from '@/components/shadcn/ui/button'
 import { LoaderCircle } from 'lucide-react'
 import { useDebouncedValue } from '@mantine/hooks'
-import { notifications } from '@mantine/notifications'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   callSetCourseMetadata,
   createProject,
   fetchCourseMetadata,
 } from '~/utils/apiUtils'
+import { showToast } from '~/utils/toastUtils'
 import { type CourseMetadata } from '~/types/courseMetadata'
 import { type ChatbotProjectType, type ChatbotTag } from '~/types/chatbotTags'
 import { ChatbotsGlobalNav } from './chatbots-hub/ChatbotsGlobalNav'
@@ -167,6 +167,7 @@ const MakeNewCoursePage = ({
     <StepUpload
       key="upload"
       project_name={projectName}
+      uploadFiles={uploadFiles}
       setUploadFiles={handleSetUploadFiles}
       courseMetadata={
         queryClient.getQueryData(['courseMetadata', projectName]) as
@@ -308,12 +309,12 @@ const MakeNewCoursePage = ({
       const err = error as Error & { status?: number; error?: string }
       if (err.status === 409) {
         // Project name already exists - race condition caught by server
-        notifications.show({
+        showToast({
           title: 'Project name already taken',
           message:
             err.message ||
             `A project with the name "${project_name}" already exists. Please choose a different name.`,
-          color: 'red',
+          type: 'error',
           autoClose: 5000,
         })
         // Invalidate the query to refresh availability check
@@ -323,12 +324,12 @@ const MakeNewCoursePage = ({
         })
       } else {
         // Other errors
-        notifications.show({
+        showToast({
           title: 'Failed to create project',
           message:
             err.message ||
             'An error occurred while creating the project. Please try again.',
-          color: 'red',
+          type: 'error',
           autoClose: 5000,
         })
       }
@@ -454,7 +455,7 @@ const MakeNewCoursePage = ({
             <Button
               variant="outline"
               size="sm"
-              className="border-[--foreground] text-[--foreground] hover:bg-[--foreground]/10 hover:text-[--foreground]"
+              className="hover:bg-[--foreground]/10 border-[--foreground] text-[--foreground] hover:text-[--foreground]"
               onClick={goToPreviousStep}
               disabled={isFirstStep || shouldBlockNavigation}
               aria-label="Go to previous step"
@@ -484,7 +485,7 @@ const MakeNewCoursePage = ({
             <Button
               variant="outline"
               size="sm"
-              className="border-[--foreground] text-[--foreground] hover:bg-[--foreground]/10 hover:text-[--foreground]"
+              className="hover:bg-[--foreground]/10 border-[--foreground] text-[--foreground] hover:text-[--foreground]"
               aria-label={
                 isLastStep
                   ? 'Start chatting with your new chatbot'

@@ -28,8 +28,8 @@ import {
   type Messages as SchemaMessage,
   type NewMessages,
 } from '~/db/schema'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
-import { getUserIdentifier } from '~/pages/api/_utils/userIdentifier'
+import { withCourseAccessFromRequest } from '~/server/authorization'
+import { getUserIdentifier } from '~/server/userIdentifier'
 
 export const config = {
   api: {

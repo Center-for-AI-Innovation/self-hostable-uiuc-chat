@@ -8,7 +8,7 @@ import {
   type LLMProvider,
 } from '~/utils/modelProviders/LLMProvider'
 import { ensureRedisConnected } from '~/utils/redisClient'
-import { withCourseOwnerOrAdminAccess } from '~/pages/api/authorization'
+import { withCourseOwnerOrAdminAccess } from '~/server/authorization'
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   // Ensure it's a POST request

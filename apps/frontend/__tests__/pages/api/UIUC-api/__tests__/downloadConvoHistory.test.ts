@@ -9,7 +9,7 @@ vi.mock('axios', () => ({
   default: { get: hoisted.axiosGet },
 }))
 
-vi.mock('~/pages/api/authorization', () => ({
+vi.mock('~/server/authorization', () => ({
   withCourseOwnerOrAdminAccess: () => (h: any) => h,
 }))
 

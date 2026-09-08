@@ -5,8 +5,8 @@ import userEvent from '@testing-library/user-event'
 
 import { renderWithProviders } from '~/test-utils/renderWithProviders'
 
-vi.mock('@mantine/notifications', () => ({
-  notifications: { show: vi.fn() },
+vi.mock('~/utils/toastUtils', () => ({
+  showToast: vi.fn(),
 }))
 
 vi.mock('mantine-datatable', () => ({
@@ -78,6 +78,8 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   }
 })
 
+import { showToast } from '~/utils/toastUtils'
+
 import { N8nWorkflowsTable } from '../N8nWorkflowsTable'
 
 describe('N8nWorkflowsTable', () => {
@@ -103,6 +105,16 @@ describe('N8nWorkflowsTable', () => {
     await user.click(checkbox)
     expect(mutateSpy).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'w1', checked: false }),
+    )
+
+    // The mocked useMutation drives onError, which surfaces an error toast
+    expect(showToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Error with activation',
+        message: 'boom',
+        type: 'error',
+        autoClose: 12000,
+      }),
     )
 
     // Pagination callback wired

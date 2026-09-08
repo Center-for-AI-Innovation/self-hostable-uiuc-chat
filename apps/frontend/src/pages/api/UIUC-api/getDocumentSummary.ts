@@ -1,5 +1,5 @@
 import { type NextApiResponse } from 'next'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
+import { withCourseAccessFromRequest } from '~/server/authorization'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
 import type { DocumentSummary } from '~/components/UIUC-Components/chatbots-hub/chatbots.types'
 import { db } from '~/db/dbClient'

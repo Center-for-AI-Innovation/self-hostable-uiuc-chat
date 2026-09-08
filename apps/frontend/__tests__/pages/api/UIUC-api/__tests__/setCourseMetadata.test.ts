@@ -13,7 +13,7 @@ vi.mock('~/utils/authMiddleware', () => ({
   withAuth: (fn: any) => fn,
 }))
 
-vi.mock('~/pages/api/authorization', () => ({
+vi.mock('~/server/authorization', () => ({
   withCourseOwnerOrAdminAccess: () => (handler: any) => handler,
 }))
 

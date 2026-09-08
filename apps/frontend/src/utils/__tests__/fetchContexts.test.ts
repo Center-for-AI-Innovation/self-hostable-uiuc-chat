@@ -118,9 +118,8 @@ describe('fetchContextsFromBackend', () => {
   it('throws with the status when the backend rejects the request', async () => {
     // Unlike fetchContexts, the backend helper propagates failures so callers
     // can distinguish "no contexts" from "retrieval broke".
-    const { default: fetchContextsFromBackend } = await import(
-      '../fetchContexts'
-    )
+    const { default: fetchContextsFromBackend } =
+      await import('../fetchContexts')
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
       new Response('boom', { status: 503 }),
     )
@@ -131,9 +130,8 @@ describe('fetchContextsFromBackend', () => {
   })
 
   it('returns the parsed contexts when the backend responds ok', async () => {
-    const { default: fetchContextsFromBackend } = await import(
-      '../fetchContexts'
-    )
+    const { default: fetchContextsFromBackend } =
+      await import('../fetchContexts')
     const data = [{ id: 1, text: 't' }]
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
       new Response(JSON.stringify(data), { status: 200 }),

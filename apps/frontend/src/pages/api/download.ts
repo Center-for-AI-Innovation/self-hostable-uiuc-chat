@@ -4,7 +4,7 @@ import { type NextApiResponse } from 'next'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
 import { connectionManager } from '~/utils/connectionManager'
 import { getPresignedUrlClient, normalizeS3Key } from '~/utils/s3Client'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
+import { withCourseAccessFromRequest } from '~/server/authorization'
 
 export async function generatePresignedUrl(
   filePath: string,
@@ -19,16 +19,17 @@ export async function generatePresignedUrl(
     ResponseContentType = 'application/png'
   }
 
-  const { client, bucket, isOverride } = await connectionManager.getS3Client(
-    courseName,
-  )
+  const { client, bucket, isOverride } =
+    await connectionManager.getS3Client(courseName)
   if (!bucket) {
     throw new Error(
       `S3 bucket not configured for project '${courseName}' (no s3_config.bucket_name and S3_BUCKET_NAME unset)`,
     )
   }
   // Default path: sign against the browser-reachable MinIO endpoint.
-  const signingClient = isOverride ? client : getPresignedUrlClient() ?? client
+  const signingClient = isOverride
+    ? client
+    : (getPresignedUrlClient() ?? client)
 
   const command = new GetObjectCommand({
     Bucket: bucket,

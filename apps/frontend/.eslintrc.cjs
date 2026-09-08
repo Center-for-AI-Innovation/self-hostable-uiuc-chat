@@ -1,6 +1,6 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const path = require('path')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const fs = require('fs')
 
 // Find the project root by looking for tsconfig.json
@@ -50,7 +50,13 @@ const config = {
   rules: {
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
+    // v8 successor of no-empty-interface, disabled for the same reason
+    '@typescript-eslint/no-empty-object-type': 'off',
     '@typescript-eslint/no-empty-function': 'off',
+    // typescript-eslint v8 escalates these to errors in `recommended`;
+    // kept at the pre-v8 severity until the codebase is cleaned up.
+    '@typescript-eslint/no-explicit-any': 'warn',
+    '@typescript-eslint/no-unused-expressions': 'warn',
     // '@typescript-eslint/consistent-type-imports': 'off',
     '@typescript-eslint/consistent-type-imports': [
       'warn',

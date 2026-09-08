@@ -50,7 +50,7 @@ export function ChatbotsGlobalNav({
                 data-active={isActive}
                 className={`${
                   montserrat_heading.variable
-                } flex items-center gap-2 rounded-md px-3 py-2 font-montserratHeading text-xs font-medium text-[--illinois-blue] transition-colors dark:text-white sm:px-4 sm:text-sm ${
+                } flex items-center gap-2 rounded-md px-3 py-2 font-montserratHeading text-xs font-bold text-[--illinois-blue] transition-colors dark:text-white sm:px-4 sm:text-sm ${
                   isActive
                     ? 'bg-[--illinois-orange]/10 dark:bg-white/10'
                     : 'hover:bg-[--illinois-orange]/10 dark:hover:bg-white/10'

@@ -26,15 +26,12 @@ vi.mock('../../UIUC-Components/SourcesSidebar', () => ({
 describe('ChatMessage (markdown coverage)', () => {
   it('renders headings, lists, tables, and code blocks', async () => {
     vi.resetModules()
-    const { renderWithProviders } = await import(
-      '~/test-utils/renderWithProviders'
-    )
-    const { makeConversation, makeMessage } = await import(
-      '~/test-utils/mocks/chat'
-    )
-    const { ChatMessage, SourcesSidebarProvider } = await import(
-      '../ChatMessage'
-    )
+    const { renderWithProviders } =
+      await import('~/test-utils/renderWithProviders')
+    const { makeConversation, makeMessage } =
+      await import('~/test-utils/mocks/chat')
+    const { ChatMessage, SourcesSidebarProvider } =
+      await import('../ChatMessage')
 
     const userMsg = makeMessage({
       id: 'u1',
@@ -112,15 +109,12 @@ describe('ChatMessage (markdown coverage)', () => {
   it('opens and closes the sources sidebar and executes hideRightSidebarIcon', async () => {
     vi.resetModules()
     const user = userEvent.setup()
-    const { renderWithProviders } = await import(
-      '~/test-utils/renderWithProviders'
-    )
-    const { makeConversation, makeMessage } = await import(
-      '~/test-utils/mocks/chat'
-    )
-    const { ChatMessage, SourcesSidebarProvider } = await import(
-      '../ChatMessage'
-    )
+    const { renderWithProviders } =
+      await import('~/test-utils/renderWithProviders')
+    const { makeConversation, makeMessage } =
+      await import('~/test-utils/mocks/chat')
+    const { ChatMessage, SourcesSidebarProvider } =
+      await import('../ChatMessage')
 
     const ctxPdfUser = {
       readable_filename: 'Lecture1.pdf',

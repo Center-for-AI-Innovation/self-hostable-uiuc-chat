@@ -4,6 +4,12 @@ on:
   release:
     types: [published]
 
+# check-mode: all runs trunk without --github-annotate, so it needs no
+# write scope -- results surface via the step's exit code. Declaring the
+# block at all also drops every unlisted scope to none.
+permissions:
+  contents: read
+
 jobs:
   build-and-push-release:
     runs-on: ubuntu-latest
@@ -13,20 +19,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      # check-mode: none, matching pr-checks.yml and illinois-chat-dev.yml.
-      #
-      # Why: main has never been linted, so check-mode: all points trunk at
-      # the whole accumulated tree (1436 files, 895 issues) and fails. Here
-      # that failure would block a published release from building and
-      # pushing its images, for reasons unrelated to the release.
-      #
-      # Part of the same stopgap; see #86 for the real fix (check-mode:
-      # pull_request on PRs, plus a .trunk/trunk.yaml exclusion for
-      # apps/frontend).
-      - name: Install Trunk
+      # A `release: published` event has no diff to lint against, so the only
+      # meaningful mode here is `all` -- a full-tree scan. That still reports
+      # main's ~895 pre-existing issues, so it is advisory only: a lint failure
+      # must never stop a published release from building and pushing images.
+      # The blocking gates are pr-checks.yml (PR diff) and illinois-chat-dev.yml
+      # (pushed commits). Drop continue-on-error once the backlog is cleared.
+      - name: Trunk Check (full tree, advisory)
+        continue-on-error: true
         uses: trunk-io/trunk-action@v1
         with:
-          check-mode: none
+          check-mode: all
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

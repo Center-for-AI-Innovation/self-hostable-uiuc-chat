@@ -1,11 +1,7 @@
 // src/components/Chat/Chat.tsx
 import { Button, Text } from '@mantine/core'
-import {
-  IconAlertCircle,
-  IconArrowRight,
-  IconSettings,
-} from '@tabler/icons-react'
-import { useTranslation } from 'next-i18next'
+import { IconArrowRight, IconSettings } from '@tabler/icons-react'
+import { useTranslation } from 'next-i18next/pages'
 import {
   type MutableRefObject,
   memo,
@@ -27,7 +23,7 @@ import { type Plugin } from '@/types/plugin'
 import posthog from 'posthog-js'
 import { v4 as uuidv4 } from 'uuid'
 
-import HomeContext from '~/pages/api/home/home.context'
+import HomeContext from '~/components/home/home.context'
 
 import { fetchPresignedUrl } from '~/utils/apiUtils'
 import { ChatInput } from './ChatInput'
@@ -51,13 +47,11 @@ interface Props {
   documentExists: boolean | null
 }
 
-import { notifications } from '@mantine/notifications'
 import type * as webllm from '@mlc-ai/web-llm'
 import { MLCEngine } from '@mlc-ai/web-llm'
 import { useQueryClient } from '@tanstack/react-query'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import { motion } from 'framer-motion'
-import { Montserrat } from 'next/font/google'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useAuth } from 'react-oidc-context'
@@ -93,11 +87,7 @@ import {
 import { createLogConversationPayload } from '@/hooks/__internal__/conversation'
 import { useRunAgent } from '@/hooks/queries/useRunAgent'
 import { runServerAgentMode } from './runServerAgentMode'
-
-const montserrat_med = Montserrat({
-  weight: '500',
-  subsets: ['latin'],
-})
+import { showToast } from '~/utils/toastUtils'
 
 const DEFAULT_DOCUMENT_GROUP = {
   id: 'DocGroup-all',
@@ -1791,7 +1781,7 @@ export const Chat = memo(
     // Add this function to create dividers with statements
     const renderIntroductoryStatements = () => {
       return (
-        <div className="chat_welcome xs:mx-2 mt-4 max-w-3xl gap-3 px-4 last:mb-2 sm:mx-4 md:mx-auto lg:mx-auto ">
+        <div className="chat_welcome xs:mx-2 mt-4 max-w-3xl gap-3 px-4 last:mb-2 sm:mx-4 md:mx-auto lg:mx-auto">
           <div className="backdrop-filter-[blur(10px)] rounded-lg bg-[--welcome-background] p-6">
             <Text
               className={`mb-2 text-lg ${montserrat_heading.variable} font-montserratHeading`}
@@ -1851,7 +1841,7 @@ export const Chat = memo(
                     <Button
                       variant="link"
                       tabIndex={-1}
-                      className={`text-md h-auto p-2 font-bold leading-relaxed text-inherit hover:underline ${montserrat_paragraph.variable} font-montserratParagraph `}
+                      className={`text-md h-auto p-2 font-bold leading-relaxed text-inherit hover:underline ${montserrat_paragraph.variable} font-montserratParagraph`}
                     >
                       <IconArrowRight
                         size={25}
@@ -2205,39 +2195,10 @@ export function errorToast({
   title: string
   message: string
 }) {
-  notifications.show({
-    id: 'error-notification-reused',
-    withCloseButton: true,
-    closeButtonProps: { color: 'red' },
-    onClose: () => console.log('error unmounted'),
-    onOpen: () => console.log('error mounted'),
+  showToast({
+    title,
+    message,
+    type: 'error',
     autoClose: 12000,
-    title: (
-      <Text
-        size={'lg'}
-        className={`${montserrat_med.className} font-bold text-[--notification-title]`}
-      >
-        {title}
-      </Text>
-    ),
-    message: (
-      <Text
-        className={`${montserrat_med.className} text-[--notification-message]`}
-      >
-        {message}
-      </Text>
-    ),
-    color: '',
-    radius: 'lg',
-    icon: <IconAlertCircle color="#fff" aria-hidden="true" />,
-    className: 'my-notification-class',
-    style: {
-      backgroundColor: 'var(--notification)',
-      backdropFilter: 'blur(10px)',
-      borderColor: 'var(--notification-border)',
-      borderLeft: '5px solid var(--notification-highlight)',
-    },
-    withBorder: true,
-    loading: false,
   })
 }

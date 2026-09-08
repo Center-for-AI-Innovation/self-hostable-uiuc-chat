@@ -5,15 +5,12 @@ import {
   Group,
   List,
   Stack,
-  Text,
   TextInput,
   Title,
 } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 
 import {
-  IconAlertCircle,
-  IconCheck,
   IconCircleCheck,
   IconCircleDashed,
   IconExternalLink,
@@ -22,17 +19,16 @@ import {
 import { type CourseMetadata } from '~/types/courseMetadata'
 import { CannotEditCourse } from './CannotEditCourse'
 
-import { notifications } from '@mantine/notifications'
 import SettingsLayout, {
   getInitialCollapsedState,
 } from '~/components/Layout/SettingsLayout'
 import { useResponsiveCardWidth } from '~/utils/responsiveGrid'
+import { showToast } from '~/utils/toastUtils'
 import GlobalFooter from './GlobalFooter'
 import { LoadingPlaceholderForAdminPages } from './MainPageBackground'
 import { N8nWorkflowsTable } from './N8nWorkflowsTable'
 
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
-import { Montserrat } from 'next/font/google'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect, useMemo, useState } from 'react'
@@ -47,11 +43,6 @@ export const GetCurrentPageName = () => {
   // /CS-125/dashboard --> CS-125
   return useRouter().asPath.slice(1).split('/')[0] as string
 }
-
-const montserrat_med = Montserrat({
-  weight: '500',
-  subsets: ['latin'],
-})
 
 const MakeToolsPage = ({ course_name }: { course_name: string }) => {
   const router = useRouter()
@@ -89,36 +80,6 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
     refetch: refetchWorkflows,
   } = useFetchAllWorkflows(GetCurrentPageName())
 
-  const notificationStyles = (isError = false) => {
-    return {
-      root: {
-        backgroundColor: 'var(--notification)', // Dark background to match the page
-        borderColor: isError ? '#E53935' : 'var(--notification-border)', // Red for errors,  for success
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderRadius: '8px', // Added rounded corners
-      },
-      title: {
-        color: 'var(--notification-title)', // White text for the title
-        fontWeight: 600,
-      },
-      description: {
-        color: 'var(--notification-message)', // Light gray text for the message
-      },
-      closeButton: {
-        color: 'var(--notification-title)', // White color for the close button
-        borderRadius: '4px', // Added rounded corners to close button
-        '&:hover': {
-          backgroundColor: 'rgba(255, 255, 255, 0.1)', // Subtle hover effect
-        },
-      },
-      icon: {
-        backgroundColor: 'transparent', // Transparent background for the icon
-        color: isError ? '#E53935' : 'var(--notification-title)', // Icon color matches the border
-      },
-    }
-  }
-
   const handleSaveApiKey = async () => {
     console.log('IN handleSaveApiKey w/ key: ', n8nApiKeyTextbox)
 
@@ -136,18 +97,12 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
       console.log('keyTestResponse: ', await keyTestResponse.json())
 
       if (!keyTestResponse.ok) {
-        notifications.show({
-          id: 'error-notification-bad-key',
+        showToast({
           title: 'Key appears invalid',
           message:
             'This API key cannot fetch any workflows. Please check your key and try again.',
+          type: 'error',
           autoClose: 15000,
-          color: 'red',
-          radius: 'lg',
-          icon: <IconAlertCircle aria-hidden="true" />,
-          className: 'my-notification-class',
-          styles: notificationStyles(true),
-          loading: false,
         })
         // Key invalid - exit early
         return
@@ -179,46 +134,28 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
     }
 
     if (!flows_table) {
-      notifications.show({
-        id: 'error-notification',
+      showToast({
         title: 'Error',
         message: 'Failed to fetch workflows. Please try again later.',
+        type: 'error',
         autoClose: 10000,
-        color: 'red',
-        radius: 'lg',
-        icon: <IconAlertCircle aria-hidden="true" />,
-        className: 'my-notification-class',
-        styles: notificationStyles(true),
-        loading: false,
       })
       return
     }
 
     if (response.ok) {
-      notifications.show({
-        id: 'n8n-api-key-saved',
+      showToast({
         title: 'Success',
         message: 'n8n API Key saved successfully!',
+        type: 'success',
         autoClose: 10000,
-        color: 'green',
-        radius: 'lg',
-        icon: <IconCheck aria-hidden="true" />,
-        className: 'my-notification-class',
-        styles: notificationStyles(false),
-        loading: false,
       })
     } else {
-      notifications.show({
-        id: 'error-notification',
+      showToast({
         title: 'Error',
         message: 'Failed to save n8n API Key. Please try again later.',
+        type: 'error',
         autoClose: 10000,
-        color: 'red',
-        radius: 'lg',
-        icon: <IconAlertCircle aria-hidden="true" />,
-        className: 'my-notification-class',
-        styles: notificationStyles(true),
-        loading: false,
       })
     }
     setIsLoading(false)
@@ -278,30 +215,11 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
   }, [currentPageName, !auth.isLoading])
 
   const errorFetchingWorkflowsToast = () => {
-    notifications.show({
-      id: 'error-notification',
-      withCloseButton: true,
-      closeButtonProps: { color: 'red' },
-      onClose: () => console.log('error unmounted'),
-      onOpen: () => console.log('error mounted'),
+    showToast({
+      title: 'Error fetching workflows',
+      message: 'No records found. Please check your API key and try again.',
+      type: 'error',
       autoClose: 12000,
-      title: (
-        <Text size={'lg'} className={`${montserrat_med.className}`}>
-          Error fetching workflows
-        </Text>
-      ),
-      message: (
-        <Text className={`${montserrat_med.className} text-neutral-200`}>
-          No records found. Please check your API key and try again.
-        </Text>
-      ),
-      color: 'red',
-      radius: 'lg',
-      icon: <IconAlertCircle aria-hidden="true" />,
-      className: 'my-notification-class',
-      styles: notificationStyles(true),
-      withBorder: true,
-      loading: false,
     })
   }
 
@@ -701,7 +619,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                     Your n8n tools
                   </Title>
                 </div>
-                <div className=" flex flex-col items-end justify-center">
+                <div className="flex flex-col items-end justify-center">
                   {/* Can add more buttons here */}
                   {/* <Button className={`${montserrat_paragraph.variable} font-montserratParagraph ${classes.downloadButton}`} rightIcon={isLoading ? <LoadingSpinner size="sm" /> : <IconCloudDownload />}
                     onClick={() => downloadConversationHistory(course_name)}>

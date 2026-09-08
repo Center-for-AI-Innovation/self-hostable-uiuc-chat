@@ -46,7 +46,7 @@ const hoisted = vi.hoisted(() => {
   return { db, folders, insert, del, findMany, messages, conversations }
 })
 
-vi.mock('~/pages/api/authorization', () => ({
+vi.mock('~/server/authorization', () => ({
   withCourseAccessFromRequest: () => (h: any) => h,
 }))
 
@@ -117,6 +117,22 @@ describe('folder API', () => {
     )
 
     expect(res.status).toHaveBeenCalledWith(500)
+  })
+
+  it('GET returns 400 when courseName is missing', async () => {
+    const res = createMockRes()
+    await handler(
+      createMockReq({
+        method: 'GET',
+        user: { email: 'u@example.com' },
+      }) as any,
+      res as any,
+    )
+
+    expect(res.status).toHaveBeenCalledWith(400)
+    expect(res.json).toHaveBeenCalledWith({
+      error: 'courseName query parameter is required',
+    })
   })
 
   it('GET returns folders', async () => {

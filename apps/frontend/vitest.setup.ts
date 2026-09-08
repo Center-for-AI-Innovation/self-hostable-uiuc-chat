@@ -90,6 +90,39 @@ if (typeof window !== 'undefined' && typeof HTMLElement !== 'undefined') {
   if (!('scrollIntoView' in HTMLElement.prototype)) {
     ;(HTMLElement.prototype as any).scrollIntoView = vi.fn()
   }
+  // JSDOM doesn't implement the Pointer Capture API. Radix UI primitives
+  // (DropdownMenu, Select, etc.) call these on open; without them the menu
+  // never opens under userEvent. React 19's event handling surfaced this.
+  if (!('hasPointerCapture' in HTMLElement.prototype)) {
+    ;(HTMLElement.prototype as any).hasPointerCapture = vi.fn(() => false)
+  }
+  if (!('setPointerCapture' in HTMLElement.prototype)) {
+    ;(HTMLElement.prototype as any).setPointerCapture = vi.fn()
+  }
+  if (!('releasePointerCapture' in HTMLElement.prototype)) {
+    ;(HTMLElement.prototype as any).releasePointerCapture = vi.fn()
+  }
+}
+
+// JSDOM doesn't implement PointerEvent. Radix opens menus on pointer events;
+// under React 19 the mouse-event fallback no longer triggers Radix's handlers,
+// so userEvent.click on a Radix trigger is a no-op without this polyfill.
+if (
+  typeof window !== 'undefined' &&
+  typeof window.PointerEvent === 'undefined'
+) {
+  class PointerEventPolyfill extends MouseEvent {
+    public pointerId: number
+    public pointerType: string
+    public isPrimary: boolean
+    constructor(type: string, params: PointerEventInit = {}) {
+      super(type, params)
+      this.pointerId = params.pointerId ?? 0
+      this.pointerType = params.pointerType ?? ''
+      this.isPrimary = params.isPrimary ?? false
+    }
+  }
+  ;(window as any).PointerEvent = PointerEventPolyfill
 }
 
 // Mantine uses ResizeObserver in various components (SegmentedControl, charts, etc.).
@@ -157,6 +190,18 @@ if (typeof window !== 'undefined' && typeof Element !== 'undefined') {
       throw err
     }
   }
+}
+
+if (typeof window !== 'undefined') {
+  const nativeGetComputedStyle = window.getComputedStyle.bind(window)
+  window.getComputedStyle = ((elt: Element, pseudoElt?: string | null) => {
+    try {
+      return nativeGetComputedStyle(elt, pseudoElt)
+    } catch (err: any) {
+      if (err instanceof TypeError) return document.createElement('div').style
+      throw err
+    }
+  }) as typeof window.getComputedStyle
 }
 
 // Common Next.js runtime mocks used across components.
@@ -230,7 +275,7 @@ vi.mock('next/font/google', () => {
   }
 })
 
-vi.mock('next-i18next', () => ({
+vi.mock('next-i18next/pages', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
     i18n: { language: 'en', changeLanguage: vi.fn() },

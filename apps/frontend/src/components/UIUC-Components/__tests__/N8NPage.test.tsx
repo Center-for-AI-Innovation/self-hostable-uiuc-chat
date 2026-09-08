@@ -6,13 +6,8 @@ import { http, HttpResponse } from 'msw'
 import { server } from '~/test-utils/server'
 import { renderWithProviders } from '~/test-utils/renderWithProviders'
 
-vi.mock('@mantine/notifications', () => ({
-  notifications: {
-    show: vi.fn(),
-    update: vi.fn(),
-    hide: vi.fn(),
-    clean: vi.fn(),
-  },
+vi.mock('~/utils/toastUtils', () => ({
+  showToast: vi.fn(),
 }))
 
 vi.mock('~/components/Layout/SettingsLayout', () => ({
@@ -108,7 +103,7 @@ describe('N8NPage', () => {
   }, 20_000)
 
   it('shows an error toast and does not upsert when the key test fails', async () => {
-    const { notifications } = await import('@mantine/notifications')
+    const { showToast } = await import('~/utils/toastUtils')
 
     globalThis.__TEST_ROUTER__ = { asPath: '/CS101/tools' }
     globalThis.__TEST_AUTH__ = {
@@ -141,12 +136,12 @@ describe('N8NPage', () => {
     expect(input).toBeDisabled()
     expect(saveButton).toBeDisabled()
 
-    expect((notifications as any).show).not.toHaveBeenCalled()
+    expect(showToast).not.toHaveBeenCalled()
     expect(upsertedKey).toBe(false)
   }, 20_000)
 
   it('keeps API key form disabled when an existing key is present', async () => {
-    const { notifications } = await import('@mantine/notifications')
+    const { showToast } = await import('~/utils/toastUtils')
 
     globalThis.__TEST_ROUTER__ = { asPath: '/CS101/tools' }
     globalThis.__TEST_AUTH__ = {
@@ -180,7 +175,7 @@ describe('N8NPage', () => {
     const saveButton = screen.getByRole('button', { name: /Save/i })
     expect(input).toBeDisabled()
     expect(saveButton).toBeDisabled()
-    expect((notifications as any).show).not.toHaveBeenCalled()
+    expect(showToast).not.toHaveBeenCalled()
     globalThis.__TEST_N8N_WORKFLOWS__ = undefined
   }, 20_000)
 })

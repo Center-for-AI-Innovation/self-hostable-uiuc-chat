@@ -12,7 +12,7 @@ import { RunTree } from 'langsmith'
 import { sanitizeForLogging } from '@/utils/sanitization'
 import { llmConvoMonitor } from '~/db/schema'
 import { getBackendUrl } from '~/utils/apiUtils'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
+import { withCourseAccessFromRequest } from '~/server/authorization'
 import { AllSupportedModels } from '~/utils/modelProviders/LLMProvider'
 import { eq } from 'drizzle-orm'
 

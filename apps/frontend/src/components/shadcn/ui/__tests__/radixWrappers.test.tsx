@@ -71,15 +71,6 @@ import {
   SelectValue,
 } from '../select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../tabs'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '../pagination'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '../drawer'
 
 afterEach(() => cleanup())
@@ -121,9 +112,7 @@ describe('shadcn radix wrappers', () => {
   it('renders dropdown menu content when open', () => {
     render(
       <DropdownMenu open>
-        <DropdownMenuTrigger asChild>
-          <button type="button">Open</button>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger render={<button type="button">Open</button>} />
         <DropdownMenuContent>
           <DropdownMenuItem>Item</DropdownMenuItem>
         </DropdownMenuContent>
@@ -181,43 +170,20 @@ describe('shadcn radix wrappers', () => {
     expect(screen.getByText('A')).toBeInTheDocument()
   })
 
-  it('renders tabs and pagination primitives', async () => {
+  it('renders tabs primitives', async () => {
     render(
-      <div>
-        <Tabs defaultValue="a">
-          <TabsList>
-            <TabsTrigger value="a">A</TabsTrigger>
-            <TabsTrigger value="b">B</TabsTrigger>
-          </TabsList>
-          <TabsContent value="a">Panel A</TabsContent>
-          <TabsContent value="b">Panel B</TabsContent>
-        </Tabs>
-
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious href="#" />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#" isActive>
-                1
-              </PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationEllipsis />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext href="#" />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>,
+      <Tabs defaultValue="a">
+        <TabsList>
+          <TabsTrigger value="a">A</TabsTrigger>
+          <TabsTrigger value="b">B</TabsTrigger>
+        </TabsList>
+        <TabsContent value="a">Panel A</TabsContent>
+        <TabsContent value="b">Panel B</TabsContent>
+      </Tabs>,
     )
 
     expect(screen.getByText('Panel A')).toBeInTheDocument()
-    fireEvent.mouseDown(screen.getByText('B'))
-    expect(screen.getByLabelText(/Go to previous page/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/Go to next page/i)).toBeInTheDocument()
+    expect(screen.getByText('B')).toBeInTheDocument()
   })
 
   it('renders drawer wrappers', () => {

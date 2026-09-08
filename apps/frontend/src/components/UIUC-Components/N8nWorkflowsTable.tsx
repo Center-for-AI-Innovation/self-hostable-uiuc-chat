@@ -3,19 +3,11 @@ import dayjs from 'dayjs'
 import { useEffect, useState } from 'react'
 
 import { Switch, Text } from '@mantine/core'
-import { notifications } from '@mantine/notifications'
-import {
-  // IconArrowsSort,
-  // IconCaretDown,
-  // IconCaretUp,
-  // IconSquareArrowUp,
-  IconAlertCircle,
-} from '@tabler/icons-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { DataTable } from 'mantine-datatable'
-import { Montserrat } from 'next/font/google'
 import { type UIUCTool } from '~/types/chat'
 import { useFetchAllWorkflows } from '~/utils/functionCalling/handleFunctionCalling'
+import { showToast } from '~/utils/toastUtils'
 import { LoadingSpinner } from './LoadingSpinner'
 
 const PAGE_SIZE = 25
@@ -31,47 +23,12 @@ interface N8nWorkflowsTableProps {
   // ) => Promise<WorkflowRecord[]>
 }
 
-const montserrat_med = Montserrat({
-  weight: '500',
-  subsets: ['latin'],
-})
-
 const dataTableTitleStyles = {
   color: 'var(--table-header)',
 }
 
 const dataTableCellsStyles = {
   color: 'var(--foreground)',
-}
-
-const notificationStyles = (isError = false) => {
-  return {
-    root: {
-      backgroundColor: 'var(--notification)', // Dark background to match the page
-      borderColor: isError ? '#E53935' : 'var(--notification-border)', // Red for errors,  for success
-      borderWidth: '1px',
-      borderStyle: 'solid',
-      borderRadius: '8px', // Added rounded corners
-    },
-    title: {
-      color: 'var(--notification-title)', // White text for the title
-      fontWeight: 600,
-    },
-    description: {
-      color: 'var(--notification-message)', // Light gray text for the message
-    },
-    closeButton: {
-      color: 'var(--notification-title)', // White color for the close button
-      borderRadius: '4px', // Added rounded corners to close button
-      '&:hover': {
-        backgroundColor: 'rgba(255, 255, 255, 0.1)', // Subtle hover effect
-      },
-    },
-    icon: {
-      backgroundColor: 'transparent', // Transparent background for the icon
-      color: isError ? '#E53935' : 'var(--notification-title)', // Icon color matches the border
-    },
-  }
 }
 
 export const N8nWorkflowsTable = ({
@@ -119,30 +76,11 @@ export const N8nWorkflowsTable = ({
     onError: (error, variables, context) => {
       // An error happened!
       console.log(`Error happened ${error}`)
-      notifications.show({
-        id: 'error-notification',
-        withCloseButton: true,
-        closeButtonProps: { color: 'red' },
-        onClose: () => console.log('error unmounted'),
-        onOpen: () => console.log('error mounted'),
+      showToast({
+        title: 'Error with activation',
+        message: (error as Error).message,
+        type: 'error',
         autoClose: 12000,
-        title: (
-          <Text size={'lg'} className={`${montserrat_med.className}`}>
-            Error with activation
-          </Text>
-        ),
-        message: (
-          <Text className={`${montserrat_med.className} text-[neutral-200]`}>
-            {(error as Error).message}
-          </Text>
-        ),
-        color: 'red',
-        radius: 'lg',
-        icon: <IconAlertCircle aria-hidden="true" />,
-        className: 'my-notification-class',
-        styles: notificationStyles(true),
-        withBorder: true,
-        loading: false,
       })
     },
     onSuccess: (data, variables, context) => {

@@ -1,6 +1,6 @@
 import { type FC, useEffect, useRef } from 'react'
 
-import { useTranslation } from 'next-i18next'
+import { useTranslation } from 'next-i18next/pages'
 
 import { type Plugin, PluginList } from '@/types/plugin'
 

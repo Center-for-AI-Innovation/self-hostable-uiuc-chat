@@ -1,19 +1,13 @@
 import {
-  Burger,
-  createStyles,
-  Flex,
-  Paper,
-  rem,
-  Transition,
-} from '@mantine/core'
-import { useDisclosure } from '@mantine/hooks'
-import {
   IconClipboardText,
   IconFilePlus,
   IconHome,
+  IconMenu2,
   IconSparkles,
+  IconX,
 } from '@tabler/icons-react'
 import { montserrat_heading } from 'fonts'
+import { Button } from '@/components/shadcn/ui/button'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -41,133 +35,11 @@ interface NavigationContentProps {
   courseName: string
 }
 
-const HEADER_HEIGHT = rem(90)
-
-const useStyles = createStyles((theme) => ({
-  burger: {
-    [theme.fn.largerThan('md')]: {
-      display: 'none',
-    },
-  },
-
-  links: {
-    padding: '0em',
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-
-    [theme.fn.smallerThan('md')]: {
-      display: 'none',
-    },
-  },
-
-  inner: {
-    //    height: HEADER_HEIGHT,
-    display: 'flex',
-    alignItems: 'start',
-    justifyContent: 'space-between',
-  },
-
-  link: {
-    fontSize: rem(13),
-    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-    //    margin: '0.1rem',
-    fontWeight: 500,
-    color: 'var(--navbar-foreground)',
-    transition:
-      'border-color 100ms ease, color 100ms ease, background-color 100ms ease',
-    borderRadius: theme.radius.sm,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '.4rem',
-
-    '&:hover': {
-      color: 'var(--navbar-hover)',
-      backgroundColor: 'var(--navbar-hover-background)',
-      textDecoration: 'none',
-    },
-
-    '&[data-active="true"]': {
-      color: 'var(--navbar-active)',
-      /*      borderBottom: '2px solid var(--navbar-hover)',*/
-      textDecoration: 'none',
-      backgroundColor: 'var(--navbar-background)', //keep the same background color, so only changes on hover of non-active links
-      //      textAlign: 'left',
-    },
-
-    [theme.fn.smallerThan('md')]: {
-      justifyContent: 'flex-start',
-      borderRadius: 0,
-      backgroundColor: 'var(--navbar-background)',
-      padding: `${theme.spacing.lg} ${theme.spacing.sm}`, //extra padding for larger tap area
-    },
-  },
-
-  chatButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-
-    fontSize: rem(13),
-    fontWeight: 500,
-
-    color: 'var(--foreground-faded)',
-
-    padding: `.4rem ${theme.spacing.sm}`,
-    border: '1px solid var(--navbar-border)',
-    borderRadius: theme.radius.sm,
-
-    transition:
-      'border-color 100ms ease, color 100ms ease, background-color 100ms ease',
-
-    '&:hover': {
-      color: 'var(--dashboard-button)',
-      borderColor: 'var(--dashboard-button)',
-      textDecoration: 'none',
-    },
-  },
-
-  dropdown: {
-    position: 'absolute',
-    top: '4rem',
-    right: '.5rem',
-    zIndex: 2,
-    border: '1px solid var(--navbar-border)',
-    borderRadius: '10px',
-    overflow: 'visible',
-    width: 'calc(100% - 1rem)',
-    maxWidth: '330px',
-    backgroundColor: 'var(--background-faded)',
-    boxShadow: theme.shadows.lg,
-    [theme.fn.largerThan('lg')]: {
-      display: 'none',
-    },
-    '& a': {},
-  },
-
-  iconButton: {
-    color: 'var(--navbar-foreground)',
-    width: '40px',
-    height: '40px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '8px',
-    transition: 'all 0.2s ease',
-
-    '&:hover': {
-      color: 'var(--navbar-hover)',
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    },
-  },
-
-  divider: {
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    height: '2rem',
-    marginTop: '0.25rem',
-  },
-}))
+// Shared nav-link classes (formerly the Mantine `link` createStyles entry).
+// Mantine tokens resolved: spacing.xs=10px, spacing.sm=12px, spacing.lg=20px, radius.sm=4px.
+// All colors remain the existing --navbar-* CSS variables. See docs/mantine-retirement-styles-notes.md.
+const navLinkClass =
+  'flex items-center justify-center gap-[0.4rem] rounded px-3 py-2.5 text-[13px] font-bold text-[--navbar-foreground] transition-colors hover:bg-[--navbar-hover-background] hover:text-[--navbar-hover] hover:no-underline data-[active=true]:bg-[--navbar-background] data-[active=true]:text-[--navbar-active] data-[active=true]:no-underline max-md:justify-start max-md:rounded-none max-md:bg-[--navbar-background] max-md:px-3 max-md:py-5'
 
 const styles = {
   logoContainerBox: {
@@ -260,44 +132,15 @@ function NavigationContent({
   activeLink,
   onLinkClick,
   onToggle,
-  courseName,
 }: NavigationContentProps) {
-  const { classes } = useStyles()
-  const router = useRouter()
-
   return (
     <>
-      <Transition transition="pop-top-right" duration={200} mounted={opened}>
-        {(styles) => (
-          <Paper
-            component="nav"
-            className={classes.dropdown}
-            style={styles}
-            aria-label="Mobile navigation"
-          >
-            {items.map((item, index) => (
-              <Link
-                tabIndex={0}
-                key={index}
-                href={item.link}
-                onClick={() => onLinkClick()}
-                data-active={activeLink === item.link}
-                className={classes.link}
-              >
-                {item.icon}
-                {item.name}
-              </Link>
-            ))}
-          </Paper>
-        )}
-      </Transition>
-
-      <nav
-        className={classes.inner}
-        style={{ paddingLeft: '0px' }}
-        aria-label="Main navigation"
-      >
-        <div className={classes.links}>
+      {/* Mobile dropdown (was Mantine <Transition pop-top-right> + <Paper>) */}
+      {opened && (
+        <nav
+          aria-label="Mobile navigation"
+          className="absolute right-2 top-16 z-[2] w-[calc(100%-1rem)] max-w-[330px] origin-top-right overflow-visible rounded-[10px] border border-[--navbar-border] bg-[--background-faded] shadow-lg duration-200 animate-in fade-in-0 zoom-in-95 lg:hidden"
+        >
           {items.map((item, index) => (
             <Link
               tabIndex={0}
@@ -305,7 +148,29 @@ function NavigationContent({
               href={item.link}
               onClick={() => onLinkClick()}
               data-active={activeLink === item.link}
-              className={classes.link}
+              className={navLinkClass}
+            >
+              {item.icon}
+              {item.name}
+            </Link>
+          ))}
+        </nav>
+      )}
+
+      <nav
+        className="flex items-start justify-between"
+        style={{ paddingLeft: '0px' }}
+        aria-label="Main navigation"
+      >
+        <div className="hidden flex-row justify-between md:flex">
+          {items.map((item, index) => (
+            <Link
+              tabIndex={0}
+              key={index}
+              href={item.link}
+              onClick={() => onLinkClick()}
+              data-active={activeLink === item.link}
+              className={navLinkClass}
             >
               {item.icon}
               {item.name}
@@ -314,16 +179,22 @@ function NavigationContent({
         </div>
       </nav>
 
-      <Burger
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
         tabIndex={0}
         aria-label="Toggle Menu"
         aria-expanded={opened}
-        opened={opened}
         onClick={onToggle}
-        className={classes.burger}
-        size="sm"
-        color="var(--foreground)"
-      />
+        className="p-1 text-[--foreground] md:hidden [&_svg]:size-5"
+      >
+        {opened ? (
+          <IconX size={20} aria-hidden="true" />
+        ) : (
+          <IconMenu2 size={20} aria-hidden="true" />
+        )}
+      </Button>
     </>
   )
 }
@@ -362,8 +233,9 @@ export default function Navbar({
   bannerUrl = '',
   isPlain = false,
 }: NavbarProps) {
-  const [opened, { toggle, close }] = useDisclosure(false)
-  const { classes } = useStyles()
+  const [opened, setOpened] = useState(false)
+  const toggle = () => setOpened((o) => !o)
+  const close = () => setOpened(false)
   const router = useRouter()
   const [activeLink, setActiveLink] = useState<string>('')
 
@@ -379,11 +251,6 @@ export default function Navbar({
       icon: <DashboardIcon />,
       link: '/chatbots', // Add conditional course_name ? `/${course_name}/dashboard` :
     },
-    // {
-    //   name: <NavText>Explore Chatbots</NavText>,
-    //   icon: <IconCompass />,
-    //   link: '/explore',
-    // },
     {
       name: <NavText>Create Your Own Bot</NavText>,
       icon: <IconSparkles aria-hidden="true" />,
@@ -396,13 +263,9 @@ export default function Navbar({
       {/* TODO: determine z-index values for major elements (nav, modals, tooltips, etc). for now, changed z-[999] to z-[50] to avoid modals being under the top navigation */}
       {/***************** top navigation for all pages *****************/}
 
-      <Flex direction="row" align="center" justify="center">
+      <div className="flex flex-row items-center justify-center">
         <header className="navbar h-20 w-full border-b border-[--navbar-border] bg-[--navbar-background]">
           <Logo />
-
-          {/* TODO determine where to show the uploaded banner logo image (assume on the chat sidebar above or replace the project name?)
-          {bannerUrl && <BannerImage url={bannerUrl} />}
-*/}
 
           {!isPlain && (
             <NavigationContent
@@ -414,32 +277,6 @@ export default function Navbar({
               courseName={course_name}
             />
           )}
-          {/* TODO decide where to move the link to documents (new project button alrady exists in new nav)
-                <div className="flex items-center">
-                  <div className="hidden items-center md:flex">
-                    <Divider orientation="vertical" className={classes.divider} />
-
-                    <div className="flex items-center gap-1 px-2">
-                      <Tooltip label="New Project" position="bottom" withArrow>
-                        <Link href="/new" className={classes.iconButton}>
-                          <FileIcon />
-                        </Link>
-                      </Tooltip>
-
-                      <Tooltip label="Documentation" position="bottom" withArrow>
-                        <Link
-                          href="https://docs.uiuc.chat/"
-                          className={classes.iconButton}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <ClipboardIcon />
-                        </Link>
-                      </Tooltip>
-                    </div>
-                  </div>
-                </div>
-*/}
 
           <div className="flex items-center">
             <div className="hidden items-center md:flex">
@@ -447,7 +284,7 @@ export default function Navbar({
             </div>
           </div>
         </header>
-      </Flex>
+      </div>
     </div>
   )
 }

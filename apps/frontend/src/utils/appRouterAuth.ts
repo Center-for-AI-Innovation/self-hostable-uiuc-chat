@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import { type AuthenticatedUser } from '~/middleware'
+import { type AuthenticatedUser } from '~/proxy'
 import { type NextRequest, NextResponse } from 'next/server'
 import {
   getKeycloakBaseFromHost,

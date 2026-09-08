@@ -420,9 +420,8 @@ describe('BrandingForm', () => {
     })
 
     it('does not call callSetCourseMetadata when uploadToS3 returns undefined', async () => {
-      const { uploadToS3, callSetCourseMetadata } = await import(
-        '~/utils/apiUtils'
-      )
+      const { uploadToS3, callSetCourseMetadata } =
+        await import('~/utils/apiUtils')
       vi.mocked(uploadToS3).mockResolvedValueOnce(undefined)
 
       const metadata = makeCourseMetadata()
@@ -450,9 +449,8 @@ describe('BrandingForm', () => {
     })
 
     it('does not call callSetCourseMetadata when metadata is null', async () => {
-      const { uploadToS3, callSetCourseMetadata } = await import(
-        '~/utils/apiUtils'
-      )
+      const { uploadToS3, callSetCourseMetadata } =
+        await import('~/utils/apiUtils')
       vi.mocked(uploadToS3).mockResolvedValueOnce(
         'https://s3.example.com/logo.png',
       )

@@ -1,6 +1,6 @@
-import type { HomeContextProps } from '~/pages/api/home/home.context'
-import { initialState } from '~/pages/api/home/home.state'
-import type { HomeInitialState } from '~/pages/api/home/home.state'
+import type { HomeContextProps } from '~/components/home/home.context'
+import { initialState } from '~/components/home/home.state'
+import type { HomeInitialState } from '~/components/home/home.state'
 
 export function makeHomeContext(
   overrides: Partial<HomeContextProps> = {},

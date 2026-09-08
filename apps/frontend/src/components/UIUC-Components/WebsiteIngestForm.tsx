@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import {
   Text,
   Card,
@@ -17,9 +17,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '../Dialog'
+} from '@/components/shadcn/ui/dialog'
 import {
-  IconAlertCircle,
   IconHome,
   IconSitemap,
   IconSubtask,
@@ -32,26 +31,30 @@ import {
 import { motion } from 'framer-motion'
 // import { Checkbox } from '@radix-ui/react-checkbox'
 import { montserrat_heading } from 'fonts'
-import { notifications } from '@mantine/notifications'
+import { showToast } from '~/utils/toastUtils'
 import axios from 'axios'
-import { Montserrat } from 'next/font/google'
 import { type FileUpload } from './UploadNotification'
 import { type QueryClient } from '@tanstack/react-query'
+import { useGatedIngestPoller } from '~/hooks/useGatedIngestPoller'
 
-const montserrat_med = Montserrat({
-  weight: '500',
-  subsets: ['latin'],
-})
+const POLL_INTERVAL_MS = 3000
+
+// Strip trailing slashes so the user-entered URL and the backend-stored
+// base_url compare equal even when one has a trailing slash and the
+// other doesn't.
+const normalizeUrl = (url: string | undefined | null) =>
+  (url ?? '').replace(/\/+$/, '')
 export default function WebsiteIngestForm({
   project_name,
+  uploadFiles,
   setUploadFiles,
   queryClient,
 }: {
   project_name: string
+  uploadFiles: FileUpload[]
   setUploadFiles: React.Dispatch<React.SetStateAction<FileUpload[]>>
   queryClient: QueryClient
 }): JSX.Element {
-  const [isUrlUpdated, setIsUrlUpdated] = useState(false)
   const [isUrlValid, setIsUrlValid] = useState(false)
   const [url, setUrl] = useState('')
   const [maxUrls, setMaxUrls] = useState('50')
@@ -139,17 +142,11 @@ export default function WebsiteIngestForm({
       setUploadFiles((prevFiles) => [...prevFiles, newFile])
 
       try {
-        const response = await scrapeWeb(
+        await scrapeWeb(
           ingestUrl,
           project_name,
           maxUrls.trim() !== '' ? parseInt(maxUrls) : 50,
           scrapeStrategy,
-        )
-        // Transition to 'ingesting' status after API call succeeds
-        setUploadFiles((prevFiles) =>
-          prevFiles.map((file) =>
-            file.name === url ? { ...file, status: 'ingesting' } : file,
-          ),
         )
         // Transition to 'ingesting' status after API call succeeds
         setUploadFiles((prevFiles) =>
@@ -173,31 +170,27 @@ export default function WebsiteIngestForm({
     await new Promise((resolve) => setTimeout(resolve, 8000))
   }
 
-  useEffect(() => {
-    if (url && url.length > 0 && validateUrl(url)) {
-      setIsUrlUpdated(true)
-    } else {
-      setIsUrlUpdated(false)
-    }
-  }, [url])
-
-  useEffect(() => {
-    const checkIngestStatus = async () => {
-      const response = await fetch(
-        `/api/materialsTable/docsInProgress?course_name=${project_name}`,
-      )
-      const data = await response.json()
-      const docsResponse = await fetch(
-        `/api/materialsTable/successDocs?course_name=${project_name}`,
-      )
-      const docsData = await docsResponse.json()
-
-      // Strip trailing slashes so the user-entered URL and the backend-stored
-      // base_url compare equal even when one has a trailing slash and the
-      // other doesn't.
-      const normalizeUrl = (url: string | undefined | null) =>
-        (url ?? '').replace(/\/+$/, '')
-
+  // Poll ingest status only while webscrape uploads are in flight, sending
+  // the tracked base URLs as a server-side filter so the endpoints never
+  // return the whole documents table.
+  useGatedIngestPoller({
+    courseName: project_name,
+    uploadFiles,
+    setUploadFiles,
+    queryClient,
+    type: 'webscrape',
+    intervalMs: POLL_INTERVAL_MS,
+    // Filter on the base URLs of ALL tracked base entries regardless of their
+    // status: child rows carry the base's base_url, so this returns every row
+    // the matching below needs — including children that are still resolving
+    // after the base entry itself went terminal.
+    buildFilter: (files) => ({
+      base_urls: files
+        .filter((file) => file.type === 'webscrape' && file.isBaseUrl)
+        .map((file) => normalizeUrl(file.url ?? file.name))
+        .filter((baseUrl) => baseUrl.length > 0),
+    }),
+    applyStatus: (status, currentFiles) => {
       const baseUrlMatchesFile = (
         docBaseUrl: string,
         file: FileUpload,
@@ -253,8 +246,8 @@ export default function WebsiteIngestForm({
                   (f) => f.status === 'complete' || f.status === 'error',
                 )
 
-              const isInCompletedDocs = docsData?.documents?.some(
-                (doc: { url: string; base_url?: string }) =>
+              const isInCompletedDocs = status.completed.some(
+                (doc) =>
                   normalizeUrl(doc.url) === normalizeUrl(file.url) ||
                   (file.isBaseUrl &&
                     normalizeUrl(doc.base_url) === normalizeUrl(file.url)),
@@ -329,43 +322,28 @@ export default function WebsiteIngestForm({
         return newFiles
       }
 
-      setUploadFiles((prev) => {
-        const matchingDocsInProgress =
-          data?.documents?.filter((doc: { base_url: string }) =>
-            prev.some((file) => baseUrlMatchesFile(doc.base_url, file)),
-          ) || []
+      const matchingDocsInProgress = status.inProgress.filter((doc) =>
+        currentFiles.some((file) => baseUrlMatchesFile(doc.base_url, file)),
+      )
 
-        const matchingSuccessDocs =
-          docsData?.documents?.filter((doc: { base_url: string }) =>
-            prev.some((file) => baseUrlMatchesFile(doc.base_url, file)),
-          ) || []
+      const matchingSuccessDocs = status.completed.filter((doc) =>
+        currentFiles.some((file) => baseUrlMatchesFile(doc.base_url, file)),
+      )
 
-        const inProgressBaseUrlMap = organizeDocsByBaseUrl(
-          matchingDocsInProgress,
-        )
-        const successBaseUrlMap = organizeDocsByBaseUrl(matchingSuccessDocs)
+      const additionalFiles = createAdditionalFileEntries(
+        organizeDocsByBaseUrl(matchingDocsInProgress),
+        organizeDocsByBaseUrl(matchingSuccessDocs),
+        currentFiles,
+      )
 
-        const additionalFiles = createAdditionalFileEntries(
-          inProgressBaseUrlMap,
-          successBaseUrlMap,
-          prev,
-        )
+      const updatedFiles = updateExistingFiles(
+        currentFiles,
+        matchingDocsInProgress,
+      )
 
-        const updatedFiles = updateExistingFiles(prev, matchingDocsInProgress)
-
-        return [...updatedFiles, ...additionalFiles]
-      })
-
-      await queryClient.invalidateQueries({
-        queryKey: ['documents', project_name],
-      })
-    }
-
-    const interval = setInterval(checkIngestStatus, 3000)
-    return () => {
-      clearInterval(interval)
-    }
-  }, [project_name])
+      return [...updatedFiles, ...additionalFiles]
+    },
+  })
 
   const scrapeWeb = async (
     url: string | null,
@@ -392,34 +370,11 @@ export default function WebsiteIngestForm({
     } catch (error: any) {
       console.error('Error during web scraping:', error)
 
-      notifications.show({
-        id: 'error-notification',
-        withCloseButton: true,
-        closeButtonProps: { color: 'red' },
-        onClose: () => console.log('error unmounted'),
-        onOpen: () => console.log('error mounted'),
+      showToast({
+        title: 'Error during web scraping. Please try again.',
+        message: error.message,
+        type: 'error',
         autoClose: 12000,
-        title: (
-          <Text size={'lg'} className={`${montserrat_med.className}`}>
-            {'Error during web scraping. Please try again.'}
-          </Text>
-        ),
-        message: (
-          <Text className={`${montserrat_med.className} text-neutral-200`}>
-            {error.message}
-          </Text>
-        ),
-        color: 'red',
-        radius: 'lg',
-        icon: <IconAlertCircle aria-hidden="true" />,
-        className: 'my-notification-class',
-        style: {
-          backgroundColor: 'rgba(42,42,64,0.3)',
-          backdropFilter: 'blur(10px)',
-          borderLeft: '5px solid red',
-        },
-        withBorder: true,
-        loading: false,
       })
       throw error // Re-throw so handleIngest can update file status to 'error'
     }
@@ -434,7 +389,6 @@ export default function WebsiteIngestForm({
           if (!isOpen) {
             setUrl('')
             setIsUrlValid(false)
-            setIsUrlUpdated(false)
             setMaxUrls('50')
             setInputErrors((prev) => ({
               ...prev,
@@ -444,47 +398,41 @@ export default function WebsiteIngestForm({
         }}
       >
         <DialogTrigger
-          asChild
           tabIndex={0}
+          nativeButton={false}
           className="focus:bg-[--dashboard-background-dark]"
-        >
-          <Card
-            role="button"
-            onKeyDown={(e: React.KeyboardEvent) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                ;(e.currentTarget as HTMLElement).click()
-              }
-            }}
-            className="group relative cursor-pointer overflow-hidden rounded-2xl border border-[--dashboard-border] bg-transparent px-6 py-4 text-[--dashboard-foreground] transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
-            style={{ height: '100%' }}
-          >
-            <div className="-ml-2 mb-2 flex items-center justify-between">
-              <div className="flex items-center space-x-1">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full">
-                  <IconWorldDownload className="h-8 w-8" aria-hidden="true" />
+          render={
+            <Card
+              className="group relative cursor-pointer overflow-hidden rounded-2xl border border-[--dashboard-border] bg-transparent px-6 py-4 text-[--dashboard-foreground] transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+              style={{ height: '100%' }}
+            >
+              <div className="-ml-2 mb-2 flex items-center justify-between">
+                <div className="flex items-center space-x-1">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full">
+                    <IconWorldDownload className="h-8 w-8" aria-hidden="true" />
+                  </div>
+                  <Text className="text-xl font-semibold text-[--dashboard-foreground]">
+                    Website
+                  </Text>
                 </div>
-                <Text className="text-xl font-semibold text-[--dashboard-foreground]">
-                  Website
-                </Text>
               </div>
-            </div>
 
-            <Text className="mb-4 text-sm leading-relaxed text-[--dashboard-foreground-faded]">
-              Import content from any website by providing the URL. Supports
-              recursive crawling with customizable depth.
-            </Text>
+              <Text className="mb-4 text-sm leading-relaxed text-[--dashboard-foreground-faded]">
+                Import content from any website by providing the URL. Supports
+                recursive crawling with customizable depth.
+              </Text>
 
-            <div className="mt-auto flex items-center text-sm font-bold text-[--dashboard-button]">
-              <span>Configure import</span>
-              <IconArrowRight
-                size={16}
-                aria-hidden="true"
-                className="ml-2 transition-transform group-hover:translate-x-1"
-              />
-            </div>
-          </Card>
-        </DialogTrigger>
+              <div className="mt-auto flex items-center text-sm font-bold text-[--dashboard-button]">
+                <span>Configure import</span>
+                <IconArrowRight
+                  size={16}
+                  aria-hidden="true"
+                  className="ml-2 transition-transform group-hover:translate-x-1"
+                />
+              </div>
+            </Card>
+          }
+        />
 
         <DialogContent className="mx-auto h-auto max-h-[85vh] w-[95%] max-w-2xl overflow-y-auto !rounded-2xl border-0 bg-[--modal] px-4 py-6 text-[--modal-text] sm:px-6">
           <DialogHeader>

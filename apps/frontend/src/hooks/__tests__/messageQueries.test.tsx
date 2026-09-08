@@ -9,9 +9,8 @@ vi.mock('@/hooks/__internal__/message', () => ({
   deleteMessagesFromServer: vi.fn(),
 }))
 
-const { deleteMessagesFromServer } = await import(
-  '@/hooks/__internal__/message'
-)
+const { deleteMessagesFromServer } =
+  await import('@/hooks/__internal__/message')
 
 describe('useDeleteMessages', () => {
   it('maps deletedMessages to messageIds', async () => {

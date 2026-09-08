@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import { makeConversation, makeMessage } from '~/test-utils/mocks/chat'
 import { ThemeProvider } from '~/contexts/ThemeContext'
-import HomeContext from '~/pages/api/home/home.context'
+import HomeContext from '~/components/home/home.context'
 import { makeHomeContext, makeHomeState } from '~/test-utils/mocks/homeContext'
 
 // Keep this harness resilient: many components depend on heavy UI libs.
@@ -87,12 +87,6 @@ vi.mock('recharts', () => {
     Cell: Stub('Cell'),
   }
 })
-
-vi.mock('react-grid-heatmap', () => ({
-  __esModule: true,
-  default: (props: any) =>
-    React.createElement('div', { 'data-testid': 'heatmap', ...props }),
-}))
 
 vi.mock('react-syntax-highlighter', () => ({
   Prism: (props: any) => React.createElement('pre', props),
