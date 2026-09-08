@@ -8,6 +8,7 @@ const hoisted = vi.hoisted(() => {
     runAgentConversation: vi.fn(async () => undefined),
     getModels: vi.fn(async () => null as any),
     getCourseMetadata: vi.fn(async () => null as any),
+    resolveToolRouter: vi.fn(),
     convertDBToChatConversation: vi.fn((_c: any, _m: any) => ({
       id: 'existing-conv',
       name: 'Test',
@@ -40,6 +41,10 @@ vi.mock('~/server/agent/runAgentConversation', () => ({
 
 vi.mock('~/pages/api/models', () => ({
   getModels: hoisted.getModels,
+}))
+
+vi.mock('~/utils/server/toolRouting', () => ({
+  resolveToolRouter: hoisted.resolveToolRouter,
 }))
 
 vi.mock('~/pages/api/conversation', () => ({
@@ -143,6 +148,13 @@ describe('app/api/agent POST', () => {
     hoisted.getModels.mockResolvedValue({
       OpenAI: { apiKey: 'sk-test-key' },
     })
+    hoisted.resolveToolRouter.mockResolvedValue({
+      source: 'custom',
+      provider: 'OpenAI',
+      endpointUrl: 'https://api.openai.com/v1/chat/completions',
+      apiKey: 'sk-test-key',
+      modelId: 'gpt-4.1',
+    })
     hoisted.runAgentConversation.mockResolvedValue(undefined)
   })
 
@@ -239,21 +251,49 @@ describe('app/api/agent POST', () => {
     expect(errorEvent!.message).toContain('conversation')
   })
 
-  it('emits error when no OpenAI key is available', async () => {
+  it('emits error when the tool router is offline', async () => {
     hoisted.getCourseMetadata.mockResolvedValue({
       agent_mode_enabled: true,
     })
     hoisted.getModels.mockResolvedValue(null)
-    // Remove env fallback
-    const originalEnv = process.env.VLADS_OPENAI_KEY
-    delete process.env.VLADS_OPENAI_KEY
+    hoisted.resolveToolRouter.mockResolvedValue({
+      source: 'offline',
+      reason: 'nothing configured',
+    })
     const req = makeRequest(validBody())
     const res = await POST(req as any)
     const events = await readSSEEvents(res)
     const errorEvent = events.find((e) => e.type === 'error')
     expect(errorEvent).toBeDefined()
-    expect(errorEvent!.message).toContain('OpenAI API key')
-    process.env.VLADS_OPENAI_KEY = originalEnv
+    expect(errorEvent!.message).toContain('Tool routing is unavailable')
+    expect(hoisted.runAgentConversation).not.toHaveBeenCalled()
+  })
+
+  it('runs with the NCSA default router when no OpenAI key exists', async () => {
+    hoisted.getCourseMetadata.mockResolvedValue({
+      agent_mode_enabled: true,
+    })
+    hoisted.getModels.mockResolvedValue(null)
+    hoisted.resolveToolRouter.mockResolvedValue({
+      source: 'default',
+      provider: 'NCSAHostedVLM',
+      endpointUrl: 'https://vllm.example.edu/v1/chat/completions',
+      apiKey: '',
+      modelId: 'Qwen/Qwen3.6-27B',
+    })
+    const req = makeRequest(validBody())
+    const res = await POST(req as any)
+    await readSSEEvents(res)
+
+    expect(hoisted.resolveToolRouter).toHaveBeenCalledWith({
+      projectName: 'CS101',
+      clientOpenAIKey: '',
+      selectedModelId: 'gpt-4o',
+    })
+    expect(hoisted.runAgentConversation).toHaveBeenCalledOnce()
+    const callArgs = hoisted.runAgentConversation.mock.calls[0]![0]
+    expect(callArgs.openaiKey).toBe('')
+    expect(callArgs.toolRouter.source).toBe('default')
   })
 
   // -------------------------------------------------------------------------
@@ -276,6 +316,7 @@ describe('app/api/agent POST', () => {
     const callArgs = hoisted.runAgentConversation.mock.calls[0]![0]
     expect(callArgs.courseName).toBe('CS101')
     expect(callArgs.openaiKey).toBe('sk-test-key')
+    expect(callArgs.toolRouter.source).toBe('custom')
     expect(callArgs.conversation.agentModeEnabled).toBe(true)
   })
 

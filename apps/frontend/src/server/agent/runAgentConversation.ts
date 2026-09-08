@@ -33,6 +33,7 @@ import {
 import { type ChatBody } from '~/types/chat'
 import { type CourseMetadata } from '~/types/courseMetadata'
 import { type AllLLMProviders } from '~/utils/modelProviders/LLMProvider'
+import { type ResolvedToolRouter } from '~/utils/server/toolRouting'
 
 export interface RunAgentParams {
   conversation: Conversation
@@ -42,6 +43,7 @@ export interface RunAgentParams {
   courseMetadata: CourseMetadata
   llmProviders: AllLLMProviders
   openaiKey: string
+  toolRouter: ResolvedToolRouter
   userIdentifier: string
   assistantMessageId: string
   // Callback to emit events to the client
@@ -73,6 +75,7 @@ export async function runAgentConversation(
     courseMetadata,
     llmProviders,
     openaiKey,
+    toolRouter,
     userIdentifier,
     assistantMessageId,
     emit,
@@ -146,7 +149,7 @@ export async function runAgentConversation(
     if (abortIfNeeded()) {
       return cancelledResult
     }
-    availableTools = await fetchToolsServer(courseName, undefined, 20, signal)
+    availableTools = await fetchToolsServer(courseName, signal)
   } catch (error) {
     console.error(
       `[Agent] Error fetching tools for course ${courseName}:`,
@@ -274,7 +277,7 @@ export async function runAgentConversation(
       const { selectedTools, error: selectionError } = await selectToolsServer({
         conversation: workingConversation,
         availableTools: toolsForAgent,
-        openaiKey,
+        router: toolRouter,
         imageUrls: message.imageUrls,
         imageDescription: message.imageDescription,
         signal,
@@ -354,7 +357,7 @@ export async function runAgentConversation(
       const retrievalTools = selectedTools.filter(
         (t) => t.id === 'synthetic-retrieval-tool',
       )
-      const n8nTools = selectedTools.filter(
+      const simTools = selectedTools.filter(
         (t) => t.id !== 'synthetic-retrieval-tool',
       )
 
@@ -500,14 +503,14 @@ export async function runAgentConversation(
         })
       }
 
-      // Execute N8N tools
-      if (n8nTools.length > 0) {
+      // Execute Sim tools
+      if (simTools.length > 0) {
         if (abortIfNeeded()) {
           return cancelledResult
         }
         // Emit running events for each tool
         const toolEventIds: Record<string, string> = {}
-        for (const [idx, tool] of n8nTools.entries()) {
+        for (const [idx, tool] of simTools.entries()) {
           const eventId = `agent-step-${stepNumber}-tool-${
             tool.invocationId || `${tool.id}-${idx}`
           }`
@@ -540,9 +543,8 @@ export async function runAgentConversation(
 
         // Execute tools in parallel
         const executedTools = await executeToolsServer(
-          n8nTools,
+          simTools,
           courseName,
-          undefined,
           signal,
         )
 

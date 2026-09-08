@@ -52,7 +52,7 @@ interface ModelDropdownProps {
   isSmallScreen: boolean
   isWebLLM?: boolean
   loadingModelId: string | null
-  chat_ui: ChatUI
+  chat_ui: ChatUI | null
 }
 
 const MODEL_DROPDOWN_MAX_CAP_PX = 480
@@ -132,7 +132,7 @@ interface ModelItemProps extends React.ComponentPropsWithoutRef<'div'> {
   selectedModelId: string | undefined
   modelType: string
   vram_required_MB: number
-  chat_ui: ChatUI
+  chat_ui: ChatUI | null
 }
 
 export const getModelLogo = (modelType: string) => {

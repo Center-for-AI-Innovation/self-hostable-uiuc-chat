@@ -63,9 +63,9 @@ In rough priority order:
 1. **Notification-callers slice** (great next PR; mechanical). Convert the 13 direct
    `notifications.show` callers to `showToast` from `~/utils/toastUtils`
    (already sonner-backed): `Chat.tsx`, `GitHubIngestForm`, `WebsiteIngestForm`,
-   `MakeNewCoursePage`, `ApiKeyManagament`, `N8NPage`, `MakeQueryAnalysisPage`,
+   `MakeNewCoursePage`, `ApiKeyManagament`, `SimPage`, `MakeQueryAnalysisPage`,
    `PromptEditor`, `PromptEditorEmbed`, `LLMsApiKeyInputForm`, `ProjectFilesTable`,
-   `WebScrape`, `N8nWorkflowsTable`, plus `newsletter-unsubscribe.tsx`. Then remove
+   `WebScrape`, plus `newsletter-unsubscribe.tsx`. Then remove
    `<Notifications>` from `_app.tsx` and drop `@mantine/notifications`.
 2. **`newsletter-unsubscribe.tsx`** — also needs `Title`/`Text`/`Group`/`Badge`
    migrated (deferred from slice 1; unblocked now that sonner exists).
@@ -76,7 +76,7 @@ In rough priority order:
      (rendered on the `/chat` family; the biggest cluster).
    - **Dashboard/admin cluster** — `ProjectFilesTable`, `PromptEditor(+Embed)`,
      `UploadCard`, ingest forms, `LargeDropzone`, `WebScrape`, `Explore`,
-     `ProjectTable`, `N8N*`, `MakeNewCoursePage`, api-inputs.
+     `ProjectTable`, `SimPage`, `MakeNewCoursePage`, api-inputs.
 5. **Heavier Mantine subsystems** — each needs a mapped replacement (candidates in
    the plan doc): `@mantine/dropzone` (→ react-dropzone pattern or shadcn dropzone),
    `mantine-datatable` (→ `@tanstack/react-table`, already installed),

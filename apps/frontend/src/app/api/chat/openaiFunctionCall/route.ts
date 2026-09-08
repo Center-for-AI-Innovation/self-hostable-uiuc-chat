@@ -7,8 +7,8 @@ import type {
 import { type Conversation, type UIUCTool } from '~/types/chat'
 import { persistMessageServer } from '~/pages/api/conversation'
 import { type AuthenticatedRequest } from '~/utils/appRouterAuth'
-import { decryptKeyIfNeeded } from '~/utils/crypto'
 import { withCourseAccessFromRequest } from '~/app/api/authorization'
+import { callToolRouter, resolveToolRouter } from '~/utils/server/toolRouting'
 
 // Change runtime to edge
 export const runtime = 'nodejs'
@@ -110,19 +110,14 @@ async function handler(req: AuthenticatedRequest): Promise<NextResponse> {
     openaiKey,
     imageUrls = [],
     imageDescription = '',
-    // Optional parameters for OpenAI-compatible providers
-    providerBaseUrl,
-    apiKey,
-    modelId,
+    course_name,
   }: {
     tools: ChatCompletionTool[]
     conversation: Conversation
     imageUrls?: string[]
     imageDescription?: string
     openaiKey?: string
-    providerBaseUrl?: string
-    apiKey?: string
-    modelId?: string
+    course_name?: string
   } = await req.json()
 
   const lastMessage = conversation.messages[conversation.messages.length - 1]
@@ -142,28 +137,6 @@ async function handler(req: AuthenticatedRequest): Promise<NextResponse> {
       courseName: conversation.projectName ?? '',
       userIdentifier: conversation.userEmail ?? '',
     })
-  }
-
-  const isOpenAICompatible = !!(providerBaseUrl && apiKey && modelId)
-
-  // Get API key - prefer OpenAI-compatible if provided, otherwise use OpenAI key
-  let decryptedKey: string
-  if (isOpenAICompatible) {
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: 'Missing required parameter: apiKey' },
-        { status: 400 },
-      )
-    }
-    decryptedKey = await decryptKeyIfNeeded(apiKey)
-  } else {
-    decryptedKey = openaiKey
-      ? await decryptKeyIfNeeded(openaiKey)
-      : process.env.VLADS_OPENAI_KEY || ''
-
-    if (!decryptedKey?.startsWith('sk-')) {
-      decryptedKey = process.env.VLADS_OPENAI_KEY as string
-    }
   }
 
   // Format messages
@@ -210,98 +183,39 @@ async function handler(req: AuthenticatedRequest): Promise<NextResponse> {
     }
   }
 
-  // Determine API URL and model
-  if (isOpenAICompatible && (!providerBaseUrl || !modelId)) {
-    return NextResponse.json(
-      { error: 'Missing required parameters: providerBaseUrl or modelId' },
-      { status: 400 },
-    )
-  }
-  let apiUrl: string
-  let isOpenRouter = false
-  if (isOpenAICompatible) {
-    // Remove trailing slash if present, then append /chat/completions
-    const baseUrl = providerBaseUrl!.replace(/\/$/, '')
-    apiUrl = `${baseUrl}/chat/completions`
-    // Check if this is OpenRouter using proper hostname parsing
-    try {
-      const parsedUrl = new URL(providerBaseUrl!)
-      const hostname = parsedUrl.hostname.toLowerCase()
-      isOpenRouter =
-        hostname === 'openrouter.ai' || hostname.endsWith('.openrouter.ai')
-    } catch {
-      /* invalid URL */
-    }
-  } else {
-    apiUrl = 'https://api.openai.com/v1/chat/completions'
-  }
-  // OpenRouter requires lowercase model IDs
-  const model = isOpenAICompatible
-    ? isOpenRouter
-      ? modelId!.toLowerCase()
-      : modelId
-    : 'gpt-4.1'
-
   try {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${decryptedKey}`,
-    }
-    // OpenRouter requires these headers
-    if (isOpenRouter) {
-      headers['HTTP-Referer'] = 'https://chat.illinois.edu'
-      headers['X-Title'] = 'Illinois Chat'
-    }
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        model: model,
-        messages: message_to_send,
-        tools: tools,
-        stream: false,
-      }),
+    const router = await resolveToolRouter({
+      projectName: course_name || conversation.projectName || '',
+      clientOpenAIKey: openaiKey,
+      selectedModelId: conversation.model?.id,
     })
 
-    if (!response.ok) {
-      let errorBody = ''
-      try {
-        errorBody = await response.text()
-      } catch {}
-      const apiName = isOpenAICompatible
-        ? 'OpenAI-compatible API'
-        : 'OpenAI API'
-      console.error(
-        `${apiName} error:`,
-        response.status,
-        response.statusText,
-        errorBody,
-      )
+    if (router.source === 'offline') {
       return NextResponse.json(
-        { error: `${apiName} error: ${response.status}` },
-        { status: response.status },
+        { error: `Tool routing offline: ${router.reason}` },
+        { status: 503 },
       )
     }
 
-    const data = await response.json()
-    const apiName = isOpenAICompatible ? 'OpenAI-compatible API' : 'OpenAI'
+    const result = await callToolRouter({
+      router,
+      messages: message_to_send,
+      tools,
+    })
 
-    if (!data.choices) {
-      console.error(`No response from ${apiName}`)
+    if (!result.ok) {
       return NextResponse.json(
-        { error: `No response from ${apiName}` },
-        { status: 500 },
+        { error: result.error },
+        { status: result.status ?? 500 },
       )
     }
 
-    if (!data.choices[0]?.message.tool_calls) {
-      const modelContent = data.choices[0]?.message?.content || ''
+    if (result.toolCalls.length === 0) {
       return NextResponse.json({
         choices: [
           {
             message: {
-              content: modelContent,
+              content: result.content,
               role: 'assistant',
             },
           },
@@ -309,7 +223,7 @@ async function handler(req: AuthenticatedRequest): Promise<NextResponse> {
       })
     }
 
-    const toolCalls = data.choices[0].message.tool_calls
+    const toolCalls = result.toolCalls
 
     lastMessage.tools = toolCalls as unknown as UIUCTool[]
     await persistMessageServer({
@@ -334,10 +248,7 @@ async function handler(req: AuthenticatedRequest): Promise<NextResponse> {
     console.error('Error in openaiFunctionCall:', error)
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : 'An unexpected error occurred',
+        error: 'Tool routing temporarily unavailable',
       },
       { status: 500 },
     )

@@ -24,7 +24,8 @@ const hoisted = vi.hoisted(() => ({
     } as any,
   })),
   get_user_permission: vi.fn(() => 'edit'),
-  fetchTools: vi.fn(async () => []),
+  fetchToolsServer: vi.fn(async () => []),
+  executeToolServer: vi.fn(async ({ tool }: any) => tool),
   handleToolsServer: vi.fn(
     async (_last, _tools, _urls, _imgDesc, convo) => convo,
   ),
@@ -55,8 +56,15 @@ vi.mock('~/components/UIUC-Components/runAuthCheck', () => ({
   get_user_permission: hoisted.get_user_permission,
 }))
 vi.mock('~/utils/functionCalling/handleFunctionCalling', () => ({
-  fetchTools: hoisted.fetchTools,
   handleToolsServer: hoisted.handleToolsServer,
+}))
+// Discovery and execution both run in-process here. The browser helpers cannot
+// be used from this route: fetchSimTools fetches a relative URL with no base on
+// the server, and runSimWorkflow authenticates by the Keycloak cookie an
+// API-key caller does not carry.
+vi.mock('~/server/agent/agentServerUtils', () => ({
+  fetchToolsServer: hoisted.fetchToolsServer,
+  executeToolServer: hoisted.executeToolServer,
 }))
 vi.mock('~/app/utils/buildPromptUtils', () => ({
   buildPrompt: hoisted.buildPrompt,
@@ -247,8 +255,9 @@ describe('chat-api/chat', () => {
     expect(hoisted.routeModelRequest).not.toHaveBeenCalled()
   })
 
-  it('returns 500 when fetchTools throws', async () => {
-    hoisted.fetchTools.mockRejectedValueOnce(new Error('tools down'))
+  it('continues with empty tools when discovery throws', async () => {
+    hoisted.fetchToolsServer.mockRejectedValueOnce(new Error('tools down'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     const res = createMockRes()
     await chat(
       createMockReq({
@@ -266,7 +275,9 @@ describe('chat-api/chat', () => {
       }) as any,
       res as any,
     )
-    expect(res.status).toHaveBeenCalledWith(500)
+    // The discovery error is swallowed; chat proceeds without tools
+    expect(hoisted.handleToolsServer).not.toHaveBeenCalled()
+    expect(hoisted.handleNonStreamingResponse).toHaveBeenCalled()
   })
 
   it('returns API error when routeModelRequest is not ok', async () => {
@@ -393,7 +404,7 @@ describe('chat-api/chat', () => {
   })
 
   it('invokes handleImageContent and handleToolsServer when image content and tools are present', async () => {
-    hoisted.fetchTools.mockResolvedValueOnce([{ id: 't1' }])
+    hoisted.fetchToolsServer.mockResolvedValueOnce([{ id: 't1' }])
     hoisted.handleContextSearch.mockResolvedValueOnce([{ id: 1 }])
     const res = createMockRes()
 
@@ -426,5 +437,56 @@ describe('chat-api/chat', () => {
     expect(hoisted.handleImageContent).toHaveBeenCalled()
     expect(hoisted.handleToolsServer).toHaveBeenCalled()
     expect(hoisted.handleNonStreamingResponse).toHaveBeenCalled()
+
+    // The last argument is the executor. Without it the pipeline would post to
+    // runSimWorkflow, which authenticates by a cookie this route never has.
+    const call = hoisted.handleToolsServer.mock.calls.at(-1) as unknown[]
+    const executor = call[call.length - 1]
+    expect(typeof executor).toBe('function')
+
+    const tool = { id: 'w1', output: { text: 'ran' } }
+    hoisted.executeToolServer.mockResolvedValueOnce(tool)
+    await expect(
+      (executor as (t: unknown, p: string) => Promise<unknown>)(tool, 'proj'),
+    ).resolves.toEqual({ text: 'ran' })
+    expect(hoisted.executeToolServer).toHaveBeenCalled()
+  })
+
+  it('surfaces a server-side tool failure as a rejection', async () => {
+    hoisted.fetchToolsServer.mockResolvedValueOnce([{ id: 't1' }])
+    hoisted.executeToolServer.mockResolvedValueOnce({
+      id: 'w1',
+      error: 'Sim rejected the API key configured for this project',
+    })
+
+    const res = createMockRes()
+    await chat(
+      createMockReq({
+        method: 'POST',
+        body: {
+          model: 'gpt-4o',
+          messages: [{ id: 'm1', role: 'user', content: 'hi' }],
+          temperature: 0.1,
+          course_name: 'CS101',
+          stream: false,
+          api_key: 'k',
+          retrieval_only: false,
+        },
+        socket: { remoteAddress: '127.0.0.1' } as any,
+      }) as any,
+      res as any,
+    )
+
+    const call = hoisted.handleToolsServer.mock.calls.at(-1) as unknown[]
+    const executor = call[call.length - 1] as (
+      t: unknown,
+      p: string,
+    ) => Promise<unknown>
+
+    // executeToolServer reports failure on the returned tool; the pipeline's
+    // contract is to throw, so the adapter has to translate.
+    await expect(executor({ id: 'w1' }, 'proj')).rejects.toThrow(
+      /rejected the API key/,
+    )
   })
 })

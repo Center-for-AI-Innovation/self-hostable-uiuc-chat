@@ -1,4 +1,4 @@
-import { type ChatOptions } from '@mlc-ai/web-llm'
+import type { ChatOptions } from '@mlc-ai/web-llm'
 
 export interface ModelRecord {
   model: string
@@ -39,15 +39,6 @@ export interface AppConfig {
 export const modelVersion = 'v0_2_48'
 export const modelLibURLPrefix =
   'https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/web-llm-models/'
-
-/**
- * Models that support function calling (i.e. usage of `ChatCompletionRequest.tools`). More to come.
- */
-export const functionCallingModelIds = [
-  // 'Hermes-2-Pro-Llama-3-8B-q4f16_1-MLC',
-  // 'Hermes-2-Pro-Llama-3-8B-q4f32_1-MLC',
-  'Hermes-2-Pro-Mistral-7B-q4f16_1-MLC',
-]
 
 export const recommendedModelIds = ['Llama 3.1 8b Instruct']
 

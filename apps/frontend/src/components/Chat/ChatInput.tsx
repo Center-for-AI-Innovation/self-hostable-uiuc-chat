@@ -70,7 +70,6 @@ import { type OpenAIModelID } from '~/utils/modelProviders/types/openai'
 import type ChatUI from '~/utils/modelProviders/WebLLM'
 import { webLLMModels } from '~/utils/modelProviders/WebLLM'
 import { ContextWithMetadata } from '~/types/chat'
-import { modelSupportsTools } from '~/utils/modelProviders/capabilities'
 import {
   COUNTRY_OF_CONCERN_INFO_URL,
   getCountryOfConcern,
@@ -1487,8 +1486,9 @@ export const ChatInput = ({
             {/* Agent Mode pill */}
             {agentModeFeatureEnabled &&
             selectedConversation?.model &&
-            llmProviders &&
-            modelSupportsTools(selectedConversation.model, llmProviders) ? (
+            !webLLMModels.some(
+              (m) => m.id === selectedConversation?.model?.id,
+            ) ? (
               <button
                 className={`rounded-full px-3 py-1 text-xs transition-colors md:text-sm ${
                   agentModeEnabled

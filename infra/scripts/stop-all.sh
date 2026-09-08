@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-COMPOSE=(docker compose --project-directory . -f infra/docker/docker-compose.yaml)
+COMPOSE=(docker compose --project-directory . -f infra/docker/docker-compose.yaml -f infra/docker/docker-compose.sim.yaml)
 REMOVE_VOLUMES=false
 
 show_usage() {

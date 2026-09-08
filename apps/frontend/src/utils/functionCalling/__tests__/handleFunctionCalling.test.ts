@@ -1,16 +1,21 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Conversation, Message, UIUCTool } from '~/types/chat'
-import type { AllLLMProviders } from '~/utils/modelProviders/LLMProvider'
 
 import {
-  fetchTools,
+  fetchSimTools,
   getOpenAIToolFromUIUCTool,
-  getUIUCToolFromN8n,
+  getUIUCToolFromSim,
   handleFunctionCall,
   handleToolCall,
   handleToolsServer,
-  useFetchAllWorkflows,
+  isOptionalInputField,
+  toolOutputFromSim,
+  unwrapSimOutput,
 } from '../handleFunctionCalling'
+
+vi.mock('posthog-js', () => ({
+  default: { capture: vi.fn() },
+}))
 
 describe('handleFunctionCalling utils (browser/jsdom)', () => {
   it('getOpenAIToolFromUIUCTool maps UIUCTool to OpenAICompatibleTool schema', () => {
@@ -50,46 +55,99 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
     })
   })
 
-  it('getUIUCToolFromN8n extracts active formTrigger workflows', () => {
+  it('getUIUCToolFromSim converts SimWorkflow[] to UIUCTool[]', () => {
     const workflows = [
       {
         id: 'w1',
         name: 'My Workflow!',
-        active: true,
-        updatedAt: 'u',
-        createdAt: 'c',
-        nodes: [
-          {
-            type: 'n8n-nodes-base.formTrigger',
-            parameters: {
-              formDescription: 'd',
-              formFields: {
-                values: [
-                  {
-                    fieldLabel: 'First Name',
-                    fieldType: 'string',
-                    requiredField: true,
-                  },
-                ],
-              },
-            },
-          },
+        description: 'does stuff',
+        inputFields: [
+          { name: 'first_name', type: 'string', description: 'First name' },
+          { name: 'count', type: 'number', description: 'Count' },
         ],
       },
-      { id: 'w2', name: 'Inactive', active: false, nodes: [] },
+      {
+        id: 'w2',
+        name: 'No Inputs',
+        description: '',
+        inputFields: [],
+      },
     ] as any
 
-    const tools = getUIUCToolFromN8n(workflows)
-    expect(tools).toHaveLength(1)
+    const tools = getUIUCToolFromSim(workflows)
+    expect(tools).toHaveLength(2)
     expect(tools[0]).toMatchObject({
       id: 'w1',
+      name: 'sim_my_workflow',
       readableName: 'My Workflow!',
       enabled: true,
       inputParameters: expect.objectContaining({
-        required: ['first_name'],
+        required: ['first_name', 'count'],
       }),
     })
-    expect(tools[0]?.name).toBe('My_Workflow_')
+    // No declared inputs → no arguments, not a fabricated `input` parameter.
+    expect(tools[1]).toMatchObject({
+      id: 'w2',
+      name: 'sim_no_inputs',
+      inputParameters: { type: 'object', properties: {}, required: [] },
+    })
+  })
+
+  it('marks authored descriptions and enriches the fallback with field info', () => {
+    const [authored, bare, bareNoFields] = getUIUCToolFromSim([
+      {
+        id: 'w1',
+        name: 'Described',
+        description: 'does stuff',
+        inputFields: [],
+      },
+      {
+        id: 'w2',
+        name: 'MRTN Tool',
+        description: '',
+        inputFields: [
+          { name: 'state', type: 'string' },
+          {
+            name: 'corn_price',
+            type: 'string',
+            description: 'Price per bushel',
+          },
+        ],
+      },
+      { id: 'w3', name: 'Bare', description: '', inputFields: [] },
+    ] as any)
+
+    expect(authored).toMatchObject({
+      description: 'does stuff',
+      hasAuthoredDescription: true,
+    })
+    // The router picks tools on this string; when the author wrote nothing,
+    // the field names and descriptions are the only signal Sim carries.
+    expect(bare).toMatchObject({
+      description:
+        'Execute the "MRTN Tool" Sim workflow. Inputs: state, corn_price (Price per bushel)',
+      hasAuthoredDescription: false,
+    })
+    expect(bareNoFields).toMatchObject({
+      description: 'Execute the "Bare" Sim workflow',
+      hasAuthoredDescription: false,
+    })
+  })
+
+  it('advertises an input-less workflow as taking no arguments', () => {
+    const workflows = [
+      { id: 'w2', name: 'No Inputs', description: '', inputFields: [] },
+    ] as any
+
+    const [schema] = getOpenAIToolFromUIUCTool(getUIUCToolFromSim(workflows))
+
+    // Valid JSON Schema for a zero-argument function; crucially the model is
+    // not told to supply an `input` the workflow never declared.
+    expect(schema?.function.parameters).toEqual({
+      type: 'object',
+      properties: {},
+      required: [],
+    })
   })
 
   it('getOpenAIToolFromUIUCTool sets parameters undefined when inputParameters missing', () => {
@@ -104,6 +162,188 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
 
     const out = getOpenAIToolFromUIUCTool(tools)
     expect(out[0]?.function.parameters).toBeUndefined()
+  })
+
+  it('fetchSimTools returns [] when no localStorage credentials', async () => {
+    // jsdom localStorage is empty by default
+    localStorage.clear()
+    const tools = await fetchSimTools('proj')
+    expect(tools).toEqual([])
+  })
+
+  it('fetchSimTools returns UIUCTools when API responds ok', async () => {
+    localStorage.setItem('sim_api_key_proj', 'sk-sim-test')
+    localStorage.setItem('sim_workspace_id_proj', 'ws-123')
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          workflows: [
+            {
+              id: 'w1',
+              name: 'My Flow',
+              description: 'desc',
+              inputFields: [
+                { name: 'q', type: 'string', description: 'Query' },
+              ],
+            },
+          ],
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      ),
+    )
+
+    const tools = await fetchSimTools('proj')
+    expect(tools).toHaveLength(1)
+    expect(tools[0]?.name).toBe('sim_my_flow')
+
+    localStorage.clear()
+  })
+
+  it('unwrapSimOutput strips the HTTP envelope emitted by api terminal blocks', () => {
+    const envelope = {
+      data: { success: true, result: { mrtn_rate_lb_n_per_acre: 193 } },
+      status: 200,
+      headers: { 'set-cookie': 'session=secret', server: 'uvicorn' },
+    }
+
+    expect(unwrapSimOutput(envelope)).toEqual({
+      success: true,
+      result: { mrtn_rate_lb_n_per_acre: 193 },
+    })
+  })
+
+  it('unwrapSimOutput passes through payloads that are not HTTP envelopes', () => {
+    expect(unwrapSimOutput({ result: 'plain' })).toEqual({ result: 'plain' })
+    expect(unwrapSimOutput('a string')).toBe('a string')
+    expect(unwrapSimOutput(null)).toBeNull()
+    expect(unwrapSimOutput([1, 2])).toEqual([1, 2])
+  })
+
+  it('toolOutputFromSim keeps upstream response headers away from the model', () => {
+    const out = toolOutputFromSim({
+      data: { result: 'ok' },
+      status: 200,
+      headers: { 'set-cookie': 'session=secret' },
+    })
+
+    expect(out.data).toEqual({ result: 'ok' })
+    expect(JSON.stringify(out)).not.toContain('set-cookie')
+    expect(JSON.stringify(out)).not.toContain('secret')
+  })
+
+  it('toolOutputFromSim keeps s3Paths alongside the other output fields', () => {
+    // s3_paths must survive next to data/image_urls — they are the raw keys
+    // used to re-sign after the 1h presigned URLs expire.
+    const out = toolOutputFromSim({
+      data: {
+        ok: true,
+        image_urls: ['https://signed.example/a.png'],
+        s3_paths: ['courses/cs101/a.png'],
+      },
+      status: 200,
+      headers: {},
+    })
+
+    expect(out.data).toMatchObject({ ok: true })
+    expect(out.imageUrls).toEqual(['https://signed.example/a.png'])
+    expect(out.s3Paths).toEqual(['courses/cs101/a.png'])
+  })
+
+  it('toolOutputFromSim maps string and empty outputs', () => {
+    expect(toolOutputFromSim('hello')).toEqual({ text: 'hello' })
+    expect(toolOutputFromSim(null)).toEqual({})
+    expect(toolOutputFromSim(undefined)).toEqual({})
+  })
+
+  it('fetchSimTools sends no credentials at all — the server resolves them', async () => {
+    // A key in localStorage is a leftover from the old design; nothing reads it.
+    localStorage.setItem('sim_api_key_proj', 'sk-sim-secret')
+    localStorage.setItem('sim_workspace_id_proj', 'ws-123')
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ workflows: [], failed: [] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    )
+
+    await fetchSimTools('proj')
+
+    const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit?]
+    expect(url).toContain('course_name=proj')
+    expect(url).not.toContain('sk-sim-secret')
+    expect(url).not.toContain('api_key')
+    expect(url).not.toContain('workspace_id')
+    expect(JSON.stringify(init ?? {})).not.toContain('sk-sim-secret')
+
+    localStorage.clear()
+  })
+
+  it('fetchSimTools warns about workflows the server could not describe', async () => {
+    localStorage.setItem('sim_api_key_proj', 'sk-sim-test')
+    localStorage.setItem('sim_workspace_id_proj', 'ws-123')
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          workflows: [
+            {
+              id: 'w1',
+              name: 'Good',
+              description: 'd',
+              inputFields: [],
+            },
+          ],
+          failed: [{ id: 'w2', name: 'Bad', reason: 'timed out' }],
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      ),
+    )
+
+    const tools = await fetchSimTools('proj')
+
+    expect(tools).toHaveLength(1)
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('could not be described'),
+      expect.stringContaining('Bad'),
+    )
+
+    localStorage.clear()
+  })
+
+  it('fetchSimTools surfaces the server error message on non-ok response', async () => {
+    localStorage.setItem('sim_api_key_proj', 'sk-sim-test')
+    localStorage.setItem('sim_workspace_id_proj', 'ws-123')
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          error: 'Sim workspace ID is not set for this project',
+        }),
+        { status: 400, headers: { 'content-type': 'application/json' } },
+      ),
+    )
+
+    await expect(fetchSimTools('proj')).rejects.toThrow(
+      /workspace ID is not set/i,
+    )
+
+    localStorage.clear()
+  })
+
+  it('fetchSimTools throws with the status when the error body is not JSON', async () => {
+    localStorage.setItem('sim_api_key_proj', 'sk-sim-test')
+    localStorage.setItem('sim_workspace_id_proj', 'ws-123')
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response('nope', { status: 500 }),
+    )
+
+    await expect(fetchSimTools('proj')).rejects.toThrow(/500/)
+
+    localStorage.clear()
   })
 
   it('handleFunctionCall stores model response on last user message when no tool_calls', async () => {
@@ -252,7 +492,7 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
     })
   })
 
-  it('handleFunctionCall uses OpenAICompatible and lowercases modelId for OpenRouter', async () => {
+  it('handleFunctionCall sends a slim body — the server resolves the router', async () => {
     const conversation = {
       id: 'c1',
       model: { id: 'MiXeD-Model', name: 'm', tokenLimit: 10, enabled: true },
@@ -281,17 +521,8 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
       [],
       '',
       conversation,
-      'ignored-openai-key',
+      'client-openai-key',
       'CS101',
-      undefined,
-      {
-        OpenAICompatible: {
-          enabled: true,
-          baseUrl: 'https://openrouter.ai/api/v1',
-          apiKey: 'compat-key',
-          models: [{ id: 'mixed-model', enabled: true }],
-        },
-      } as unknown as AllLLMProviders,
     )
 
     const [, options] = fetchSpy.mock.calls[0] as unknown as [
@@ -299,59 +530,12 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
       RequestInit,
     ]
     const parsed = JSON.parse(String(options.body))
-    expect(parsed.apiKey).toBe('compat-key')
-    expect(parsed.providerBaseUrl).toBe('https://openrouter.ai/api/v1')
-    expect(parsed.modelId).toBe('mixed-model')
-  })
-
-  it('handleFunctionCall keeps modelId when OpenAICompatible baseUrl is invalid', async () => {
-    const conversation = {
-      id: 'c1',
-      model: { id: 'MiXeD-Model', name: 'm', tokenLimit: 10, enabled: true },
-      messages: [{ id: 'u1', role: 'user', content: 'hi' }],
-    } as unknown as Conversation
-    const message = {
-      id: 'u1',
-      role: 'user',
-      content: 'hi',
-    } as unknown as Message
-
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(
-        JSON.stringify({
-          choices: [
-            { message: { content: 'No tools needed', tool_calls: [] } },
-          ],
-        }),
-        { status: 200 },
-      ),
-    )
-
-    await handleFunctionCall(
-      message,
-      [],
-      [],
-      '',
-      conversation,
-      'ignored-openai-key',
-      'CS101',
-      undefined,
-      {
-        OpenAICompatible: {
-          enabled: true,
-          baseUrl: 'not-a-url',
-          apiKey: 'compat-key',
-          models: [{ id: 'MiXeD-Model', enabled: true }],
-        },
-      } as unknown as AllLLMProviders,
-    )
-
-    const [, options] = fetchSpy.mock.calls[0] as unknown as [
-      unknown,
-      RequestInit,
-    ]
-    const parsed = JSON.parse(String(options.body))
-    expect(parsed.modelId).toBe('MiXeD-Model')
+    expect(parsed.openaiKey).toBe('client-openai-key')
+    expect(parsed.course_name).toBe('CS101')
+    // No provider routing fields ever leave the client.
+    expect(parsed.providerBaseUrl).toBeUndefined()
+    expect(parsed.apiKey).toBeUndefined()
+    expect(parsed.modelId).toBeUndefined()
   })
 
   it('handleFunctionCall returns [] when tool is not found in availableTools', async () => {
@@ -537,34 +721,20 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
     ).resolves.toEqual([])
   })
 
-  it('handleToolCall runs client-side n8n flow via /api/UIUC-api/runN8nFlow', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
-    fetchSpy
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify('n8n-key'), { status: 200 }),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            data: {
-              resultData: {
-                lastNodeExecuted: 'final',
-                runData: {
-                  final: [
-                    { data: { main: [[{ json: { response: 'hello' } }]] } },
-                  ],
-                },
-              },
-            },
-          }),
-          { status: 200, headers: { 'content-type': 'application/json' } },
-        ),
-      )
+  it('handleToolCall runs Sim workflow via /api/UIUC-api/runSimWorkflow', async () => {
+    localStorage.setItem('sim_api_key_proj', 'sk-sim-test')
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ success: true, output: 'hello' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    )
 
     const tool: any = {
       id: 'w1',
       invocationId: 'inv1',
-      name: 't',
+      name: 'sim_t',
       readableName: 'Tool',
       description: 'd',
       aiGeneratedArgumentValues: { a: 1 },
@@ -576,10 +746,98 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
 
     await handleToolCall([tool], conversation, 'proj')
     expect(fetchSpy).toHaveBeenCalledWith(
-      '/api/UIUC-api/runN8nFlow',
+      '/api/UIUC-api/runSimWorkflow',
       expect.objectContaining({ method: 'POST' }),
     )
     expect(conversation.messages[0].tools[0].output).toEqual({ text: 'hello' })
+
+    localStorage.clear()
+  })
+
+  it('handleToolCall sets error when Sim API key is missing', async () => {
+    localStorage.clear()
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const tool: any = {
+      id: 'w1',
+      invocationId: 'inv1',
+      name: 'sim_t',
+      readableName: 'Tool',
+      description: 'd',
+      aiGeneratedArgumentValues: { a: 1 },
+    }
+    const conversation: any = {
+      id: 'c1',
+      messages: [{ id: 'm1', role: 'user', content: 'hi', tools: [tool] }],
+    }
+
+    await handleToolCall([tool], conversation, 'proj')
+    expect(conversation.messages[0].tools[0].error).toMatch(
+      /Error running tool/i,
+    )
+  })
+
+  it('handleToolCall sets error when runSimWorkflow responds non-ok', async () => {
+    localStorage.setItem('sim_api_key_proj', 'sk-sim-test')
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: 'bad input' }), {
+        status: 400,
+        headers: { 'content-type': 'application/json' },
+      }),
+    )
+
+    const tool: any = {
+      id: 'w1',
+      invocationId: 'inv1',
+      name: 'sim_t',
+      readableName: 'Tool',
+      description: 'd',
+      aiGeneratedArgumentValues: {},
+    }
+    const conversation: any = {
+      id: 'c1',
+      messages: [{ id: 'm1', role: 'user', content: 'hi', tools: [tool] }],
+    }
+
+    await handleToolCall([tool], conversation, 'proj')
+    expect(conversation.messages[0].tools[0].error).toMatch(
+      /Error running tool/i,
+    )
+
+    localStorage.clear()
+  })
+
+  it('handleToolCall sets data output when Sim returns object output', async () => {
+    localStorage.setItem('sim_api_key_proj', 'sk-sim-test')
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ success: true, output: { result: 42 } }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    )
+
+    const tool: any = {
+      id: 'w1',
+      invocationId: 'inv1',
+      name: 'sim_t',
+      readableName: 'Tool',
+      description: 'd',
+      aiGeneratedArgumentValues: {},
+    }
+    const conversation: any = {
+      id: 'c1',
+      messages: [{ id: 'm1', role: 'user', content: 'hi', tools: [tool] }],
+    }
+
+    await handleToolCall([tool], conversation, 'proj')
+    expect(conversation.messages[0].tools[0].output).toEqual({
+      data: { result: 42 },
+    })
+
+    localStorage.clear()
   })
 
   it('handleToolCall logs when there is no last message', async () => {
@@ -608,136 +866,9 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
     ).rejects.toBeInstanceOf(TypeError)
   })
 
-  it('handleToolCall sets a timeout error when runN8nFlow fetch aborts', async () => {
-    const abortErr = new Error('aborted') as any
-    abortErr.name = 'AbortError'
+  it('handleToolsServer runs function selection then Sim tool execution', async () => {
+    localStorage.setItem('sim_api_key_proj', 'sk-sim-test')
 
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
-    fetchSpy
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify('n8n-key'), { status: 200 }),
-      )
-      .mockRejectedValueOnce(abortErr)
-
-    const tool: any = {
-      id: 'w1',
-      invocationId: 'inv1',
-      name: 't',
-      readableName: 'Tool',
-      description: 'd',
-      aiGeneratedArgumentValues: { a: 1 },
-    }
-    const conversation: any = {
-      id: 'c1',
-      messages: [{ id: 'm1', role: 'user', content: 'hi', tools: [tool] }],
-    }
-
-    await handleToolCall([tool], conversation, 'proj')
-    expect(conversation.messages[0].tools[0].error).toMatch(
-      /Request timed out/i,
-    )
-  })
-
-  it('handleToolCall preserves unexpected fetch errors from runN8nFlow', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
-    fetchSpy
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify('n8n-key'), { status: 200 }),
-      )
-      .mockRejectedValueOnce(new Error('boom'))
-
-    const tool: any = {
-      id: 'w1',
-      invocationId: 'inv1',
-      name: 't',
-      readableName: 'Tool',
-      description: 'd',
-      aiGeneratedArgumentValues: { a: 1 },
-    }
-    const conversation: any = {
-      id: 'c1',
-      messages: [{ id: 'm1', role: 'user', content: 'hi', tools: [tool] }],
-    }
-
-    await handleToolCall([tool], conversation, 'proj')
-    expect(conversation.messages[0].tools[0].error).toMatch(/boom/i)
-  })
-
-  it('handleToolCall sets an error when runN8nFlow responds non-ok', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
-    fetchSpy
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify('n8n-key'), { status: 200 }),
-      )
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ error: 'bad input' }), {
-          status: 500,
-          headers: { 'content-type': 'application/json' },
-        }),
-      )
-
-    const tool: any = {
-      id: 'w1',
-      invocationId: 'inv1',
-      name: 't',
-      readableName: 'Tool',
-      description: 'd',
-      aiGeneratedArgumentValues: { a: 1 },
-    }
-    const conversation: any = {
-      id: 'c1',
-      messages: [{ id: 'm1', role: 'user', content: 'hi', tools: [tool] }],
-    }
-
-    await handleToolCall([tool], conversation, 'proj')
-    expect(conversation.messages[0].tools[0].error).toMatch(/bad input/i)
-  })
-
-  it('fetchTools normalizes invalid limit and returns UIUCTools (client-side)', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(
-        JSON.stringify([
-          [
-            {
-              id: 'w1',
-              name: 'My Workflow',
-              active: true,
-              updatedAt: 'u',
-              createdAt: 'c',
-              nodes: [
-                {
-                  type: 'n8n-nodes-base.formTrigger',
-                  parameters: {
-                    formDescription: 'd',
-                    formFields: { values: [] },
-                  },
-                },
-              ],
-            },
-          ],
-        ]),
-        { status: 200, headers: { 'content-type': 'application/json' } },
-      ),
-    )
-
-    const tools = await fetchTools('proj', 'k', 0, 'false', false)
-    expect(tools).toHaveLength(1)
-    expect(tools[0]?.id).toBe('w1')
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('limit=10'),
-    )
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('pagination=false'),
-    )
-  })
-
-  it('useFetchAllWorkflows throws when neither course_name nor api_key provided', () => {
-    expect(() => useFetchAllWorkflows()).toThrow(
-      /one of course_name OR api_key/i,
-    )
-  })
-
-  it('handleToolsServer runs function selection then tool execution', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
     fetchSpy
       // openaiFunctionCall
@@ -760,27 +891,12 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
           { status: 200, headers: { 'content-type': 'application/json' } },
         ),
       )
-      // getN8nKeyFromProject
+      // runSimWorkflow
       .mockResolvedValueOnce(
-        new Response(JSON.stringify('n8n-key'), { status: 200 }),
-      )
-      // runN8nFlow
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            data: {
-              resultData: {
-                lastNodeExecuted: 'final',
-                runData: {
-                  final: [
-                    { data: { main: [[{ json: { response: 'hello' } }]] } },
-                  ],
-                },
-              },
-            },
-          }),
-          { status: 200, headers: { 'content-type': 'application/json' } },
-        ),
+        new Response(JSON.stringify({ success: true, output: 'hello' }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
       )
 
     const conversation: any = {
@@ -803,7 +919,9 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
       'proj',
     )
 
-    expect(updated.messages[0].tools[0].output).toEqual({ text: 'hello' })
+    expect(updated.messages[0].tools?.[0]?.output).toEqual({ text: 'hello' })
+
+    localStorage.clear()
   })
 
   it('handleToolsServer returns selectedConversation when tool execution throws', async () => {
@@ -862,5 +980,147 @@ describe('handleFunctionCalling utils (browser/jsdom)', () => {
 
     expect(updated).toBe(conversation)
     expect(updated.messages).toHaveLength(1)
+  })
+})
+
+describe('optional input detection', () => {
+  function optional(description?: string) {
+    return isOptionalInputField({ name: 'f', type: 'string', description })
+  }
+
+  it('marks fields the author called optional', () => {
+    expect(optional('Optional sub-region for IL/IN')).toBe(true)
+    expect(optional('optionally narrows the search')).toBe(true)
+    expect(optional('This field is not required')).toBe(true)
+    expect(optional('Not mandatory')).toBe(true)
+  })
+
+  it('marks fields the author said may be left empty', () => {
+    expect(
+      optional('Optional — leave blank if providing fertilizer price per ton'),
+    ).toBe(true)
+    expect(optional('Leave it blank to use the default')).toBe(true)
+    expect(optional('May be left blank')).toBe(true)
+    expect(optional('Can be omitted for corn')).toBe(true)
+    expect(optional('Blank if unknown')).toBe(true)
+  })
+
+  it('keeps fields required when nothing says otherwise', () => {
+    expect(optional('Two-letter state code')).toBe(false)
+    expect(optional('Crop rotation')).toBe(false)
+    expect(optional('')).toBe(false)
+    expect(optional(undefined)).toBe(false)
+  })
+
+  it('does not read a prohibition on blanks as permission', () => {
+    // The bare word `blank` appears just as readily in the opposite claim.
+    expect(optional('Must not be blank')).toBe(false)
+    expect(optional('Cannot be blank')).toBe(false)
+  })
+
+  it('lets an explicit requirement win over optional wording', () => {
+    expect(optional('Optional in theory, but required for IL')).toBe(false)
+    expect(optional('This one is not optional')).toBe(false)
+    expect(optional('Mandatory')).toBe(false)
+  })
+
+  it('reads "not required" as a phrase, not as the word "required"', () => {
+    expect(optional('Not required when a price per ton is given')).toBe(true)
+  })
+
+  it('splits the real MRTN fields the way its author wrote them', () => {
+    // Descriptions taken from the deployed workflow: four of seven are marked
+    // optional, and two of those are alternatives to each other.
+    const [tool] = getUIUCToolFromSim([
+      {
+        id: 'wf-mrtn',
+        name: 'MRTN Tool',
+        description: '',
+        inputFields: [
+          { name: 'state', type: 'string' },
+          { name: 'rotation', type: 'string' },
+          { name: 'corn_price', type: 'string' },
+          {
+            name: 'n_price_per_lb',
+            type: 'string',
+            description:
+              'Optional. Leave blank if providing fertilizer price per ton',
+          },
+          {
+            name: 'fertilizer_product',
+            type: 'string',
+            description: 'Optional Fertilizer type',
+          },
+          {
+            name: 'fertilizer_price_per_ton',
+            type: 'string',
+            description:
+              'Optional. Used with Fertilizer Product to derive N price',
+          },
+          {
+            name: 'region',
+            type: 'string',
+            description: 'Optional sub-region for IL/IN',
+          },
+        ],
+      },
+    ])
+
+    expect(tool?.inputParameters?.required).toEqual([
+      'state',
+      'rotation',
+      'corn_price',
+    ])
+    // Every field is still offered to the model — only the obligation changed.
+    expect(Object.keys(tool?.inputParameters?.properties ?? {})).toHaveLength(7)
+  })
+})
+
+describe('handleFunctionCalling Sim edge cases', () => {
+  it('getUIUCToolFromSim maps boolean and number input types to the tool schema', () => {
+    const [tool] = getUIUCToolFromSim([
+      {
+        id: 'w-typed',
+        name: 'Typed',
+        description: 'd',
+        inputFields: [
+          { name: 'count', type: 'number' },
+          { name: 'flag', type: 'boolean' },
+          { name: 'text', type: 'string' },
+        ],
+      },
+    ] as any)
+
+    expect(tool?.inputParameters?.properties).toMatchObject({
+      count: { type: 'number', description: 'count' },
+      flag: { type: 'Boolean', description: 'flag' },
+      text: { type: 'string', description: 'text' },
+    })
+  })
+
+  it('handleToolCall falls back to the status text when the error body is not JSON', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response('<html>Bad Gateway</html>', {
+        status: 502,
+        statusText: 'Bad Gateway',
+      }),
+    )
+
+    const tool: any = {
+      id: 'w1',
+      invocationId: 'inv1',
+      name: 'sim_t',
+      readableName: 'Tool',
+      description: 'd',
+      aiGeneratedArgumentValues: {},
+    }
+    const conversation: any = {
+      id: 'c1',
+      messages: [{ id: 'm1', role: 'user', content: 'hi', tools: [tool] }],
+    }
+
+    await handleToolCall([tool], conversation, 'proj')
+    expect(conversation.messages[0].tools[0].error).toMatch(/Bad Gateway/)
   })
 })

@@ -1,0 +1,241 @@
+# SIM_POSTGRES_PASSWORD has no default on purpose: start-dev.sh/start-all.sh
+# generate one into .env on first run. The `:?` on sim-db's POSTGRES_PASSWORD
+# makes compose refuse to start when it is unset, which covers every use below.
+services:
+  simstudio:
+    image: ${SIM_APP_IMAGE:-ghcr.io/simstudioai/simstudio@sha256:8341f8b3e8e564e46859fe4dba02462101627307f0907b19d879b1d253fa75a8}
+    restart: unless-stopped
+    ports:
+      - "${SIM_APP_PORT:-3010}:3000"
+    networks:
+      - uiuc-chat-network
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${SIM_POSTGRES_USER:-postgres}:${SIM_POSTGRES_PASSWORD}@sim-db:5432/${SIM_POSTGRES_DB:-simstudio}
+      BETTER_AUTH_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+      NEXT_PUBLIC_APP_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+      BETTER_AUTH_SECRET: ${SIM_BETTER_AUTH_SECRET:?set it in .env — start-dev.sh/start-all.sh generate one}
+      ENCRYPTION_KEY: ${SIM_ENCRYPTION_KEY:?set it in .env — start-dev.sh/start-all.sh generate one}
+      API_ENCRYPTION_KEY: ${SIM_API_ENCRYPTION_KEY:?set it in .env — 64 hex chars, see .env.template}
+      INTERNAL_API_SECRET: ${SIM_INTERNAL_API_SECRET:?set it in .env — start-dev.sh/start-all.sh generate one}
+      REDIS_URL: ${SIM_REDIS_URL:-}
+      SOCKET_SERVER_URL: http://sim-realtime:3002
+      NEXT_PUBLIC_SOCKET_URL: ${SIM_NEXT_PUBLIC_SOCKET_URL:-http://localhost:3011}
+      SSO_ENABLED: "true"
+      NEXT_PUBLIC_SSO_ENABLED: "true"
+      SSO_PROVIDER_ID: ${SIM_SSO_PROVIDER_ID:-uiuc-keycloak}
+      SSO_TRUSTED_PROVIDER_IDS: ${SIM_SSO_PROVIDER_ID:-uiuc-keycloak}
+      TRUSTED_ORIGINS: ${SIM_TRUSTED_ORIGINS:-http://localhost:3010,http://localhost:3011,http://keycloak:8080}
+    depends_on:
+      sim-db:
+        condition: service_healthy
+      sim-migrations:
+        condition: service_completed_successfully
+      sim-approval-setup:
+        condition: service_completed_successfully
+      sim-keycloak-setup:
+        condition: service_completed_successfully
+      sim-sso-setup:
+        condition: service_completed_successfully
+      sim-realtime:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'bun -e "const response = await fetch(''http://127.0.0.1:3000/api/auth/get-session''); process.exit(response.ok ? 0 : 1)"',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
+  sim-realtime:
+    image: ${SIM_REALTIME_IMAGE:-ghcr.io/simstudioai/realtime@sha256:9713a7fb7dae86e034ee18cd70fc1077fd41a6975641dca0936e847699dc33ef}
+    restart: unless-stopped
+    ports:
+      - "${SIM_REALTIME_PORT:-3011}:3002"
+    networks:
+      - uiuc-chat-network
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${SIM_POSTGRES_USER:-postgres}:${SIM_POSTGRES_PASSWORD}@sim-db:5432/${SIM_POSTGRES_DB:-simstudio}
+      NEXT_PUBLIC_APP_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+      BETTER_AUTH_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+      BETTER_AUTH_SECRET: ${SIM_BETTER_AUTH_SECRET:?set it in .env — start-dev.sh/start-all.sh generate one}
+      INTERNAL_API_SECRET: ${SIM_INTERNAL_API_SECRET:?set it in .env — start-dev.sh/start-all.sh generate one}
+      REDIS_URL: ${SIM_REDIS_URL:-}
+    depends_on:
+      sim-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3002/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  sim-migrations:
+    image: ${SIM_MIGRATIONS_IMAGE:-ghcr.io/simstudioai/migrations@sha256:b2831fd7453651a051b1e7cb72e52a12cf6ecf72441298f03b01195f973149be}
+    networks:
+      - uiuc-chat-network
+    working_dir: /app/packages/db
+    environment:
+      DATABASE_URL: postgresql://${SIM_POSTGRES_USER:-postgres}:${SIM_POSTGRES_PASSWORD}@sim-db:5432/${SIM_POSTGRES_DB:-simstudio}
+    depends_on:
+      sim-db:
+        condition: service_healthy
+    command: ["bun", "run", "db:migrate"]
+    restart: "no"
+
+  sim-approval-setup:
+    image: pgvector/pgvector:pg17
+    networks:
+      - uiuc-chat-network
+    environment:
+      PGHOST: sim-db
+      PGPORT: 5432
+      PGUSER: ${SIM_POSTGRES_USER:-postgres}
+      PGPASSWORD: ${SIM_POSTGRES_PASSWORD:?}
+      PGDATABASE: ${SIM_POSTGRES_DB:-simstudio}
+      # No default: whoever this names becomes Sim platform admin in every
+      # deployment, so it has to be chosen per deployment.
+      SIM_APPROVAL_ADMIN_EMAIL: ${SIM_APPROVAL_ADMIN_EMAIL:?set SIM_APPROVAL_ADMIN_EMAIL to the email that should bootstrap as the Sim platform admin}
+    volumes:
+      # The gate's DDL and triggers, versioned as reviewable SQL rather than a
+      # heredoc in this file. Repo-root-relative, like every bind mount in
+      # these files — the start scripts pass --project-directory ., which
+      # resolves relative paths against the repo root, not this directory.
+      - ./infra/docker/sim/approval-setup.sql:/approval-setup.sql:ro
+    depends_on:
+      sim-migrations:
+        condition: service_completed_successfully
+    entrypoint: /bin/sh
+    command:
+      - -lc
+      - |
+        set -eu
+        psql \
+          --set=ON_ERROR_STOP=1 \
+          --set=approval_admin_email="$${SIM_APPROVAL_ADMIN_EMAIL}" \
+          -f /approval-setup.sql
+    restart: "no"
+
+  sim-keycloak-setup:
+    image: quay.io/keycloak/keycloak:26.1
+    entrypoint: /bin/bash
+    networks:
+      - uiuc-chat-network
+    environment:
+      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      SIM_APP_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+      SIM_KEYCLOAK_CLIENT_ID: ${SIM_KEYCLOAK_CLIENT_ID:-simai}
+      SIM_KEYCLOAK_CLIENT_SECRET: ${SIM_KEYCLOAK_CLIENT_SECRET:-simai-local-secret}
+      SIM_SSO_PROVIDER_ID: ${SIM_SSO_PROVIDER_ID:-uiuc-keycloak}
+      NEXT_PUBLIC_KEYCLOAK_REALM: ${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    command:
+      - -lc
+      - |
+        set -euo pipefail
+
+        realm="$${NEXT_PUBLIC_KEYCLOAK_REALM}"
+        app_url="$${SIM_APP_URL}"
+        callback_url="$${app_url}/api/auth/sso/callback/$${SIM_SSO_PROVIDER_ID}"
+
+        /opt/keycloak/bin/kcadm.sh config credentials \
+          --server http://keycloak:8080 \
+          --realm master \
+          --user "$${KEYCLOAK_ADMIN_USERNAME}" \
+          --password "$${KEYCLOAK_ADMIN_PASSWORD}" >/dev/null
+
+        client_uuid="$$(/opt/keycloak/bin/kcadm.sh get clients -r "$${realm}" -q "clientId=$${SIM_KEYCLOAK_CLIENT_ID}" --fields id --format csv --noquotes | tail -n 1 | tr -d '\r')"
+        if [ -z "$${client_uuid}" ]; then
+          /opt/keycloak/bin/kcadm.sh create clients -r "$${realm}" \
+            -s "clientId=$${SIM_KEYCLOAK_CLIENT_ID}" \
+            -s enabled=true \
+            -s protocol=openid-connect \
+            -s publicClient=false \
+            -s "secret=$${SIM_KEYCLOAK_CLIENT_SECRET}" \
+            -s standardFlowEnabled=true \
+            -s directAccessGrantsEnabled=false \
+            -s 'redirectUris=["'"$${callback_url}"'"]' \
+            -s 'webOrigins=["'"$${app_url}"'"]' >/dev/null
+        else
+          /opt/keycloak/bin/kcadm.sh update "clients/$${client_uuid}" -r "$${realm}" \
+            -s enabled=true \
+            -s publicClient=false \
+            -s "secret=$${SIM_KEYCLOAK_CLIENT_SECRET}" \
+            -s standardFlowEnabled=true \
+            -s directAccessGrantsEnabled=false \
+            -s 'redirectUris=["'"$${callback_url}"'"]' \
+            -s 'webOrigins=["'"$${app_url}"'"]' >/dev/null
+        fi
+    restart: "no"
+
+  sim-sso-setup:
+    image: ${SIM_MIGRATIONS_IMAGE:-ghcr.io/simstudioai/migrations@sha256:b2831fd7453651a051b1e7cb72e52a12cf6ecf72441298f03b01195f973149be}
+    networks:
+      - uiuc-chat-network
+    working_dir: /app
+    environment:
+      DATABASE_URL: postgresql://${SIM_POSTGRES_USER:-postgres}:${SIM_POSTGRES_PASSWORD}@sim-db:5432/${SIM_POSTGRES_DB:-simstudio}
+      NEXT_PUBLIC_APP_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+      BETTER_AUTH_URL: ${SIM_NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+      SSO_ENABLED: "true"
+      SSO_PROVIDER_TYPE: oidc
+      SSO_PROVIDER_ID: ${SIM_SSO_PROVIDER_ID:-uiuc-keycloak}
+      SSO_ISSUER: http://localhost:8080/realms/${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}
+      SSO_DOMAIN: ${SIM_SSO_DOMAIN:-illinois.edu,gmail.com}
+      SSO_USER_EMAIL: sim-sso-provider@localhost.invalid
+      SSO_OIDC_CLIENT_ID: ${SIM_KEYCLOAK_CLIENT_ID:-simai}
+      SSO_OIDC_CLIENT_SECRET: ${SIM_KEYCLOAK_CLIENT_SECRET:-simai-local-secret}
+      SSO_OIDC_SCOPES: openid,profile,email
+      SSO_OIDC_PKCE: "false"
+      SSO_OIDC_TOKEN_ENDPOINT_AUTH: client_secret_post
+      SSO_OIDC_AUTHORIZATION_ENDPOINT: http://localhost:8080/realms/${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}/protocol/openid-connect/auth
+      SSO_OIDC_TOKEN_ENDPOINT: http://keycloak:8080/realms/${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}/protocol/openid-connect/token
+      SSO_OIDC_USERINFO_ENDPOINT: http://keycloak:8080/realms/${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}/protocol/openid-connect/userinfo
+      SSO_OIDC_JWKS_ENDPOINT: http://keycloak:8080/realms/${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}/protocol/openid-connect/certs
+      SSO_OIDC_DISCOVERY_ENDPOINT: http://keycloak:8080/realms/${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}/.well-known/openid-configuration
+    depends_on:
+      sim-approval-setup:
+        condition: service_completed_successfully
+      sim-keycloak-setup:
+        condition: service_completed_successfully
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        set -e
+        bun run packages/db/scripts/register-sso-provider.ts
+    restart: "no"
+
+  sim-db:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    ports:
+      - "${SIM_POSTGRES_PORT:-55432}:5432"
+    networks:
+      - uiuc-chat-network
+    environment:
+      POSTGRES_USER: ${SIM_POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${SIM_POSTGRES_PASSWORD:?}
+      POSTGRES_DB: ${SIM_POSTGRES_DB:-simstudio}
+    volumes:
+      - sim-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${SIM_POSTGRES_USER:-postgres} -d ${SIM_POSTGRES_DB:-simstudio}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  sim-postgres-data: {}

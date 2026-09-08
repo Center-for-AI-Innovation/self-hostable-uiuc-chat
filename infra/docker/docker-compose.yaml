@@ -108,7 +108,12 @@ services:
     networks:
       - uiuc-chat-network
     volumes:
-      - postgres-illinois-chat:/var/lib/postgresql
+      # Must land exactly on PGDATA. This image declares VOLUME
+      # /var/lib/postgresql/data, so mounting the parent (/var/lib/postgresql)
+      # lets Docker shadow it with an anonymous volume — the real data then dies
+      # with the container. Keep this path in sync with the image's PGDATA, as
+      # sim-db and docker-compose.dev.yaml already do.
+      - postgres-illinois-chat:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     environment:
@@ -122,7 +127,12 @@ services:
       retries: 5
 
   postgres-keycloak:
-    image: postgres
+    # Pinned to a major on purpose: PGDATA is /var/lib/postgresql/<major>/docker,
+    # so letting `latest` roll to the next major would point at an uninitialized
+    # path and strand the existing cluster inside the volume. Note this image
+    # declares VOLUME on the parent, which is why the mount below is correct
+    # here and wrong for the pgvector service above.
+    image: postgres:18
     restart: unless-stopped
     networks:
       - uiuc-chat-network
@@ -188,10 +198,15 @@ services:
       - ./infra/keycloak/realms:/opt/keycloak/data/import
     healthcheck:
       test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8080'"]
-      interval: 30s
+      # Keycloak needs ~2min to boot here: JVM start plus realm import, slowed
+      # further by amd64 emulation on Apple Silicon. 20s of grace left only the
+      # retry budget to cover the rest, and `frontend` gates on this health, so
+      # a slow boot aborted it with "container ... is unhealthy" seconds before
+      # port 8080 opened. Short interval so readiness is still noticed promptly.
+      start_period: 240s
+      interval: 5s
       timeout: 10s
       retries: 5
-      start_period: 20s # Give Keycloak time to start up before checking
 
   frontend:
     build:
@@ -251,6 +266,8 @@ services:
       # project external connections (per-project S3/Postgres/Qdrant/embeddings)
       ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:-}
       ALLOWED_EMBEDDING_PROVIDERS: ${ALLOWED_EMBEDDING_PROVIDERS:-openai,ollama}
+      # Sim AI
+      SIM_API_BASE_URL: ${SIM_API_BASE_URL:-http://simstudio:3000}
       # llms
       OLLAMA_SERVER_URL: ${OLLAMA_SERVER_URL:-}
       NCSA_HOSTED_VLM_BASE_URL: ${NCSA_HOSTED_VLM_BASE_URL:-}

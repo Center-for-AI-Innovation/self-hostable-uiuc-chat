@@ -745,21 +745,6 @@ export type Database = {
           },
         ]
       }
-      n8n_workflows: {
-        Row: {
-          is_locked: boolean
-          latest_workflow_id: number
-        }
-        Insert: {
-          is_locked: boolean
-          latest_workflow_id?: number
-        }
-        Update: {
-          is_locked?: boolean
-          latest_workflow_id?: number
-        }
-        Relationships: []
-      }
       nal_publications: {
         Row: {
           created_at: string
@@ -846,7 +831,6 @@ export type Database = {
           last_uploaded_convo_id: number | null
           last_uploaded_doc_id: number | null
           metadata_schema: Json | null
-          n8n_api_key: string | null
           subscribed: number | null
         }
         Insert: {
@@ -859,7 +843,6 @@ export type Database = {
           last_uploaded_convo_id?: number | null
           last_uploaded_doc_id?: number | null
           metadata_schema?: Json | null
-          n8n_api_key?: string | null
           subscribed?: number | null
         }
         Update: {
@@ -872,7 +855,6 @@ export type Database = {
           last_uploaded_convo_id?: number | null
           last_uploaded_doc_id?: number | null
           metadata_schema?: Json | null
-          n8n_api_key?: string | null
           subscribed?: number | null
         }
         Relationships: [
