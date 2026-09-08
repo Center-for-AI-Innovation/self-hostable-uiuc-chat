@@ -170,7 +170,6 @@ class Project(Base):
   course_name = Column(Text)
   doc_map_id = Column(Text)
   convo_map_id = Column(Text)
-  n8n_api_key = Column(Text)
   last_uploaded_doc_id = Column(BigInteger)
   last_uploaded_convo_id = Column(BigInteger)
   subscribed = Column(BigInteger, ForeignKey('doc_groups.id', onupdate='CASCADE', ondelete='SET NULL'))
@@ -191,7 +190,6 @@ class Project(Base):
         "course_name": self.course_name,
         "doc_map_id": self.doc_map_id,
         "convo_map_id": self.convo_map_id,
-        "n8n_api_key": self.n8n_api_key,
         "last_uploaded_doc_id": self.last_uploaded_doc_id,
         "last_uploaded_convo_id": self.last_uploaded_convo_id,
         "subscribed": self.subscribed,
@@ -225,17 +223,6 @@ class ProjectStats(Base):
         "model_usage_counts": self.model_usage_counts
     }
 
-
-class N8nWorkflows(Base):
-  __tablename__ = 'n8n_workflows'
-  latest_workflow_id = Column(BigInteger, primary_key=True, autoincrement=True)
-  is_locked = Column(Boolean, nullable=False)
-
-  def __init__(self, is_locked: bool):
-    self.is_locked = is_locked
-
-  def to_dict(self):
-    return {"latest_workflow_id": self.latest_workflow_id, "is_locked": self.is_locked}
 
 
 class LlmConvoMonitor(Base):

@@ -150,7 +150,7 @@ class ConnectionManager:
 
         Use this for all non-document data: conversations, messages, projects,
         project_stats, llm-convo-monitor, pre_authorized_api_keys,
-        n8n_workflows, project_external_connections. These tables always live
+        project_external_connections. These tables always live
         on the host platform's database, never on a project's external DB.
         """
         return self._sql_db

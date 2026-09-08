@@ -101,10 +101,9 @@ When `qdrant_config` is **not** set, embeddings also live on the external DB (th
 | `doc_groups`                                         | `project_stats`              |
 | `documents_doc_groups`                               | `llm-convo-monitor`          |
 | `embeddings` *(when `qdrant_config` is not set)*     | `pre_authorized_api_keys`    |
-|                                                      | `n8n_workflows`              |
 |                                                      | `project_external_connections` (the routing table itself) |
 
-The external DB schema must therefore provide the six document-side tables (five plus `embeddings` when running on pgvector). Conversation history, project metadata, stats dashboards, API key resolution, and workflow locks all read/write the host DB.
+The external DB schema must therefore provide the six document-side tables (five plus `embeddings` when running on pgvector). Conversation history, project metadata, stats dashboards, and API key resolution all read/write the host DB.
 
 ### External Postgres provisioning (pgvector projects)
 

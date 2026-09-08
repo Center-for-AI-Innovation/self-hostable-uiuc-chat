@@ -38,13 +38,13 @@ Everything runs in Docker. Vercel is the one exception, but we also have a docke
 
 **Optional state-full add-ons:**&#x20;
 
-* Tool use: N8N workflow builder&#x20;
+* Tool use: Sim AI workflow builder&#x20;
 * Error monitoring: Sentry&#x20;
 * Google Analytics clone: Posthog
 
 ### User-defined Custom Tool Use by LLM
 
-Using N8N for a user-friendly GUI to define custom tools. This way, any user can give their chatbot custom tools that will be automatically invoked when appropriate, as decided by the LLM.
+Using Sim AI for a user-friendly GUI to define custom tools. This way, any user can give their chatbot custom tools that will be automatically invoked when appropriate, as decided by the LLM.
 
 ## How does it work, in technical detail?
 

@@ -631,8 +631,7 @@ export function unwrapSimOutput(output: unknown): unknown {
 
 /**
  * Normalize a Sim execution result into the app's ToolOutput contract.
- * `image_urls` / `s3_paths` are looked for on the unwrapped payload, which is
- * the closest equivalent to where the n8n integration found them.
+ * `image_urls` / `s3_paths` are looked for on the unwrapped payload.
  */
 export function toolOutputFromSim(output: unknown): ToolOutput {
   const payload = unwrapSimOutput(output)

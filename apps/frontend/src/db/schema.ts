@@ -136,12 +136,6 @@ export const fileUploads = pgTable('file_uploads', {
   url: text('url'),
 })
 
-// n8n_workflows table
-export const n8nWorkflows = pgTable('n8n_workflows', {
-  latest_workflow_id: serial('latest_workflow_id').notNull(),
-  is_locked: boolean('is_locked').notNull(),
-})
-
 // usage_metrics table
 export const usageMetrics = pgTable('usage_metrics', {
   id: bigint('id', { mode: 'number' }).notNull(),
@@ -244,7 +238,6 @@ export const projects = pgTable('projects', {
   course_name: varchar('course_name'),
   doc_map_id: varchar('doc_map_id'),
   convo_map_id: varchar('convo_map_id'),
-  n8n_api_key: text('n8n_api_key'),
   last_uploaded_doc_id: bigint('last_uploaded_doc_id', { mode: 'number' }),
   last_uploaded_convo_id: bigint('last_uploaded_convo_id', { mode: 'number' }),
   subscribed: bigint('subscribed', { mode: 'number' }),

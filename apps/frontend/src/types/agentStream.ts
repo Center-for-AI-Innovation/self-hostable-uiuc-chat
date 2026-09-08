@@ -37,7 +37,7 @@ export interface AgentRetrievalEvent {
 }
 
 /**
- * Sent when the agent is executing an N8N tool.
+ * Sent when the agent is executing a Sim tool.
  */
 export interface AgentToolEvent {
   type: 'tool'

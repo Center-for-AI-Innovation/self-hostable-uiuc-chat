@@ -45,7 +45,6 @@ from ai_ta_backend.service.nomic_service import NomicService
 from ai_ta_backend.service.posthog_service import PosthogService
 from ai_ta_backend.service.project_service import ProjectService
 from ai_ta_backend.service.retrieval_service import RetrievalService
-from ai_ta_backend.service.workflow_service import WorkflowService
 from ai_ta_backend.utils.email.send_transactional_email import send_email
 from ai_ta_backend.utils.pubmed_extraction import extractPubmedData
 from ai_ta_backend.utils.rerun_webcrawl_for_project import webscrape_documents
@@ -624,68 +623,6 @@ def getTopContextsWithMQR(service: RetrievalService, posthog_service: PosthogSer
   return response
 
 
-@app.route('/getworkflows', methods=['GET'])
-def get_all_workflows(service: WorkflowService) -> Response:
-  """
-  Get all workflows from user.
-  """
-
-  api_key = request.args.get('api_key', default='', type=str)
-  limit = request.args.get('limit', default=100, type=int)
-  pagination = request.args.get('pagination', default=True, type=bool)
-  active = request.args.get('active', default=False, type=bool)
-  name = request.args.get('workflow_name', default='', type=str)
-  print(request.args)
-
-  print("In get_all_workflows.. api_key: ", api_key)
-
-  # if no API Key, return empty set.
-  # if api_key == '':
-  #   # proper web error "400 Bad request"
-  #   abort(400, description=f"Missing N8N API_KEY: 'api_key' must be provided. Search query: `{api_key}`")
-
-  try:
-    response = service.get_workflows(limit, pagination, api_key, active, name)
-    response = jsonify(response)
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    return response
-  except Exception as e:
-    if "unauthorized" in str(e).lower():
-      print("Unauthorized error in get_all_workflows: ", e)
-      abort(401, description=f"Unauthorized: 'api_key' is invalid. Search query: `{api_key}`")
-    else:
-      print("Error in get_all_workflows: ", e)
-      abort(500, description=f"Failed to fetch n8n workflows: {e}")
-
-
-@app.route('/switch_workflow', methods=['GET'])
-def switch_workflow(service: WorkflowService) -> Response:
-  """
-  Activate or deactivate flow for user.
-  """
-
-  api_key = request.args.get('api_key', default='', type=str)
-  activate = request.args.get('activate', default='', type=str)
-  id = request.args.get('id', default='', type=str)
-
-  print(request.args)
-
-  if api_key == '':
-    # proper web error "400 Bad request"
-    abort(400, description=f"Missing N8N API_KEY: 'api_key' must be provided. Search query: `{api_key}`")
-
-  try:
-    print("activation!!!!!!!!!!!", activate)
-    response = service.switch_workflow(id, api_key, activate)
-    response = jsonify(response)
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    return response
-  except Exception as e:
-    if e == "Unauthorized":
-      abort(401, description=f"Unauthorized: 'api_key' is invalid. Search query: `{api_key}`")
-    else:
-      abort(400, description=f"Bad request: {e}")
-
 
 @app.route('/getConversationStats', methods=['GET'])
 def get_conversation_stats(service: RetrievalService) -> Response:
@@ -706,38 +643,6 @@ def get_conversation_stats(service: RetrievalService) -> Response:
   return response
 
 
-@app.route('/run_flow', methods=['POST'])
-def run_flow(service: WorkflowService) -> Response:
-  """
-  Run flow for a user and return results.
-  """
-
-  api_key = request.json.get('api_key', '')
-  name = request.json.get('name', '')
-  data = request.json.get('data', '')
-
-  print("Got /run_flow request:", request.json)
-
-  if api_key == '':
-    # proper web error "400 Bad request"
-    abort(400, description=f"Missing N8N API_KEY: 'api_key' must be provided. Search query: `{api_key}`")
-
-  try:
-    response = service.main_flow(name, api_key, data)
-    response = jsonify(response)
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    return response
-  except Exception as e:
-    if e == "Unauthorized":
-      response = jsonify(error=str(e), message=f"Unauthorized: 'api_key' is invalid. Search query: `{api_key}`")
-      response.status_code = 401
-      response.headers.add('Access-Control-Allow-Origin', '*')
-      return response
-    else:
-      response = jsonify(error=str(e), message=f"Internal Server Error {e}")
-      response.status_code = 500
-      response.headers.add('Access-Control-Allow-Origin', '*')
-      return response
 
 @app.route('/ingest', methods=['POST'])
 def ingest() -> Response:
@@ -987,7 +892,6 @@ def configure(binder: Binder) -> None:
   # binder.bind(SentryService, to=SentryService, scope=SingletonScope)
   binder.bind(NomicService, to=NomicService, scope=SingletonScope)
   binder.bind(ExportService, to=ExportService, scope=SingletonScope)
-  binder.bind(WorkflowService, to=WorkflowService, scope=SingletonScope)
   binder.bind(VectorDatabase, to=VectorDatabase, scope=SingletonScope)
   binder.bind(SQLDatabase, to=SQLDatabase, scope=SingletonScope)
   binder.bind(AWSStorage, to=AWSStorage, scope=SingletonScope)

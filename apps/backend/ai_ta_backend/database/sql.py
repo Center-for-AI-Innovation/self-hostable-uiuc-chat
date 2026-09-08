@@ -4,7 +4,7 @@ import os
 from contextlib import contextmanager
 from typing import List, TypedDict, TypeVar, Generic
 
-from sqlalchemy import create_engine, NullPool, func, insert, delete, select, update, desc, literal, ARRAY, or_
+from sqlalchemy import create_engine, NullPool, func, insert, delete, select, desc, literal, ARRAY, or_
 from sqlalchemy.orm import sessionmaker, Session, aliased
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
@@ -495,63 +495,6 @@ class SQLDatabase:
 
         return result
 
-
-    @_host_only
-    def getLatestWorkflowId(self):
-        query = (
-            select(models.N8nWorkflows)
-        )
-        with self.get_session() as session:
-            result = session.execute(query).scalars().all()
-            data = [orm_to_dict(doc) for doc in result]
-            response = DatabaseResponse(data=data, count=len(result)).to_dict()
-
-        return response
-
-
-    @_host_only
-    def lockWorkflow(self, id: int):
-        with self.get_session() as session:
-            try:
-                insert_stmt = insert(models.N8nWorkflows).values({"latest_workflow_id": id, "is_locked": True})
-                session.execute(insert_stmt)
-                return True  # Insertion successful
-            except SQLAlchemyError as e:
-                logging.error(f"Insertion failed: {e}")
-                return False  # Insertion failed
-
-
-    @_host_only
-    def deleteLatestWorkflowId(self, id: int):
-        query = (
-            delete(models.N8nWorkflows)
-            .where(models.N8nWorkflows.latest_workflow_id == id)
-        )
-        with self.get_session() as session:
-            result = session.execute(query).scalars().all()
-            data = [orm_to_dict(doc) for doc in result]
-            response = DatabaseResponse(data=data, count=len(result)).to_dict()
-
-        return response
-
-
-    @_host_only
-    def unlockWorkflow(self, id: int):
-        query = (
-            update(models.N8nWorkflows)
-            .where(models.N8nWorkflows.latest_workflow_id == id)
-            .values(is_locked=False)
-        )
-        with self.get_session() as session:
-            result = session.execute(query)
-
-        return result
-
-
-    @_host_only
-    def check_and_lock_flow(self, id):
-        with self.get_session() as session:
-            return session.query(func.check_and_lock_flows_v2(id)).all()
 
 
     @_host_only
