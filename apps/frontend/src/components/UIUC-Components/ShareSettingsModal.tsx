@@ -13,7 +13,7 @@ import { callSetCourseMetadata } from '~/utils/apiUtils'
 import { showSuccessToast } from '~/utils/toastUtils'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import { motion } from 'framer-motion'
-import { Accordion } from '@/components/shadcn/accordion'
+import { Accordion } from '@/components/shadcn/ui/accordion'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   DropdownMenu,
@@ -378,13 +378,15 @@ export default function ShareSettingsModal({
 
                 {/* Dropdown trigger */}
                 <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-2 rounded-lg border border-[--background-dark] bg-[--modal] px-3 py-2 text-sm transition-colors hover:bg-[--background-dark]">
-                      <span className="hidden sm:inline">Change access</span>
-                      <span className="sm:hidden">Access</span>
-                      <IconChevronDown className="h-4 w-4" />
-                    </button>
-                  </DropdownMenuTrigger>
+                  <DropdownMenuTrigger
+                    render={
+                      <button className="flex items-center gap-2 rounded-lg border border-[--background-dark] bg-[--modal] px-3 py-2 text-sm transition-colors hover:bg-[--background-dark]">
+                        <span className="hidden sm:inline">Change access</span>
+                        <span className="sm:hidden">Access</span>
+                        <IconChevronDown className="h-4 w-4" />
+                      </button>
+                    }
+                  />
                   <DropdownMenuContent
                     align="end"
                     side="bottom"
@@ -448,9 +450,8 @@ export default function ShareSettingsModal({
                     transition={{ duration: 0.3, ease: 'easeOut' }}
                   >
                     <Accordion
-                      type="single"
                       defaultValue={
-                        isTransitioningToInvited ? undefined : 'members'
+                        isTransitioningToInvited ? undefined : ['members']
                       }
                       className="w-full bg-[--dashboard-background]"
                     >
@@ -465,7 +466,7 @@ export default function ShareSettingsModal({
                   </motion.div>
                 ) : (
                   <div className="pointer-events-none w-full rounded-lg bg-[--background-faded]">
-                    <Accordion type="single" className="w-full" value="">
+                    <Accordion className="w-full" value={[]}>
                       <div className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[--modal]">
@@ -492,7 +493,7 @@ export default function ShareSettingsModal({
                 )}
               </motion.div>
 
-              <Accordion type="single" defaultValue="admins" className="w-full">
+              <Accordion defaultValue={['admins']} className="w-full">
                 <EmailListAccordion
                   course_name={projectName}
                   metadata={metadata}

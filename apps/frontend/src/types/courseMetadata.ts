@@ -20,7 +20,7 @@ export interface CourseMetadata {
   disabled_models: string[] | undefined // TODO: remove
   project_description: string | undefined
   documentsOnly: boolean | undefined
-  disableCitations: boolean | undefined
+  disableCitations?: boolean
   guidedLearning: boolean | undefined
   systemPromptOnly: boolean | undefined
   vector_search_rewrite_disabled: boolean | undefined

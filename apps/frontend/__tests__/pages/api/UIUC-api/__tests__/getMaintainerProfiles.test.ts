@@ -8,7 +8,7 @@ const hoisted = vi.hoisted(() => ({
   find: vi.fn(),
 }))
 
-vi.mock('~/pages/api/authorization', () => ({
+vi.mock('~/server/authorization', () => ({
   withCourseAccessFromRequest: () => (h: any) => h,
 }))
 

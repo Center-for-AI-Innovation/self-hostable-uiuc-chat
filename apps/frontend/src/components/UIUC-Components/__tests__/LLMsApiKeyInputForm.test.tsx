@@ -26,13 +26,8 @@ vi.mock('@/hooks/queries/useUpdateProjectLLMProviders', () => ({
   }),
 }))
 
-vi.mock('@mantine/notifications', () => ({
-  notifications: {
-    show: vi.fn(),
-    update: vi.fn(),
-    hide: vi.fn(),
-    clean: vi.fn(),
-  },
+vi.mock('~/utils/toastUtils', () => ({
+  showToast: vi.fn(),
 }))
 
 vi.mock('@mantine/core', async (importOriginal) => {
@@ -177,7 +172,7 @@ describe('LLMsApiKeyInputForm', () => {
   })
 
   it('shows an error toast when providers fail to load', async () => {
-    const { notifications } = await import('@mantine/notifications')
+    const { showToast } = await import('~/utils/toastUtils')
 
     globalThis.__TEST_ROUTER__ = { asPath: '/CS101/llms', isReady: true }
     globalThis.__TEST_AUTH__ = {
@@ -190,6 +185,10 @@ describe('LLMsApiKeyInputForm', () => {
     mocks.query.isError = true
 
     renderWithProviders((<LLMsApiKeyInputForm course_name="CS101" />) as any)
-    await waitFor(() => expect((notifications as any).show).toHaveBeenCalled())
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Error', type: 'error' }),
+      ),
+    )
   })
 })

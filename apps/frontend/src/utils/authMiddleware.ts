@@ -5,7 +5,7 @@ import {
   getKeycloakBaseFromHost,
   getKeycloakIssuerUrl,
 } from '~/utils/authHelpers'
-import { AuthenticatedUser } from '~/middleware'
+import { AuthenticatedUser } from '~/proxy'
 
 function getTokenFromCookies(req: NextApiRequest): string | null {
   const raw = req.cookies['access_token']

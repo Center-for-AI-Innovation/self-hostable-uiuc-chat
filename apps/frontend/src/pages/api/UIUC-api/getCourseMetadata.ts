@@ -1,6 +1,6 @@
 // ~/src/pages/api/UIUC-api/getCourseMetadata.ts
 import { type NextApiResponse } from 'next'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
+import { withCourseAccessFromRequest } from '~/server/authorization'
 import { type CourseMetadata } from '~/types/courseMetadata'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
 import { ensureRedisConnected } from '~/utils/redisClient'

@@ -27,13 +27,12 @@ const streamMocks = vi.hoisted(() => ({
   })),
 }))
 
-vi.mock('@mantine/notifications', () => ({
-  notifications: {
-    show: vi.fn(),
-    update: vi.fn(),
-    hide: vi.fn(),
-    clean: vi.fn(),
-  },
+vi.mock('~/utils/toastUtils', () => ({
+  showToast: vi.fn(),
+  showSuccessToast: vi.fn(),
+  showErrorToast: vi.fn(),
+  showWarningToast: vi.fn(),
+  showInfoToast: vi.fn(),
 }))
 
 vi.mock('@mlc-ai/web-llm', () => ({
@@ -263,7 +262,7 @@ describe('Chat (query rewrite + tool paths)', () => {
 
   it('routes image content through handleImageContent and handles LLM errors', async () => {
     const user = userEvent.setup()
-    const { notifications } = await import('@mantine/notifications')
+    const { showToast } = await import('~/utils/toastUtils')
 
     server.use(
       http.post('*/api/queryRewrite', async () => {
@@ -322,7 +321,7 @@ describe('Chat (query rewrite + tool paths)', () => {
 
     await user.click(screen.getByRole('button', { name: /send-image/i }))
     expect(streamMocks.handleImageContent).toHaveBeenCalled()
-    expect((notifications as any).show).toHaveBeenCalled()
+    expect(showToast as any).toHaveBeenCalled()
   })
 
   it('regenerates the last assistant message', async () => {

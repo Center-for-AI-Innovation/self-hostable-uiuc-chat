@@ -12,7 +12,6 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import { useClipboard, useMediaQuery } from '@mantine/hooks'
-import { showNotification } from '@mantine/notifications'
 import {
   IconBook,
   IconCheck,
@@ -25,6 +24,7 @@ import { useEffect, useState } from 'react'
 import { type AuthContextProps } from 'react-oidc-context'
 import { fetchCourseMetadata } from '~/utils/apiUtils'
 import { useResponsiveCardWidth } from '~/utils/responsiveGrid'
+import { showErrorToast, showSuccessToast } from '~/utils/toastUtils'
 import APIRequestBuilder from './APIRequestBuilder'
 
 const ApiKeyManagement = ({
@@ -197,11 +197,7 @@ axios.post('${baseUrl}/api/chat-api/chat', data, {
         const data = await response.json()
         setApiKey(data.apiKey)
       } else {
-        showNotification({
-          title: 'Error',
-          message: 'Failed to fetch API key.',
-          color: 'red',
-        })
+        showErrorToast('Failed to fetch API key.', 'Error')
       }
       setLoading(false)
     }
@@ -223,16 +219,9 @@ axios.post('${baseUrl}/api/chat-api/chat', data, {
     if (response.ok) {
       const data = await response.json()
       setApiKey(data.apiKey)
-      showNotification({
-        title: 'Success',
-        message: 'API key generated successfully.',
-      })
+      showSuccessToast('API key generated successfully.', 'Success')
     } else {
-      showNotification({
-        title: 'Error',
-        message: 'Failed to generate API key.',
-        color: 'red',
-      })
+      showErrorToast('Failed to generate API key.', 'Error')
     }
   }
 
@@ -247,16 +236,9 @@ axios.post('${baseUrl}/api/chat-api/chat', data, {
     if (response.ok) {
       const data = await response.json()
       setApiKey(data.newApiKey)
-      showNotification({
-        title: 'Success',
-        message: 'API key rotated successfully.',
-      })
+      showSuccessToast('API key rotated successfully.', 'Success')
     } else {
-      showNotification({
-        title: 'Error',
-        message: 'Failed to rotate API key.',
-        color: 'red',
-      })
+      showErrorToast('Failed to rotate API key.', 'Error')
     }
   }
 
@@ -270,16 +252,9 @@ axios.post('${baseUrl}/api/chat-api/chat', data, {
 
     if (response.ok) {
       setApiKey(null)
-      showNotification({
-        title: 'Success',
-        message: 'API key deleted successfully.',
-      })
+      showSuccessToast('API key deleted successfully.', 'Success')
     } else {
-      showNotification({
-        title: 'Error',
-        message: 'Failed to delete API key.',
-        color: 'red',
-      })
+      showErrorToast('Failed to delete API key.', 'Error')
     }
   }
 

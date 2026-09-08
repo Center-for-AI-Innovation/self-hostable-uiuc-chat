@@ -6,7 +6,7 @@ import { type CourseDocument } from '~/types/courseMaterials'
 import { and, eq, asc, desc, sql } from 'drizzle-orm'
 import { documents, documentsDocGroups, docGroups } from '~/db/schema'
 import { type PgColumn } from 'drizzle-orm/pg-core'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
+import { withCourseAccessFromRequest } from '~/server/authorization'
 
 type FetchDocumentsResponse = {
   final_docs?: CourseDocument[]

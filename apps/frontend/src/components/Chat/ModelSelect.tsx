@@ -16,7 +16,7 @@ import {
   useState,
 } from 'react'
 import { useMediaQuery, useViewportSize } from '@mantine/hooks'
-import HomeContext from '~/pages/api/home/home.context'
+import HomeContext from '~/components/home/home.context'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import { Group, Select, Title, Text, ActionIcon, Tooltip } from '@mantine/core'
 import Link from 'next/link'

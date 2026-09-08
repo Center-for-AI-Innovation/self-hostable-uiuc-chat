@@ -38,7 +38,7 @@ import SettingsLayout, {
   getInitialCollapsedState,
 } from '~/components/Layout/SettingsLayout'
 import { GRID_CONFIGS, useResponsiveGrid } from '~/utils/responsiveGrid'
-import downloadConversationHistory from '../../pages/util/downloadConversationHistory'
+import { downloadConversationHistory } from '~/utils/downloadConversationHistory'
 import { getProjectStats } from '../../pages/api/UIUC-api/getProjectStats'
 import ConversationsHeatmapByHourChart from './ConversationsHeatmapByHourChart'
 import ConversationsPerDayChart from './ConversationsPerDayChart'
@@ -1234,14 +1234,13 @@ const MakeQueryAnalysisPage = ({ course_name }: { course_name: string }) => {
   )
 }
 
-import { IconCheck, IconCloudDownload } from '@tabler/icons-react'
+import { IconCloudDownload } from '@tabler/icons-react'
 
-import { notifications } from '@mantine/notifications'
 import { type CourseMetadata } from '~/types/courseMetadata'
+import { showToast } from '~/utils/toastUtils'
 import { CannotEditCourse } from './CannotEditCourse'
 import GlobalFooter from './GlobalFooter'
 
-import Link from 'next/link'
 import NomicDocumentMap from './NomicDocumentsMap'
 
 async function fetchCourseMetadata(course_name: string) {
@@ -1279,46 +1278,14 @@ async function fetchCourseMetadata(course_name: string) {
 }
 
 const showToastOnFileDeleted = (theme: MantineTheme, was_error = false) => {
-  return (
-    // docs: https://mantine.dev/others/notifications/
-
-    notifications.show({
-      id: 'file-deleted-from-materials',
-      withCloseButton: true,
-      onClose: () => console.log('unmounted'),
-      onOpen: () => console.log('mounted'),
-      autoClose: 5000,
-      // position="top-center",
-      title: was_error ? 'Error deleting file' : 'Deleting file...',
-      message: was_error
-        ? "An error occurred while deleting the file. Please try again and I'd be so grateful if you email rohan13@illinois.edu to report this bug."
-        : 'The file is being deleted in the background.',
-      icon: <IconCheck aria-hidden="true" />,
-      // className: 'my-notification-class',
-      styles: {
-        root: {
-          backgroundColor: was_error ? 'var(--error)' : 'var(--notification)',
-          borderColor: was_error
-            ? 'var(--error)'
-            : 'var(--notification-border)',
-        },
-        title: {
-          color: 'var(--notification-title)',
-        },
-        description: {
-          color: 'var(--notification-message)',
-        },
-        closeButton: {
-          color: 'var(--text-foreground-faded)',
-          '&:hover': {
-            color: 'var(--text-foreground)',
-            backgroundColor: 'var(--text-background-faded)',
-          },
-        },
-      },
-      loading: false,
-    })
-  )
+  return showToast({
+    autoClose: 5000,
+    title: was_error ? 'Error deleting file' : 'Deleting file...',
+    message: was_error
+      ? "An error occurred while deleting the file. Please try again and I'd be so grateful if you email rohan13@illinois.edu to report this bug."
+      : 'The file is being deleted in the background.',
+    type: was_error ? 'error' : 'success',
+  })
 }
 
 export default MakeQueryAnalysisPage
@@ -1329,47 +1296,11 @@ export const showToastOnUpdate = (
   isReset = false,
   message: string,
 ) => {
-  return notifications.show({
-    id: 'convo-or-documents-export',
-    withCloseButton: true,
-    closeButtonProps: { color: 'green' },
-    onClose: () => console.log('error unmounted'),
-    onOpen: () => console.log('error mounted'),
+  return showToast({
     autoClose: 30000,
-    title: (
-      <Text size={'lg'} className={`${montserrat_heading.className}`}>
-        {message}
-      </Text>
-    ),
-    message: (
-      <Text className={`${montserrat_paragraph.className}`}>
-        Check{' '}
-        <Link
-          href={
-            'https://docs.uiuc.chat/features/bulk-export-documents-or-conversation-history'
-          }
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            textDecoration: 'underline',
-            color: 'var(--dashboard-button)',
-          }}
-        >
-          our docs
-        </Link>{' '}
-        for example code to process this data.
-      </Text>
-    ),
-    color: 'green',
-    radius: 'lg',
-    icon: <IconCheck aria-hidden="true" />,
-    className: 'my-notification-class',
-    style: {
-      backgroundColor: 'rgba(42,42,64,0.6)',
-      backdropFilter: 'blur(10px)',
-      borderLeft: '5px solid green',
-    },
-    withBorder: true,
-    loading: false,
+    title: message,
+    message:
+      'Check our docs (https://docs.uiuc.chat/features/bulk-export-documents-or-conversation-history) for example code to process this data.',
+    type: 'success',
   })
 }

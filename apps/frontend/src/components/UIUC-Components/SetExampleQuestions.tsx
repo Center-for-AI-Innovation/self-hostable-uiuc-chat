@@ -330,30 +330,34 @@ export default function SetExampleQuestions({
           >
             {question.status === 'error' && question.errorMessage ? (
               <Tooltip open>
-                <TooltipTrigger asChild>
-                  <div>
-                    <FormInput
-                      as="input"
-                      name={`question-${index}`}
-                      placeholder="Add sample queries to illustrate usage of your AI."
-                      className="w-full"
-                      value={question.value}
-                      status="error"
-                      onChange={(e) => handleInputChange(e.target.value, index)}
-                      onBlur={(e) => handleBlur(e, index)}
-                      onKeyDown={(e) =>
-                        handleKeyDown(
-                          e as React.KeyboardEvent<HTMLInputElement>,
-                          index,
-                        )
-                      }
-                      ref={(el) => {
-                        inputRefs.current[index] = el as HTMLInputElement
-                      }}
-                      rightSlot={renderRightSlot(question, index)}
-                    />
-                  </div>
-                </TooltipTrigger>
+                <TooltipTrigger
+                  render={
+                    <div>
+                      <FormInput
+                        as="input"
+                        name={`question-${index}`}
+                        placeholder="Add sample queries to illustrate usage of your AI."
+                        className="w-full"
+                        value={question.value}
+                        status="error"
+                        onChange={(e) =>
+                          handleInputChange(e.target.value, index)
+                        }
+                        onBlur={(e) => handleBlur(e, index)}
+                        onKeyDown={(e) =>
+                          handleKeyDown(
+                            e as React.KeyboardEvent<HTMLInputElement>,
+                            index,
+                          )
+                        }
+                        ref={(el) => {
+                          inputRefs.current[index] = el as HTMLInputElement
+                        }}
+                        rightSlot={renderRightSlot(question, index)}
+                      />
+                    </div>
+                  }
+                />
                 <TooltipContent
                   side="top"
                   className="border-[--error] bg-[--error] text-white"

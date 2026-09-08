@@ -31,13 +31,12 @@ declare global {
   var __TEST_PERMISSION__: string | undefined
 }
 
-vi.mock('@mantine/notifications', () => ({
-  notifications: {
-    show: vi.fn(),
-    update: vi.fn(),
-    hide: vi.fn(),
-    clean: vi.fn(),
-  },
+vi.mock('~/utils/toastUtils', () => ({
+  showToast: vi.fn(),
+  showSuccessToast: vi.fn(),
+  showErrorToast: vi.fn(),
+  showWarningToast: vi.fn(),
+  showInfoToast: vi.fn(),
 }))
 
 vi.mock('@mlc-ai/web-llm', () => ({
@@ -907,8 +906,8 @@ describe('Chat component', () => {
 
     it('shows error toast when agent mode is enabled on conversation but not on course', async () => {
       const user = userEvent.setup()
-      const { notifications } = await import('@mantine/notifications')
-      ;(notifications as any).show.mockClear()
+      const { showToast } = await import('~/utils/toastUtils')
+      ;(showToast as any).mockClear()
       setupStreamHandler()
 
       const conversation = makeConversation({
@@ -946,9 +945,7 @@ describe('Chat component', () => {
       )
 
       await user.click(screen.getByRole('button', { name: /^send$/i }))
-      await waitFor(() =>
-        expect((notifications as any).show).toHaveBeenCalled(),
-      )
+      await waitFor(() => expect(showToast as any).toHaveBeenCalled())
     })
   })
 
@@ -1151,8 +1148,8 @@ describe('Chat component', () => {
 
     it('handles error response from LLM API (non-ok response)', async () => {
       const user = userEvent.setup()
-      const { notifications } = await import('@mantine/notifications')
-      ;(notifications as any).show.mockClear()
+      const { showToast } = await import('~/utils/toastUtils')
+      ;(showToast as any).mockClear()
 
       server.use(
         http.post('*/api/allNewRoutingChat', async () => {
@@ -1197,15 +1194,13 @@ describe('Chat component', () => {
       )
 
       await user.click(screen.getByRole('button', { name: /^send$/i }))
-      await waitFor(() =>
-        expect((notifications as any).show).toHaveBeenCalled(),
-      )
+      await waitFor(() => expect(showToast as any).toHaveBeenCalled())
     })
 
     it('handles non-parseable error response body', async () => {
       const user = userEvent.setup()
-      const { notifications } = await import('@mantine/notifications')
-      ;(notifications as any).show.mockClear()
+      const { showToast } = await import('~/utils/toastUtils')
+      ;(showToast as any).mockClear()
 
       server.use(
         http.post('*/api/allNewRoutingChat', async () => {
@@ -1247,9 +1242,7 @@ describe('Chat component', () => {
       )
 
       await user.click(screen.getByRole('button', { name: /^send$/i }))
-      await waitFor(() =>
-        expect((notifications as any).show).toHaveBeenCalled(),
-      )
+      await waitFor(() => expect(showToast as any).toHaveBeenCalled())
     })
   })
 
@@ -2350,8 +2343,8 @@ describe('Chat component', () => {
 
   describe('tools loading error', () => {
     it('shows error toast when tools fail to load', async () => {
-      const { notifications } = await import('@mantine/notifications')
-      ;(notifications as any).show.mockClear()
+      const { showToast } = await import('~/utils/toastUtils')
+      ;(showToast as any).mockClear()
 
       globalThis.__TEST_WORKFLOWS_ERROR__ = true
 
@@ -2387,7 +2380,7 @@ describe('Chat component', () => {
         },
       )
 
-      expect((notifications as any).show).toHaveBeenCalled()
+      expect(showToast as any).toHaveBeenCalled()
     })
   })
 

@@ -3,7 +3,6 @@ import Head from 'next/head'
 import { useState } from 'react'
 import { MainPageBackground } from '~/components/UIUC-Components/MainPageBackground'
 import { set } from 'zod'
-// import { Card, Image, Text, Title, Badge, Button, Group } from '@mantine/core'
 
 const TermsAndConditionsPage: NextPage = () => {
   return (

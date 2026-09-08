@@ -16,7 +16,7 @@ import {
   withCourseOwnerAccess,
   withCourseOwnerOrAdminAccess,
   withCourseAccessFromRequest,
-} from '~/pages/api/authorization'
+} from '~/server/authorization'
 
 vi.mock('~/utils/authMiddleware', () => ({
   withAuth: (fn: any) => fn,

@@ -18,7 +18,7 @@ import { useContext, useEffect, useRef, useState } from 'react'
 
 import { usePostHog } from 'posthog-js/react'
 import { useAuth } from 'react-oidc-context'
-import HomeContext from '~/pages/api/home/home.context'
+import HomeContext from '~/components/home/home.context'
 import { UserSettings } from '../../Chat/UserSettings'
 import { ThemeToggle } from '../ThemeToggle'
 import { AuthMenu } from './AuthMenu'

@@ -8,7 +8,7 @@ import {
   hasCourseAccess,
   withCourseAccessFromRequest,
 } from '../authorization'
-import type { AuthenticatedUser } from '~/middleware'
+import type { AuthenticatedUser } from '~/proxy'
 import type { AuthenticatedRequest } from '~/utils/appRouterAuth'
 import type { CourseMetadata } from '~/types/courseMetadata'
 

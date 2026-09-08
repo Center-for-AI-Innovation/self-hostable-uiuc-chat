@@ -4,7 +4,7 @@ import { type AuthenticatedRequest } from '~/utils/authMiddleware'
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post'
 import { connectionManager } from '~/utils/connectionManager'
 import { getPresignedUrlClient } from '~/utils/s3Client'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
+import { withCourseAccessFromRequest } from '~/server/authorization'
 
 const handler = async (req: AuthenticatedRequest, res: NextApiResponse) => {
   try {

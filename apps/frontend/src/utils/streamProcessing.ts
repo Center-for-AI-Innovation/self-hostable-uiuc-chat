@@ -9,7 +9,7 @@ import { runOllamaChat } from '~/app/utils/ollama'
 import { runVLLM } from '~/app/utils/vllm'
 import { runOpenAICompatibleChat } from '~/app/utils/openaiCompatible'
 import { fetchContexts, fetchMQRContexts } from '~/utils/fetchContexts'
-import { fetchImageDescription } from '~/pages/api/UIUC-api/fetchImageDescription'
+import { fetchImageDescription } from '~/utils/fetchImageDescription'
 import {
   type ChatApiBody,
   type ChatBody,

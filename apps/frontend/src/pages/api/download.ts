@@ -4,7 +4,7 @@ import { type NextApiResponse } from 'next'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
 import { connectionManager } from '~/utils/connectionManager'
 import { getPresignedUrlClient, normalizeS3Key } from '~/utils/s3Client'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
+import { withCourseAccessFromRequest } from '~/server/authorization'
 
 export async function generatePresignedUrl(
   filePath: string,

@@ -8,9 +8,13 @@ import type { CourseMetadata } from '~/types/courseMetadata'
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
-const mockNotificationsShow = vi.fn()
-vi.mock('@mantine/notifications', () => ({
-  notifications: { show: (...args: any[]) => mockNotificationsShow(...args) },
+const mockShowToast = vi.fn()
+vi.mock('~/utils/toastUtils', () => ({
+  showToast: (...args: any[]) => mockShowToast(...args),
+  showSuccessToast: vi.fn(),
+  showErrorToast: vi.fn(),
+  showWarningToast: vi.fn(),
+  showInfoToast: vi.fn(),
 }))
 
 const mockFetchCourseMetadata = vi.fn<() => Promise<CourseMetadata | null>>()
@@ -158,29 +162,31 @@ describe('PromptEditorEmbed', () => {
   // ── Toast utility functions ──────────────────────────────────────────
 
   describe('showPromptToast', () => {
-    it('calls notifications.show with correct params', async () => {
+    it('calls showToast with correct params', async () => {
       const { showPromptToast } = await import('../PromptEditorEmbed')
       showPromptToast({} as any, 'Title', 'Message')
-      expect(mockNotificationsShow).toHaveBeenCalledWith(
+      expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
           title: 'Title',
           message: 'Message',
-          withCloseButton: true,
+          type: 'success',
         }),
       )
     })
 
-    it('uses error styling when isError=true', async () => {
+    it('uses error type when isError=true', async () => {
       const { showPromptToast } = await import('../PromptEditorEmbed')
       showPromptToast({} as any, 'Error', 'Msg', true)
-      expect(mockNotificationsShow).toHaveBeenCalled()
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'error' }),
+      )
     })
 
     it('handles custom icon', async () => {
       const { showPromptToast } = await import('../PromptEditorEmbed')
       const icon = React.createElement('div', null, 'ico')
       showPromptToast({} as any, 'T', 'M', false, icon)
-      expect(mockNotificationsShow).toHaveBeenCalledWith(
+      expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({ icon }),
       )
     })
@@ -188,14 +194,14 @@ describe('PromptEditorEmbed', () => {
     it('caps duration at 15000ms for long messages', async () => {
       const { showPromptToast } = await import('../PromptEditorEmbed')
       showPromptToast({} as any, 'T', 'x'.repeat(500))
-      const call = mockNotificationsShow.mock.calls[0]![0]
+      const call = mockShowToast.mock.calls[0]![0]
       expect(call.autoClose).toBe(15000)
     })
 
     it('uses baseDuration for short messages', async () => {
       const { showPromptToast } = await import('../PromptEditorEmbed')
       showPromptToast({} as any, 'T', 'hi')
-      const call = mockNotificationsShow.mock.calls[0]![0]
+      const call = mockShowToast.mock.calls[0]![0]
       expect(call.autoClose).toBe(5000)
     })
   })
@@ -204,7 +210,7 @@ describe('PromptEditorEmbed', () => {
     it('shows success message', async () => {
       const { showToastOnPromptUpdate } = await import('../PromptEditorEmbed')
       showToastOnPromptUpdate({} as any)
-      expect(mockNotificationsShow).toHaveBeenCalledWith(
+      expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({ title: 'Prompt Updated Successfully' }),
       )
     })
@@ -212,7 +218,7 @@ describe('PromptEditorEmbed', () => {
     it('shows error message', async () => {
       const { showToastOnPromptUpdate } = await import('../PromptEditorEmbed')
       showToastOnPromptUpdate({} as any, true)
-      expect(mockNotificationsShow).toHaveBeenCalledWith(
+      expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({ title: 'Error Updating Prompt' }),
       )
     })
@@ -220,7 +226,7 @@ describe('PromptEditorEmbed', () => {
     it('shows reset message', async () => {
       const { showToastOnPromptUpdate } = await import('../PromptEditorEmbed')
       showToastOnPromptUpdate({} as any, false, true)
-      expect(mockNotificationsShow).toHaveBeenCalledWith(
+      expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({ title: 'Prompt Reset to Default' }),
       )
     })
@@ -230,7 +236,7 @@ describe('PromptEditorEmbed', () => {
     it('shows success notification', async () => {
       const { showToastNotification } = await import('../PromptEditorEmbed')
       showToastNotification('Title', 'Msg')
-      expect(mockNotificationsShow).toHaveBeenCalledWith(
+      expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({ title: 'Title', message: 'Msg' }),
       )
     })
@@ -238,7 +244,7 @@ describe('PromptEditorEmbed', () => {
     it('shows error notification', async () => {
       const { showToastNotification } = await import('../PromptEditorEmbed')
       showToastNotification('Err', 'Bad', true)
-      expect(mockNotificationsShow).toHaveBeenCalled()
+      expect(mockShowToast).toHaveBeenCalled()
     })
   })
 
@@ -375,7 +381,7 @@ describe('PromptEditorEmbed', () => {
         screen.getByText('Update System Prompt', { selector: 'button' }),
       )
       await waitFor(() => {
-        expect(mockNotificationsShow).toHaveBeenCalledWith(
+        expect(mockShowToast).toHaveBeenCalledWith(
           expect.objectContaining({ title: 'Prompt Updated Successfully' }),
         )
       })
@@ -388,7 +394,7 @@ describe('PromptEditorEmbed', () => {
         screen.getByText('Update System Prompt', { selector: 'button' }),
       )
       await waitFor(() => {
-        expect(mockNotificationsShow).toHaveBeenCalledWith(
+        expect(mockShowToast).toHaveBeenCalledWith(
           expect.objectContaining({ title: 'Error Updating Prompt' }),
         )
       })
@@ -580,7 +586,7 @@ describe('PromptEditorEmbed', () => {
       await renderLoaded({ isEmbedded: true })
       fireEvent.click(screen.getByTestId('copy-button'))
       await waitFor(() => {
-        expect(mockNotificationsShow).toHaveBeenCalledWith(
+        expect(mockShowToast).toHaveBeenCalledWith(
           expect.objectContaining({ title: 'Error Fetching' }),
         )
       })
@@ -603,7 +609,7 @@ describe('PromptEditorEmbed', () => {
       await renderLoaded({ isEmbedded: true })
       fireEvent.click(screen.getByTestId('copy-button'))
       await waitFor(() => {
-        expect(mockNotificationsShow).toHaveBeenCalledWith(
+        expect(mockShowToast).toHaveBeenCalledWith(
           expect.objectContaining({ title: 'Error Fetching' }),
         )
       })
@@ -639,7 +645,7 @@ describe('PromptEditorEmbed', () => {
       await renderLoaded()
       fireEvent.click(screen.getByText('Optimize System Prompt'))
       await waitFor(() => {
-        expect(mockNotificationsShow).toHaveBeenCalledWith(
+        expect(mockShowToast).toHaveBeenCalledWith(
           expect.objectContaining({
             title: expect.stringContaining('Required'),
           }),
@@ -662,7 +668,7 @@ describe('PromptEditorEmbed', () => {
       await renderLoaded()
       fireEvent.click(screen.getByText('Optimize System Prompt'))
       await waitFor(() => {
-        expect(mockNotificationsShow).toHaveBeenCalledWith(
+        expect(mockShowToast).toHaveBeenCalledWith(
           expect.objectContaining({
             title: expect.stringContaining('API Key Required'),
           }),
@@ -706,7 +712,7 @@ describe('PromptEditorEmbed', () => {
       await renderLoaded()
       fireEvent.click(screen.getByText('Optimize System Prompt'))
       await waitFor(() => {
-        expect(mockNotificationsShow).toHaveBeenCalledWith(
+        expect(mockShowToast).toHaveBeenCalledWith(
           expect.objectContaining({ title: 'Error' }),
         )
       })
@@ -720,7 +726,7 @@ describe('PromptEditorEmbed', () => {
       await renderLoaded()
       fireEvent.click(screen.getByText('Optimize System Prompt'))
       await waitFor(() => {
-        expect(mockNotificationsShow).toHaveBeenCalledWith(
+        expect(mockShowToast).toHaveBeenCalledWith(
           expect.objectContaining({ title: 'Error' }),
         )
       })

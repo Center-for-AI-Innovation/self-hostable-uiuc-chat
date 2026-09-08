@@ -42,6 +42,7 @@ vi.mock('~/utils/apiUtils', async (importOriginal) => {
 
 vi.mock('~/utils/toastUtils', () => ({
   showToast: vi.fn(),
+  showSuccessToast: vi.fn(),
   showErrorToast: vi.fn(),
   showWarningToast: vi.fn(),
   showInfoToast: vi.fn(),
@@ -57,10 +58,6 @@ vi.mock('@/hooks/__internal__/conversation', async (importOriginal) => {
 
 vi.mock('@/utils/cryptoRandom', () => ({
   generateSecureRandomString: () => 'abc',
-}))
-
-vi.mock('@mantine/notifications', () => ({
-  notifications: { show: vi.fn() },
 }))
 
 // ---------- Tests ----------

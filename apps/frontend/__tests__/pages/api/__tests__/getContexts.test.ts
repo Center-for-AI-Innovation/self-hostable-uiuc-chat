@@ -7,10 +7,8 @@ const hoisted = vi.hoisted(() => ({
   fetchContextsByVectorEngine: vi.fn(),
 }))
 
-vi.mock('~/pages/api/authorization', () => ({
-  withCourseAccessFromRequest:
-    () => (h: (req: any, res: any) => Promise<void>) =>
-      h,
+vi.mock('~/server/authorization', () => ({
+  withCourseAccessFromRequest: () => (h: any) => h,
 }))
 
 vi.mock('~/utils/fetchContexts', () => ({

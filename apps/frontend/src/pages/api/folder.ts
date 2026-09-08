@@ -6,8 +6,8 @@ import { type Database } from 'database.types'
 import { convertDBToChatConversation } from './conversation'
 import { type NewFolders } from '~/db/schema'
 import { eq, desc, and, or, ilike, inArray } from 'drizzle-orm'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
-import { getUserIdentifier } from '~/pages/api/_utils/userIdentifier'
+import { withCourseAccessFromRequest } from '~/server/authorization'
+import { getUserIdentifier } from '~/server/userIdentifier'
 
 type Folder = Database['public']['Tables']['folders']['Row']
 

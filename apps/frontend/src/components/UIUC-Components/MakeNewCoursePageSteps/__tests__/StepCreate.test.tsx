@@ -1,6 +1,6 @@
 import React from 'react'
-import { describe, expect, it, vi, beforeAll, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 vi.mock('../HeaderStepNavigation', () => ({
@@ -12,22 +12,6 @@ vi.mock('../HeaderStepNavigation', () => ({
     </div>
   ),
 }))
-
-// Radix Select relies on DOM methods jsdom doesn't implement. Polyfill the
-// minimum needed so the listbox actually opens when the trigger is clicked.
-beforeAll(() => {
-  if (!HTMLElement.prototype.scrollIntoView) {
-    HTMLElement.prototype.scrollIntoView = vi.fn()
-  }
-  if (!HTMLElement.prototype.hasPointerCapture) {
-    HTMLElement.prototype.hasPointerCapture = vi
-      .fn()
-      .mockReturnValue(false) as any
-  }
-  if (!HTMLElement.prototype.releasePointerCapture) {
-    HTMLElement.prototype.releasePointerCapture = vi.fn() as any
-  }
-})
 
 import StepCreate from '../StepCreate'
 
@@ -45,6 +29,23 @@ describe('StepCreate', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
+
+  // Await the popup before querying: a synchronous getByRole races Base UI's
+  // popup mount. Matching on textContent is just for the failure message,
+  // which lists the options that were actually rendered.
+  const pickOption = async (label: string) => {
+    const listbox = await screen.findByRole('listbox')
+    const options = within(listbox).getAllByRole('option')
+    const option = options.find((o) => o.textContent?.trim() === label)
+    if (!option) {
+      throw new Error(
+        `No option "${label}". Found: ${options
+          .map((o) => `"${o.textContent?.trim()}"`)
+          .join(', ')}`,
+      )
+    }
+    await userEvent.click(option)
+  }
 
   it('renders the header with title and description', () => {
     render(<StepCreate {...defaultProps} />)
@@ -240,7 +241,7 @@ describe('StepCreate', () => {
     await userEvent.click(
       screen.getByRole('combobox', { name: /^Project Type$/ }),
     )
-    await userEvent.click(screen.getByRole('option', { name: 'Department' }))
+    await pickOption('Department')
 
     expect(onUpdateProjectType).toHaveBeenCalledWith('Department')
   })
@@ -257,9 +258,7 @@ describe('StepCreate', () => {
     await userEvent.click(
       screen.getByRole('combobox', { name: /^Organization$/ }),
     )
-    await userEvent.click(
-      screen.getByRole('option', { name: 'Computer Science' }),
-    )
+    await pickOption('Computer Science')
 
     expect(onUpdateOrganization).toHaveBeenCalledWith('Computer Science')
   })
@@ -277,7 +276,7 @@ describe('StepCreate', () => {
     await userEvent.click(
       screen.getByRole('combobox', { name: /^Project Type$/ }),
     )
-    await userEvent.click(screen.getByRole('option', { name: 'None' }))
+    await pickOption('None')
 
     expect(onUpdateProjectType).toHaveBeenCalledWith(undefined)
   })

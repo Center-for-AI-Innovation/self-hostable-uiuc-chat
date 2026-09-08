@@ -1,5 +1,4 @@
 // Web Scrape
-import { notifications } from '@mantine/notifications'
 import {
   Button,
   Input,
@@ -14,7 +13,6 @@ import {
   List,
 } from '@mantine/core'
 import {
-  IconAlertCircle,
   IconHome,
   IconSitemap,
   IconSubtask,
@@ -28,12 +26,7 @@ import { useMediaQuery } from '@mantine/hooks'
 import { callSetCourseMetadata } from '~/utils/apiUtils'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import { LoadingSpinner } from './LoadingSpinner'
-import { Montserrat } from 'next/font/google'
-
-const montserrat_med = Montserrat({
-  weight: '500',
-  subsets: ['latin'],
-})
+import { showToast } from '~/utils/toastUtils'
 
 interface WebScrapeProps {
   is_new_course: boolean
@@ -135,7 +128,7 @@ export const WebScrape = ({
       } else if (url.includes('ocw.mit.edu')) {
         data = downloadMITCourse(url, courseName, 'local_dir') // no await -- do in background
 
-        showToast()
+        showWebScrapeStartedToast()
       } else if (url.includes('canvas.illinois.edu/courses/')) {
         const response = await fetch('/api/UIUC-api/ingestCanvas', {
           method: 'POST',
@@ -214,42 +207,15 @@ export const WebScrape = ({
     return !Object.values(errors).some((error) => error.error)
   }
 
-  const showToast = () => {
-    return (
-      // docs: https://mantine.dev/others/notifications/
-
-      notifications.show({
-        id: 'web-scrape-toast',
-        withCloseButton: true,
-        onClose: () => console.log('unmounted'),
-        onOpen: () => console.log('mounted'),
-        autoClose: 15000,
-        // position="top-center",
-        title: 'Web scraping started',
-        message:
-          "It'll scrape in the background, just wait for the results to show up in your project (~3 minutes total).\nThis feature is stable but the web is a messy place. If you have trouble, I'd love to fix it. Just shoot me an email: rohan13@illinois.edu.",
-        icon: <IconWorldDownload />,
-        styles: {
-          root: {
-            backgroundColor: 'var(--modal-background)',
-            borderColor: 'var(--modal-border)',
-          },
-          title: {
-            color: 'var(--modal-text)',
-          },
-          description: {
-            color: 'var(--modal-text)',
-          },
-          closeButton: {
-            color: 'var(--modal-button)',
-            '&:hover': {
-              color: 'var(--modal-button-hover)',
-            },
-          },
-        },
-        loading: false,
-      })
-    )
+  const showWebScrapeStartedToast = () => {
+    showToast({
+      type: 'info',
+      autoClose: 15000,
+      title: 'Web scraping started',
+      message:
+        "It'll scrape in the background, just wait for the results to show up in your project (~3 minutes total).\nThis feature is stable but the web is a messy place. If you have trouble, I'd love to fix it. Just shoot me an email: rohan13@illinois.edu.",
+      icon: <IconWorldDownload size={16} />,
+    })
   }
 
   const scrapeWeb = async (
@@ -277,34 +243,11 @@ export const WebScrape = ({
     } catch (error: any) {
       console.error('Error during web scraping:', error)
 
-      notifications.show({
-        id: 'error-notification',
-        withCloseButton: true,
-        closeButtonProps: { color: 'red' },
-        onClose: () => console.log('error unmounted'),
-        onOpen: () => console.log('error mounted'),
+      showToast({
+        type: 'error',
         autoClose: 12000,
-        title: (
-          <Text size={'lg'} className={`${montserrat_med.className}`}>
-            {'Error during web scraping. Please try again.'}
-          </Text>
-        ),
-        message: (
-          <Text className={`${montserrat_med.className} text-neutral-200`}>
-            {error.message}
-          </Text>
-        ),
-        color: 'red',
-        radius: 'lg',
-        icon: <IconAlertCircle />,
-        className: 'my-notification-class',
-        style: {
-          backgroundColor: 'rgba(42,42,64,0.3)',
-          backdropFilter: 'blur(10px)',
-          borderLeft: '5px solid red',
-        },
-        withBorder: true,
-        loading: false,
+        title: 'Error during web scraping. Please try again.',
+        message: error.message,
       })
       throw error
     }

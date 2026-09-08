@@ -1,7 +1,6 @@
 import { type NextPage } from 'next'
 import Head from 'next/head'
 import { MainPageBackground } from '~/components/UIUC-Components/MainPageBackground'
-// import { Card, Image, Text, Title, Badge, Button, Group } from '@mantine/core'
 
 const PrivacyStatementPage: NextPage = () => {
   return (

@@ -1,6 +1,6 @@
 import { useContext, useEffect } from 'react'
 import { Divider, Flex, Modal, Title, createStyles, Tabs } from '@mantine/core'
-import HomeContext from '~/pages/api/home/home.context'
+import HomeContext from '~/components/home/home.context'
 import { useDisclosure, useMediaQuery } from '@mantine/hooks'
 import React from 'react'
 import { ModelSelect } from './ModelSelect'

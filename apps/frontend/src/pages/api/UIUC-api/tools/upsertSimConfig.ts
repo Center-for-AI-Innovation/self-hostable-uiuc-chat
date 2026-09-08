@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { type NextApiResponse } from 'next'
-import { withCourseOwnerOrAdminAccess } from '~/pages/api/authorization'
+import { withCourseOwnerOrAdminAccess } from '~/server/authorization'
 import { db } from '~/db/dbClient'
 import { projects } from '~/db/schema'
 import { type SimProjectConfig } from '~/types/sim'

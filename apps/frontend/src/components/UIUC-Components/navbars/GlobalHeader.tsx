@@ -4,7 +4,7 @@ import {
   IconNews,
   IconSparkles,
 } from '@tabler/icons-react'
-import { Menu2 } from 'tabler-icons-react'
+import { IconMenu2 } from '@tabler/icons-react'
 
 import { useAuth } from 'react-oidc-context'
 import { AuthMenu } from './AuthMenu'
@@ -63,18 +63,24 @@ export default function Header({ isNavbar = false }: { isNavbar?: boolean }) {
   )
 }
 
-import { createStyles, rem } from '@mantine/core'
 import { montserrat_heading } from 'fonts'
 import Link from 'next/link'
 import { usePostHog } from 'posthog-js/react'
 import { useEffect, useRef, useState } from 'react'
+
+// Illinois-orange outline link + icon button (were the Mantine createStyles
+// `link` / `menuIcon` entries). Colors kept as --illinois-orange /
+// --dashboard-button CSS vars. See docs/mantine-retirement-styles-notes.md.
+const orangeOutlineBtn =
+  'flex h-[2.2rem] min-w-[100px] cursor-pointer items-center justify-center rounded-md border border-[--illinois-orange] bg-white px-3 text-sm font-bold text-[--illinois-orange] transition-colors duration-100 hover:bg-[rgb(255_95_5_/_0.05)] focus:outline focus:outline-2 focus:outline-[--dashboard-button]'
+const orangeIconBtn =
+  'flex h-[2.2rem] w-[2.2rem] cursor-pointer items-center justify-center rounded-md border border-[--illinois-orange] bg-white p-1 transition-colors duration-100 hover:bg-[rgb(255_95_5_/_0.05)]'
 
 export function LandingPageHeader({
   forGeneralPurposeNotLandingpage = false,
 }: {
   forGeneralPurposeNotLandingpage?: boolean
 }) {
-  const { classes, theme } = useStyles()
   const headerStyle = forGeneralPurposeNotLandingpage
     ? {
         backgroundColor: 'var(--background)', //illinois-blue
@@ -242,7 +248,7 @@ export function LandingPageHeader({
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           {forGeneralPurposeNotLandingpage === false && (
             <>
-              <Link href="/new" className={classes.link} tabIndex={0}>
+              <Link href="/new" className={orangeOutlineBtn} tabIndex={0}>
                 <span style={{ display: 'flex', alignItems: 'center' }}>
                   <IconSparkles
                     size={20}
@@ -260,7 +266,7 @@ export function LandingPageHeader({
               <Link
                 tabIndex={0}
                 href="https://docs.uiuc.chat/"
-                className={classes.link}
+                className={orangeOutlineBtn}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -324,7 +330,7 @@ export function LandingPageHeader({
                 <Link
                   tabIndex={0}
                   href="https://docs.uiuc.chat/"
-                  className={classes.link}
+                  className={orangeOutlineBtn}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -353,7 +359,7 @@ export function LandingPageHeader({
                   tabIndex={0}
                   href="http://news.uiuc.chat/"
                   target="_blank"
-                  className={classes.link}
+                  className={orangeOutlineBtn}
                 >
                   <span className="flex items-center">
                     <IconNews
@@ -376,7 +382,11 @@ export function LandingPageHeader({
               )}
 
               {showMyChatbotsInNav && (
-                <Link href="/chatbots" className={classes.link} tabIndex={0}>
+                <Link
+                  href="/chatbots"
+                  className={orangeOutlineBtn}
+                  tabIndex={0}
+                >
                   <span className="flex items-center">
                     <IconHome
                       size={18}
@@ -398,7 +408,7 @@ export function LandingPageHeader({
               )}
 
               {showNewProjectInNav && (
-                <Link href="/new" className={classes.link} tabIndex={0}>
+                <Link href="/new" className={orangeOutlineBtn} tabIndex={0}>
                   <span className="flex items-center">
                     <IconSparkles
                       size={18}
@@ -436,7 +446,7 @@ export function LandingPageHeader({
               tabIndex={0}
               aria-label="Toggle Menu"
               aria-expanded={isMenuOpen}
-              className={`${classes.menuIcon} order-2 ${
+              className={`${orangeIconBtn} order-2 ${
                 !showDocsInNav ? 'highlight-button' : ''
               }`}
               onClick={(e) => toggleMenu(e)}
@@ -448,7 +458,7 @@ export function LandingPageHeader({
               }}
               ref={menuButtonRef as React.RefObject<HTMLDivElement>}
             >
-              <Menu2
+              <IconMenu2
                 size={24}
                 strokeWidth={2}
                 color="var(--illinois-orange)"
@@ -761,103 +771,3 @@ export function IconClipboardTexts() {
     />
   )
 }
-
-const HEADER_HEIGHT = rem(84)
-
-const useStyles = createStyles((theme) => ({
-  inner: {
-    height: HEADER_HEIGHT,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  links: {
-    padding: '.2em, 1em',
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-
-    [theme.fn.smallerThan('sm')]: {
-      display: 'none',
-    },
-  },
-
-  menuIcon: {
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '2.2rem',
-    width: '2.2rem',
-    padding: '0.25rem',
-    backgroundColor: 'white',
-    border: `1px solid var(--illinois-orange)`,
-    borderRadius: '0.375rem',
-    transition: 'background-color 100ms ease',
-    '&:hover': {
-      backgroundColor: 'rgba(255, 95, 5, 0.05)',
-    },
-  },
-
-  link: {
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-
-    height: '2.2rem',
-    minWidth: '100px',
-    width: 'auto',
-    padding: '0 0.75rem',
-
-    color: 'var(--illinois-orange)',
-    backgroundColor: 'white',
-
-    fontSize: rem(14),
-    fontWeight: 500,
-
-    border: `1px solid var(--illinois-orange)`,
-    borderRadius: '0.375rem',
-
-    transition: 'background-color 100ms ease',
-
-    '&:hover': {
-      backgroundColor: 'rgba(255, 95, 5, 0.05)',
-    },
-    '&:focus': {
-      outline: '2px solid var(--dashboard-button)',
-    },
-  },
-  userAvatar: {
-    cursor: 'pointer',
-    backgroundColor: 'hsl(280,100%,70%)',
-    color: 'white',
-    '&:hover': {
-      backgroundColor: 'hsl(280,100%,60%)',
-    },
-  },
-  avatarButton: {
-    cursor: 'pointer',
-    borderRadius: theme.radius.xl,
-    transition: 'background-color 100ms ease',
-    padding: rem(2),
-
-    '&:hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    },
-  },
-  userMenu: {
-    backgroundColor: '#15162c',
-    border: '1px solid hsl(280,100%,70%)',
-    color: '#f1f5f9',
-    padding: rem(4),
-
-    '.mantine-Menu-item': {
-      padding: `${rem(8)} ${rem(12)}`,
-      '&:hover': {
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-      },
-    },
-  },
-}))

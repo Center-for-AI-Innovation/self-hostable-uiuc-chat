@@ -1,4 +1,3 @@
-import { Group } from '@mantine/core'
 import { IconExternalLink } from '@tabler/icons-react'
 import { type NextPage } from 'next'
 import Head from 'next/head'

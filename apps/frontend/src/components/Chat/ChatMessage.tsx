@@ -38,8 +38,8 @@ import {
   type Message,
   type MessageType,
 } from '@/types/chat'
-import { useTranslation } from 'next-i18next'
-import HomeContext from '~/pages/api/home/home.context'
+import { useTranslation } from 'next-i18next/pages'
+import HomeContext from '~/components/home/home.context'
 import { fetchPresignedUrl } from '~/utils/apiUtils'
 import { CodeBlock } from '../Markdown/CodeBlock'
 import { MemoizedReactMarkdown } from '../Markdown/MemoizedReactMarkdown'
@@ -382,7 +382,7 @@ export interface Props {
   contentRenderer?: (message: Message) => JSX.Element
   onImageUrlsUpdate?: (message: Message, messageIndex: number) => void
   courseName: string
-  disableCitations: boolean
+  disableCitations?: boolean
 }
 
 // Add this helper function before the ChatMessage component

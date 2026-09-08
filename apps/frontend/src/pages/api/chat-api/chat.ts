@@ -10,7 +10,7 @@ import {
   type UIUCTool,
 } from '~/types/chat'
 import fetchCourseMetadataServer from '~/pages/api/chat-api/util/fetchCourseMetadataServer'
-import { determineAndValidateModelServer } from '~/pages/api/chat-api/util/determineAndValidateModelServer'
+import { determineAndValidateModelServer } from '~/server/determineAndValidateModelServer'
 import { validateApiKeyAndRetrieveData } from './keys/validate'
 import { get_user_permission } from '~/components/UIUC-Components/runAuthCheck'
 import posthog from 'posthog-js'

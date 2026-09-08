@@ -1,8 +1,7 @@
 import Head from 'next/head'
 import { useEffect, useState } from 'react'
 
-import { Card } from '@mantine/core'
-import { useMediaQuery } from '@mantine/hooks'
+import { Card } from '@/components/shadcn/ui/card'
 import router from 'next/router'
 import { createProject } from '~/utils/apiUtils'
 import Navbar from './navbars/Navbar'
@@ -20,7 +19,6 @@ const Dashboard = ({
   is_new_course?: boolean
   project_description?: string
 }) => {
-  const isSmallScreen = useMediaQuery('(max-width: 960px)')
   const [projectName, setProjectName] = useState(project_name || '')
   const [projectDescription, setProjectDescription] = useState(
     project_description || '',
@@ -112,10 +110,7 @@ const Dashboard = ({
       >
         <h1 className="sr-only">Explore Chatbots</h1>
         <Card
-          withBorder
-          padding="none"
-          radius="xl"
-          className="mx-auto mt-[2%] w-[96%] md:w-[90%] 2xl:w-[90%]"
+          className="mx-auto mt-[2%] w-[96%] gap-0 rounded-[2rem] border py-0 text-base shadow-none ring-0 md:w-[90%] 2xl:w-[90%]"
           style={{
             backgroundColor: 'var(--background)',
             borderColor: 'var(--dashboard-border)',

@@ -1,9 +1,9 @@
 import { IconFileExport } from '@tabler/icons-react'
 import { useContext } from 'react'
 
-import { useTranslation } from 'next-i18next'
+import { useTranslation } from 'next-i18next/pages'
 
-import HomeContext from '~/pages/api/home/home.context'
+import HomeContext from '~/components/home/home.context'
 
 import { SidebarButton } from '../../Sidebar/SidebarButton'
 import { ThemeToggle } from '../../UIUC-Components/ThemeToggle'

@@ -5,10 +5,6 @@ import userEvent from '@testing-library/user-event'
 
 import { renderWithProviders } from '~/test-utils/renderWithProviders'
 
-vi.mock('@mantine/notifications', () => ({
-  notifications: { show: vi.fn() },
-}))
-
 import ProjectTable from '../ProjectTable'
 
 describe('ProjectTable', () => {

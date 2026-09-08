@@ -121,10 +121,8 @@ vi.mock('../providers/WebLLMProviderInput', () => ({
   ),
 }))
 
-vi.mock('@mantine/notifications', () => ({
-  notifications: {
-    show: vi.fn(),
-  },
+vi.mock('~/utils/toastUtils', () => ({
+  showToast: vi.fn(),
 }))
 
 // Must import after mocks
@@ -135,7 +133,7 @@ import {
   showConfirmationToast,
 } from '../LLMsApiKeyInputForm'
 import APIKeyInputForm from '../LLMsApiKeyInputForm'
-import { notifications } from '@mantine/notifications'
+import { showToast } from '~/utils/toastUtils'
 import type {
   AllLLMProviders,
   AnySupportedModel,
@@ -291,27 +289,27 @@ describe('findDefaultModel', () => {
 
 describe('showConfirmationToast', () => {
   beforeEach(() => {
-    vi.mocked(notifications.show).mockClear()
+    vi.mocked(showToast).mockClear()
   })
 
-  it('calls notifications.show with success styling by default', () => {
+  it('calls showToast with the success type by default', () => {
     showConfirmationToast({ title: 'Done', message: 'All good' })
-    expect(notifications.show).toHaveBeenCalledTimes(1)
-    const arg = vi.mocked(notifications.show).mock.calls[0]![0] as any
+    expect(showToast).toHaveBeenCalledTimes(1)
+    const arg = vi.mocked(showToast).mock.calls[0]![0] as any
     expect(arg.title).toBe('Done')
     expect(arg.message).toBe('All good')
-    expect(arg.color).toBe('green')
+    expect(arg.type).toBe('success')
     expect(arg.autoClose).toBe(5000)
   })
 
-  it('calls notifications.show with error styling when isError is true', () => {
+  it('calls showToast with the error type when isError is true', () => {
     showConfirmationToast({
       title: 'Error',
       message: 'Bad',
       isError: true,
     })
-    const arg = vi.mocked(notifications.show).mock.calls[0]![0] as any
-    expect(arg.color).toBe('red')
+    const arg = vi.mocked(showToast).mock.calls[0]![0] as any
+    expect(arg.type).toBe('error')
   })
 
   it('respects a custom autoClose duration', () => {
@@ -320,14 +318,14 @@ describe('showConfirmationToast', () => {
       message: 'With custom close',
       autoClose: 10000,
     })
-    const arg = vi.mocked(notifications.show).mock.calls[0]![0] as any
+    const arg = vi.mocked(showToast).mock.calls[0]![0] as any
     expect(arg.autoClose).toBe(10000)
   })
 
-  it('sets loading to false', () => {
+  it('does not pass a custom icon (Toaster supplies per-type icons)', () => {
     showConfirmationToast({ title: 'T', message: 'M' })
-    const arg = vi.mocked(notifications.show).mock.calls[0]![0] as any
-    expect(arg.loading).toBe(false)
+    const arg = vi.mocked(showToast).mock.calls[0]![0] as any
+    expect(arg.icon).toBeUndefined()
   })
 })
 
@@ -620,10 +618,10 @@ describe('APIKeyInputForm', () => {
     )
     await waitFor(
       () => {
-        expect(notifications.show).toHaveBeenCalledWith(
+        expect(showToast).toHaveBeenCalledWith(
           expect.objectContaining({
             title: 'Error',
-            color: 'red',
+            type: 'error',
           }),
         )
       },
@@ -678,22 +676,26 @@ describe('Edge cases', () => {
     expect(result?.id).toBe('llama-70b')
   })
 
-  it('showConfirmationToast passes withCloseButton as true', () => {
+  it('showConfirmationToast passes exactly the supported toast options for success', () => {
     showConfirmationToast({ title: 'T', message: 'M' })
-    const arg = vi.mocked(notifications.show).mock.calls[0]![0] as any
-    expect(arg.withCloseButton).toBe(true)
+    expect(showToast).toHaveBeenCalledWith({
+      title: 'T',
+      message: 'M',
+      type: 'success',
+      autoClose: 5000,
+    })
   })
 
-  it('showConfirmationToast sets correct styles for success', () => {
+  it('showConfirmationToast preserves title and message', () => {
     showConfirmationToast({ title: 'T', message: 'M' })
-    const arg = vi.mocked(notifications.show).mock.calls[0]![0] as any
-    expect(arg.styles.root.borderStyle).toBe('solid')
-    expect(arg.radius).toBe('lg')
+    const arg = vi.mocked(showToast).mock.calls[0]![0] as any
+    expect(arg.title).toBe('T')
+    expect(arg.message).toBe('M')
   })
 
-  it('showConfirmationToast sets red border for errors', () => {
+  it('showConfirmationToast maps errors to the error type', () => {
     showConfirmationToast({ title: 'T', message: 'M', isError: true })
-    const arg = vi.mocked(notifications.show).mock.calls[0]![0] as any
-    expect(arg.styles.root.borderColor).toBe('#E53935')
+    const arg = vi.mocked(showToast).mock.calls[0]![0] as any
+    expect(arg.type).toBe('error')
   })
 })

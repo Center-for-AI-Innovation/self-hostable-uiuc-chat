@@ -27,7 +27,8 @@ vi.mock('~/components/UIUC-Components/navbars/Navbar', () => ({
 vi.mock('@/components/Chatbar/Chatbar', async () => {
   const React = await import('react')
   const { useContext, useEffect } = React
-  const { default: HomeContext } = await import('~/pages/api/home/home.context')
+  const { default: HomeContext } =
+    await import('~/components/home/home.context')
 
   type ChatbarCtx = {
     state?: { folders?: Array<{ id: string }> }
@@ -57,7 +58,8 @@ vi.mock('@/components/Chatbar/Chatbar', async () => {
 vi.mock('@/components/Chat/Chat', async () => {
   const React = await import('react')
   const { useContext, useEffect } = React
-  const { default: HomeContext } = await import('~/pages/api/home/home.context')
+  const { default: HomeContext } =
+    await import('~/components/home/home.context')
 
   type ChatCtx = {
     state?: { selectedConversation?: { id: string } }
@@ -111,7 +113,7 @@ vi.mock('@/components/Chat/Chat', async () => {
   }
 })
 
-import Home from '~/pages/api/home/home'
+import Home from '~/components/home/home'
 
 describe('pages/api/home/home (shared Home component)', () => {
   afterEach(() => cleanup())

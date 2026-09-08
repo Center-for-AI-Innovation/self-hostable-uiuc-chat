@@ -310,7 +310,7 @@ export function getCountryOfConcernBannerLede(
 }
 
 export const COUNTRY_OF_CONCERN_INFO_URL =
-  'https://www.bis.doc.gov/index.php/policy-guidance/country-guidance/sanctioned-destinations'
+  'https://ai.uillinois.edu/userfiles/public/ui_system_ai_guidance_countries_of_concern.pdf'
 
 const BANNER_ACK_STORAGE_KEY = 'coc-banner-dismissed-pairs'
 

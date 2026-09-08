@@ -6,8 +6,8 @@ import {
   messages,
 } from '~/db/dbClient'
 import { and, inArray, sql } from 'drizzle-orm'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
-import { getUserIdentifier } from '~/pages/api/_utils/userIdentifier'
+import { withCourseAccessFromRequest } from '~/server/authorization'
+import { getUserIdentifier } from '~/server/userIdentifier'
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   console.log('In deleteMessages handler')

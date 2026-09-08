@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import type { NextApiResponse } from 'next'
 import { db, apiKeys } from '~/db/dbClient'
-import { withCourseOwnerOrAdminAccess } from '~/pages/api/authorization'
+import { withCourseOwnerOrAdminAccess } from '~/server/authorization'
 import type { AuthenticatedRequest } from '~/utils/authMiddleware'
 
 type ApiResponse = {

@@ -1,6 +1,5 @@
-import React from 'react'
-import { notifications } from '@mantine/notifications'
-import { IconAlertCircle, IconCheck, IconInfoCircle } from '@tabler/icons-react'
+import { type ReactNode } from 'react'
+import { toast } from 'sonner'
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
@@ -9,33 +8,17 @@ interface ToastOptions {
   message: string
   type?: ToastType
   autoClose?: number
-  icon?: React.ReactNode
+  icon?: ReactNode
 }
 
-const getToastConfig = (type: ToastType) => {
-  const configs = {
-    success: {
-      color: 'green' as const,
-      icon: React.createElement(IconCheck),
-      defaultAutoClose: 5000,
-    },
-    error: {
-      color: 'red' as const,
-      icon: React.createElement(IconAlertCircle),
-      defaultAutoClose: 8000,
-    },
-    warning: {
-      color: 'yellow' as const,
-      icon: React.createElement(IconAlertCircle),
-      defaultAutoClose: 6000,
-    },
-    info: {
-      color: 'blue' as const,
-      icon: React.createElement(IconInfoCircle),
-      defaultAutoClose: 5000,
-    },
-  }
-  return configs[type]
+// Default auto-close durations per type, preserved from the previous
+// @mantine/notifications behavior. Sonner's <Toaster> (mounted in _app)
+// supplies the per-type icons + theming, so we no longer pass those here.
+const DEFAULT_AUTO_CLOSE: Record<ToastType, number> = {
+  success: 5000,
+  error: 8000,
+  warning: 6000,
+  info: 5000,
 }
 
 export const showToast = ({
@@ -45,41 +28,18 @@ export const showToast = ({
   autoClose,
   icon,
 }: ToastOptions) => {
-  const config = getToastConfig(type)
+  const duration = autoClose ?? DEFAULT_AUTO_CLOSE[type]
 
-  notifications.show({
-    title,
-    message,
-    color: config.color,
-    icon: icon || config.icon,
-    autoClose: autoClose || config.defaultAutoClose,
-    styles: {
-      root: {
-        backgroundColor: 'var(--notification)',
-        borderColor: 'var(--notification-border)',
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderRadius: '8px',
-      },
-      title: {
-        color: 'var(--notification-title)',
-        fontWeight: 600,
-      },
-      description: {
-        color: 'var(--notification-message)',
-      },
-      closeButton: {
-        color: 'var(--notification-title)',
-        borderRadius: '4px',
-        '&:hover': {
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        },
-      },
-      icon: {
-        backgroundColor: 'transparent',
-        color: 'var(--notification-title)',
-      },
-    },
+  // Mantine had a bold `title` heading + `message` body. Sonner uses the first
+  // argument as the heading and `description` as the body, so when a title is
+  // provided it becomes the heading and the message becomes the description.
+  const heading = title ?? message
+  const description = title ? message : undefined
+
+  toast[type](heading, {
+    description,
+    duration,
+    ...(icon ? { icon } : {}),
   })
 }
 

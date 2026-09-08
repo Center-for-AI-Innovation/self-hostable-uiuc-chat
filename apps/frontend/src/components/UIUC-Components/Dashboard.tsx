@@ -1,8 +1,7 @@
 import Head from 'next/head'
 import { useEffect, useState } from 'react'
 
-import { Card, Title } from '@mantine/core'
-import { useMediaQuery } from '@mantine/hooks'
+import { Card } from '@/components/shadcn/ui/card'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import router from 'next/router'
 import { createProject } from '~/utils/apiUtils'
@@ -22,7 +21,6 @@ const Dashboard = ({
   is_new_course?: boolean
   project_description?: string
 }) => {
-  const isSmallScreen = useMediaQuery('(max-width: 960px)')
   const [projectName, setProjectName] = useState(project_name || '')
   const [projectDescription, setProjectDescription] = useState(
     project_description || '',
@@ -114,13 +112,12 @@ const Dashboard = ({
       >
         <div className="mx-auto mt-[2%] min-h-[70vh] w-[96%] md:w-[90%] 2xl:w-[90%]">
           <div className="px-8">
-            <Title
-              order={1}
+            <h1
               className={`text-2xl font-bold sm:pt-2 ${montserrat_heading.variable} font-montserratHeading`}
               style={{ color: 'var(--foreground)' }}
             >
               My Chatbots
-            </Title>
+            </h1>
 
             <p
               className={`text-md mt-2 ${montserrat_paragraph.variable} font-montserratParagraph`}
@@ -131,10 +128,7 @@ const Dashboard = ({
           </div>
 
           <Card
-            withBorder
-            padding="none"
-            radius="xl"
-            className="mt-8 min-h-[10rem]"
+            className="mt-8 min-h-[10rem] gap-0 rounded-[2rem] border py-0 text-base shadow-none ring-0"
             style={{
               backgroundColor: 'var(--background)',
               borderColor: 'var(--dashboard-border)',

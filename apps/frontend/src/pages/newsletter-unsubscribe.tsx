@@ -2,8 +2,8 @@ import { MainPageBackground } from '~/components/UIUC-Components/MainPageBackgro
 import { Title, Text, Group, Badge } from '@mantine/core'
 
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
-import { IconSunset2, IconX } from '@tabler/icons-react'
-import { notifications } from '@mantine/notifications'
+import { IconSunset2 } from '@tabler/icons-react'
+import { showToast } from '~/utils/toastUtils'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 
@@ -20,17 +20,11 @@ export default function Unsubscribe() {
 
   const handleSubmit = async (event: any) => {
     if (!email) {
-      notifications.show({
-        id: 'error-notification',
+      showToast({
         title: 'No email identified. 🤔',
         message: 'Looked like the box was empty 👀',
+        type: 'error',
         autoClose: 20000,
-        color: 'red',
-        radius: 'lg',
-        icon: <IconX />,
-        className: 'my-notification-class',
-        style: { backgroundColor: '#15162c' },
-        loading: false,
       })
       return
     }
@@ -45,34 +39,23 @@ export default function Unsubscribe() {
       })
 
       if (!response.ok) {
-        notifications.show({
-          id: 'network-error-notification',
+        showToast({
           title: 'Our database is having a bad day. 😢',
           message:
             "Seems like we couldn't unsubscribe you. Please try again later. Email help@uiuc.chat for assistance.",
+          type: 'error',
           autoClose: 20000,
-          color: 'red',
-          radius: 'lg',
-          icon: <IconX />,
-          className: 'my-notification-class',
-          style: { backgroundColor: '#15162c' },
-          loading: false,
         })
-        throw new Error('Network response was not ok')
+        return
       }
 
-      notifications.show({
-        id: 'success-notification',
+      showToast({
         title: 'Successfully unsubscribed.',
         message:
           "See ya, wouldn't wanna be ya! 🌅 Redirecting to home page in 5 seconds...",
+        type: 'success',
         autoClose: 5000,
-        // color: 'green',
-        radius: 'lg',
-        icon: <IconSunset2 />,
-        className: 'my-notification-class',
-        style: { backgroundColor: '#15162c' },
-        loading: false,
+        icon: <IconSunset2 size={16} />,
       })
 
       setTimeout(() => {
@@ -80,17 +63,11 @@ export default function Unsubscribe() {
       }, 5000)
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error)
-      notifications.show({
-        id: 'network-error-notification',
+      showToast({
         title: 'Our database is having a bad day. 😢',
         message: `Seems like we couldn't unsubscribe you. Please try again later. Email help@uiuc.chat for assistance. Full error: ${error}`,
+        type: 'error',
         autoClose: 20000,
-        color: 'red',
-        radius: 'lg',
-        icon: <IconX />,
-        className: 'my-notification-class',
-        style: { backgroundColor: '#15162c' },
-        loading: false,
       })
     }
   }

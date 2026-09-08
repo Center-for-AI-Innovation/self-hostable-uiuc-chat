@@ -11,7 +11,7 @@ import {
 } from '@/types/chat'
 import { saveConversationToLocalStorage } from '~/hooks/__internal__/conversation'
 import { type UseAgentStreamCallbacks } from '~/hooks/useAgentStream'
-import { type HomeInitialState } from '~/pages/api/home/home.state'
+import { type HomeInitialState } from '~/components/home/home.state'
 import { type AgentRunRequest } from '~/types/agentStream'
 
 type HomeDispatch = Dispatch<ActionType<HomeInitialState>>

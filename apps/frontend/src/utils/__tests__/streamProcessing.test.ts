@@ -17,7 +17,7 @@ vi.mock('~/utils/fetchContexts', () => ({
   fetchContexts: vi.fn(),
   fetchMQRContexts: vi.fn(),
 }))
-vi.mock('~/pages/api/UIUC-api/fetchImageDescription', () => ({
+vi.mock('~/utils/fetchImageDescription', () => ({
   fetchImageDescription: vi.fn(),
 }))
 vi.mock('../citations', () => ({
@@ -37,7 +37,7 @@ import { runGeminiChat } from '~/utils/modelProviders/routes/gemini'
 import { runSambaNovaChat } from '~/app/utils/sambanova'
 import posthog from 'posthog-js'
 import { fetchContexts } from '~/utils/fetchContexts'
-import { fetchImageDescription } from '~/pages/api/UIUC-api/fetchImageDescription'
+import { fetchImageDescription } from '~/utils/fetchImageDescription'
 import { replaceCitationLinks } from '../citations'
 import { openAIAzureChat } from '../modelProviders/OpenAIAzureChat'
 import { NCSAHostedVLMModelID } from '../modelProviders/types/NCSAHostedVLM'

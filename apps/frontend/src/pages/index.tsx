@@ -3,7 +3,7 @@ import { type NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
 import React, { useState, useEffect, useMemo } from 'react'
-import { ArrowNarrowRight, ExternalLink, Link } from 'tabler-icons-react'
+import { IconArrowNarrowRight, IconExternalLink } from '@tabler/icons-react'
 
 import { doto_font, montserrat_heading, montserrat_paragraph } from 'fonts'
 import GlobalFooter from '~/components/UIUC-Components/GlobalFooter'
@@ -256,7 +256,7 @@ const Home: NextPage = () => {
                 }}
               >
                 Try it out{' '}
-                <ArrowNarrowRight
+                <IconArrowNarrowRight
                   size={32}
                   strokeWidth={1}
                   color={'white'}
@@ -425,7 +425,7 @@ const Home: NextPage = () => {
                   radius="sm"
                 >
                   Learn More{' '}
-                  <ExternalLink
+                  <IconExternalLink
                     size={20}
                     strokeWidth={1.75}
                     color={'var(--illinois-white)'}
@@ -499,7 +499,7 @@ const Home: NextPage = () => {
                   radius="sm"
                 >
                   Learn More{' '}
-                  <ExternalLink
+                  <IconExternalLink
                     size={20}
                     strokeWidth={1.75}
                     color={'var(--illinois-white)'}
@@ -564,7 +564,7 @@ const Home: NextPage = () => {
                   radius="sm"
                 >
                   Learn More{' '}
-                  <ExternalLink
+                  <IconExternalLink
                     size={20}
                     strokeWidth={1.75}
                     color={'var(--illinois-white)'}
@@ -613,7 +613,7 @@ const Home: NextPage = () => {
                 rel="noopener noreferrer"
               >
                 Read the docs{' '}
-                <ExternalLink
+                <IconExternalLink
                   size={20}
                   strokeWidth={1.75}
                   color={'var(--illinois-white)'}
@@ -945,7 +945,7 @@ function FlagshipChatbots() {
               </div>
 
               <div className="mt-1 flex justify-end sm:ml-auto sm:mt-0">
-                <ArrowNarrowRight
+                <IconArrowNarrowRight
                   size={28}
                   strokeWidth={1.25}
                   color={'#888'}

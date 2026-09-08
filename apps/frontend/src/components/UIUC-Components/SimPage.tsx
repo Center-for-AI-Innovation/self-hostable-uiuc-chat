@@ -11,12 +11,7 @@ import {
   Badge,
 } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
-import { notifications } from '@mantine/notifications'
-import {
-  IconAlertCircle,
-  IconCheck,
-  IconExternalLink,
-} from '@tabler/icons-react'
+import { IconAlertCircle, IconExternalLink } from '@tabler/icons-react'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -27,6 +22,7 @@ import SettingsLayout, {
 } from '~/components/Layout/SettingsLayout'
 import { type CourseMetadata } from '~/types/courseMetadata'
 import { fetchCourseMetadata } from '~/utils/apiUtils'
+import { showToast } from '~/utils/toastUtils'
 import {
   clearCachedSimTools,
   useFetchAllWorkflows,
@@ -176,28 +172,22 @@ const SimPage = ({ course_name }: { course_name: string }) => {
       clearCachedSimTools(course_name)
       refetchWorkflows()
 
-      notifications.show({
-        id: 'sim-config-saved',
+      showToast({
         title: 'Saved',
         message: 'Sim AI configuration saved successfully.',
+        type: 'success',
         autoClose: 5000,
-        color: 'green',
-        icon: <IconCheck />,
-        styles: notificationStyles(false),
       })
     } catch (error) {
       console.error('[SimPage] failed to save Sim config', error)
-      notifications.show({
-        id: 'sim-config-error',
+      showToast({
         title: 'Error',
         message:
           error instanceof Error
             ? error.message
             : 'Failed to save Sim AI configuration.',
+        type: 'error',
         autoClose: 10000,
-        color: 'red',
-        icon: <IconAlertCircle />,
-        styles: notificationStyles(true),
       })
     } finally {
       setIsSaving(false)
@@ -544,28 +534,6 @@ const SimPage = ({ course_name }: { course_name: string }) => {
       <GlobalFooter />
     </SettingsLayout>
   )
-}
-
-function notificationStyles(isError: boolean) {
-  return {
-    root: {
-      backgroundColor: 'var(--notification)',
-      borderColor: isError ? '#E53935' : 'var(--notification-border)',
-      borderWidth: '1px',
-      borderStyle: 'solid' as const,
-      borderRadius: '8px',
-    },
-    title: { color: 'var(--notification-title)', fontWeight: 600 },
-    description: { color: 'var(--notification-message)' },
-    closeButton: {
-      color: 'var(--notification-title)',
-      borderRadius: '4px',
-    },
-    icon: {
-      backgroundColor: 'transparent',
-      color: isError ? '#E53935' : 'var(--notification-title)',
-    },
-  }
 }
 
 export default SimPage

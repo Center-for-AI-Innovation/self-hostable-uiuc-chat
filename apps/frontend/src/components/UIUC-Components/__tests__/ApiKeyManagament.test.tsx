@@ -7,8 +7,9 @@ import { http, HttpResponse } from 'msw'
 import { server } from '~/test-utils/server'
 import { renderWithProviders } from '~/test-utils/renderWithProviders'
 
-vi.mock('@mantine/notifications', () => ({
-  showNotification: vi.fn(),
+vi.mock('~/utils/toastUtils', () => ({
+  showSuccessToast: vi.fn(),
+  showErrorToast: vi.fn(),
 }))
 
 vi.mock('~/utils/apiUtils', async (importOriginal) => {
@@ -26,7 +27,7 @@ vi.mock('../APIRequestBuilder', () => ({
 describe('ApiKeyManagament', () => {
   it('shows Generate API Key when authenticated and no key exists, then generates, copies, rotates, and deletes', async () => {
     const user = userEvent.setup()
-    const { showNotification } = await import('@mantine/notifications')
+    const { showSuccessToast } = await import('~/utils/toastUtils')
 
     let currentKey: string | null = null
     server.use(
@@ -61,8 +62,9 @@ describe('ApiKeyManagament', () => {
       await screen.findByRole('button', { name: /Generate API Key/i }),
     )
     await waitFor(() =>
-      expect(showNotification as any).toHaveBeenCalledWith(
-        expect.objectContaining({ title: 'Success' }),
+      expect(showSuccessToast as any).toHaveBeenCalledWith(
+        'API key generated successfully.',
+        'Success',
       ),
     )
 
@@ -72,15 +74,17 @@ describe('ApiKeyManagament', () => {
 
     await user.click(screen.getByRole('button', { name: /Rotate API Key/i }))
     await waitFor(() =>
-      expect(showNotification as any).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'API key rotated successfully.' }),
+      expect(showSuccessToast as any).toHaveBeenCalledWith(
+        'API key rotated successfully.',
+        'Success',
       ),
     )
 
     await user.click(screen.getByRole('button', { name: /Delete API Key/i }))
     await waitFor(() =>
-      expect(showNotification as any).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'API key deleted successfully.' }),
+      expect(showSuccessToast as any).toHaveBeenCalledWith(
+        'API key deleted successfully.',
+        'Success',
       ),
     )
   })

@@ -12,13 +12,12 @@ import { makeConversation, makeMessage } from '~/test-utils/mocks/chat'
 // Module-level mocks
 // ---------------------------------------------------------------------------
 
-vi.mock('@mantine/notifications', () => ({
-  notifications: {
-    show: vi.fn(),
-    update: vi.fn(),
-    hide: vi.fn(),
-    clean: vi.fn(),
-  },
+vi.mock('~/utils/toastUtils', () => ({
+  showToast: vi.fn(),
+  showSuccessToast: vi.fn(),
+  showErrorToast: vi.fn(),
+  showWarningToast: vi.fn(),
+  showInfoToast: vi.fn(),
 }))
 
 vi.mock('@mlc-ai/web-llm', () => ({
@@ -657,7 +656,7 @@ describe('Chat (additional coverage)', () => {
       throw new Error('Save failed')
     })
     const { Chat } = await import('../Chat')
-    const { notifications } = await import('@mantine/notifications')
+    const { showToast } = await import('~/utils/toastUtils')
 
     renderWithProviders(
       <Chat
@@ -681,7 +680,7 @@ describe('Chat (additional coverage)', () => {
 
     await waitFor(() => {
       // The error handler should show a toast
-      expect((notifications as any).show).toHaveBeenCalled()
+      expect(showToast as any).toHaveBeenCalled()
     })
 
     localStorage.removeItem('selectedConversation')
@@ -867,8 +866,8 @@ describe('Chat (additional coverage)', () => {
   // -----------------------------------------------------------------------
   it('shows error toast when agent mode is enabled but courseMetadata disallows it', async () => {
     const user = userEvent.setup()
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications as any).show.mockClear()
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as any).mockClear()
 
     server.use(streamOk(), logConvoOk())
 
@@ -903,7 +902,7 @@ describe('Chat (additional coverage)', () => {
 
     await user.click(screen.getByRole('button', { name: /^send$/i }))
     await waitFor(() => {
-      expect((notifications as any).show).toHaveBeenCalled()
+      expect(showToast as any).toHaveBeenCalled()
     })
   })
 
@@ -1108,8 +1107,8 @@ describe('Chat (additional coverage)', () => {
   // -----------------------------------------------------------------------
   it('shows a default error toast when error response body is not JSON', async () => {
     const user = userEvent.setup()
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications as any).show.mockClear()
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as any).mockClear()
 
     server.use(
       http.post('*/api/allNewRoutingChat', async () => {
@@ -1144,7 +1143,7 @@ describe('Chat (additional coverage)', () => {
     await user.click(screen.getByRole('button', { name: /^send$/i }))
 
     await waitFor(() => {
-      expect((notifications as any).show).toHaveBeenCalled()
+      expect(showToast as any).toHaveBeenCalled()
     })
   })
 
@@ -1515,8 +1514,8 @@ describe('Chat (additional coverage)', () => {
   it('shows error toast when handleRegenerate encounters an error', async () => {
     const user = userEvent.setup()
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications as any).show.mockClear()
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as any).mockClear()
 
     const conversation = defaultConversation({
       messages: [
@@ -1563,8 +1562,8 @@ describe('Chat (additional coverage)', () => {
   // -----------------------------------------------------------------------
   it('shows error toast with title from LLM error response', async () => {
     const user = userEvent.setup()
-    const { notifications } = await import('@mantine/notifications')
-    ;(notifications as any).show.mockClear()
+    const { showToast } = await import('~/utils/toastUtils')
+    ;(showToast as any).mockClear()
 
     server.use(
       http.post('*/api/allNewRoutingChat', async () => {
@@ -1599,7 +1598,7 @@ describe('Chat (additional coverage)', () => {
     await user.click(screen.getByRole('button', { name: /^send$/i }))
 
     await waitFor(() => {
-      expect((notifications as any).show).toHaveBeenCalled()
+      expect(showToast as any).toHaveBeenCalled()
     })
   })
 

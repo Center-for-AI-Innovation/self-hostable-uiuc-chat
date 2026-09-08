@@ -1,6 +1,6 @@
 'use client'
 
-import { useControllableState } from '@radix-ui/react-use-controllable-state'
+import { useControllableState } from '@/components/shadcn/lib/use-controllable-state'
 import { Badge } from '@/components/shadcn/ui/badge'
 import {
   Collapsible,
@@ -58,7 +58,7 @@ export const ChainOfThought = memo(
     })
 
     const chainOfThoughtContext = useMemo(
-      () => ({ isOpen, setIsOpen }),
+      () => ({ isOpen: isOpen ?? false, setIsOpen }),
       [isOpen, setIsOpen],
     )
 

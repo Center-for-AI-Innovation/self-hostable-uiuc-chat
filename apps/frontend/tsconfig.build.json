@@ -1,0 +1,23 @@
+{
+  // Type-check config used by `next build` (wired up via `typescript.tsconfigPath`
+  // in next.config.mjs). Identical to tsconfig.json except that test files are
+  // excluded: `next build` runs tsc over everything tsconfig `include` matches,
+  // so a type error in a spec used to fail the production build (and the release
+  // Docker image) even though tests are never bundled.
+  //
+  // Tests are still type-checked by the editor and by `npm run typecheck:all`,
+  // which uses the root tsconfig.json.
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "__tests__",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "src/test-utils/**",
+    "vitest.config.mts",
+    "vitest.setup.ts"
+  ]
+}

@@ -13,7 +13,7 @@ import {
   SimListError,
   simUpstreamErrorResponse,
 } from '~/utils/simDiscovery'
-import { getCourseMetadata, hasCourseAccess } from '~/pages/api/authorization'
+import { getCourseMetadata, hasCourseAccess } from '~/server/authorization'
 import { withAuth, type AuthenticatedRequest } from '~/utils/authMiddleware'
 
 const TIMEOUT_MS = 300_000 // 5 minutes

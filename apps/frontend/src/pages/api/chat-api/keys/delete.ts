@@ -3,7 +3,7 @@ import type { NextApiResponse } from 'next'
 import posthog from 'posthog-js'
 import type { ApiKeys } from '~/db/dbClient'
 import { apiKeys, db } from '~/db/dbClient'
-import { withCourseOwnerOrAdminAccess } from '~/pages/api/authorization'
+import { withCourseOwnerOrAdminAccess } from '~/server/authorization'
 import type { AuthenticatedRequest } from '~/utils/authMiddleware'
 
 type ApiResponse = {

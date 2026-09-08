@@ -3,7 +3,7 @@ import { type AuthenticatedRequest } from '~/utils/authMiddleware'
 import { eq } from 'drizzle-orm'
 import { documents } from '~/db/schema'
 import { connectionManager } from '~/utils/connectionManager'
-import { withCourseAccessFromRequest } from '~/pages/api/authorization'
+import { withCourseAccessFromRequest } from '~/server/authorization'
 
 type FetchIfDocumentExistsResponse = {
   total_count?: number

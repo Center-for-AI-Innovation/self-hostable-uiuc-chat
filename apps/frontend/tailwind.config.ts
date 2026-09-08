@@ -15,21 +15,37 @@ export default {
             height: '0',
           },
           to: {
-            height: 'var(--radix-accordion-content-height)',
+            height: 'var(--accordion-panel-height)',
           },
         },
         'accordion-up': {
           from: {
-            height: 'var(--radix-accordion-content-height)',
+            height: 'var(--accordion-panel-height)',
           },
           to: {
             height: '0',
+          },
+        },
+        'caret-blink': {
+          '0%,70%,100%': {
+            opacity: '1',
+          },
+          '20%,50%': {
+            opacity: '0',
           },
         },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'caret-blink': 'caret-blink 1.25s ease-out infinite',
+      },
+      transitionDuration: {
+        '350': '350ms',
+      },
+      transitionTimingFunction: {
+        base: 'ease',
+        emphasized: 'cubic-bezier(0.22, 1, 0.36, 1)',
       },
       colors: {
         // Using HSL variables defined in @layer base for Tailwind classes
@@ -87,5 +103,12 @@ export default {
     },
   },
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  plugins: [require('tailwindcss-animate'), require('daisyui')],
+  plugins: [
+    require('tailwindcss-animate'),
+    // Backports v4's built-in container queries to Tailwind 3.x, so the
+    // regenerated shadcn components can keep using `@container/<name>` and
+    // `@<size>/<name>:` variants (see field.tsx) instead of viewport breakpoints.
+    require('@tailwindcss/container-queries'),
+    require('daisyui'),
+  ],
 } satisfies Config
