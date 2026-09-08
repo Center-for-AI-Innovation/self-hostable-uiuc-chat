@@ -88,13 +88,13 @@ if [ "$wipe_data" = true ]; then
 	"${COMPOSE[@]}" down -v --remove-orphans
 fi
 
-# Sim's four secrets have no defaults in docker-compose.sim.yaml — a working
+# Sim's secrets have no defaults in docker-compose.sim.yaml — a working
 # default would be a published key, and API_ENCRYPTION_KEY is what encrypts
 # stored Sim API keys. Generate per-deployment values on first run and persist
 # them, the same way ENCRYPTION_MASTER_KEY is handled.
 ensure_sim_secrets() {
 	local name value
-	for name in SIM_API_ENCRYPTION_KEY SIM_BETTER_AUTH_SECRET SIM_ENCRYPTION_KEY SIM_INTERNAL_API_SECRET; do
+	for name in SIM_POSTGRES_PASSWORD SIM_API_ENCRYPTION_KEY SIM_BETTER_AUTH_SECRET SIM_ENCRYPTION_KEY SIM_INTERNAL_API_SECRET; do
 		eval "value=\${$name:-}"
 		if [ -n "$value" ]; then
 			continue
@@ -119,6 +119,9 @@ ensure_sim_secrets() {
 			;;
 		SIM_BETTER_AUTH_SECRET)
 			echo "[WARNING] SIM_BETTER_AUTH_SECRET was not set, so a new one was generated. Existing Sim sessions are invalidated; sign in again."
+			;;
+		SIM_POSTGRES_PASSWORD)
+			echo "[WARNING] SIM_POSTGRES_PASSWORD was not set, so a new one was generated. An existing sim-db volume keeps its old password; reset it or wipe the volume if Sim cannot connect."
 			;;
 		esac
 	done

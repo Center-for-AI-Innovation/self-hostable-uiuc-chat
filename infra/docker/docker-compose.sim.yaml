@@ -1,3 +1,6 @@
+# SIM_POSTGRES_PASSWORD has no default on purpose: start-dev.sh/start-all.sh
+# generate one into .env on first run. The `:?` on sim-db's POSTGRES_PASSWORD
+# makes compose refuse to start when it is unset, which covers every use below.
 services:
   simstudio:
     image: ${SIM_APP_IMAGE:-ghcr.io/simstudioai/simstudio@sha256:8341f8b3e8e564e46859fe4dba02462101627307f0907b19d879b1d253fa75a8}
