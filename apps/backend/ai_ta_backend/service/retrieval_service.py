@@ -593,15 +593,16 @@ class RetrievalService:
         engine_kind = self.conn_manager.get_vector_engine_kind(course_name)
 
         if engine_kind == "qdrant":
-            # External Qdrant only (host default is pgvector). Shared corpora
-            # (pubmed, patents, …) are not partitioned by course_name — omit
-            # that constraint; conversation_id / doc_groups still apply.
+            # External Qdrant only (host default is pgvector). Course-name
+            # scoping stays on unless qdrant_config.apply_course_filter is
+            # False (shared corpora like pubmed/patents). conversation_id
+            # / doc_groups still apply either way.
             search_filter = vdb._create_search_filter(
                 course_name,
                 doc_groups,
                 disabled_doc_groups,
                 public_doc_groups,
-                apply_course_filter=False,
+                apply_course_filter=vdb._should_apply_course_filter(),
             )
             if conversation_id:
                 chat_filter = vdb._create_conversation_search_filter(conversation_id)
