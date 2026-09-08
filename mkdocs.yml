@@ -119,6 +119,7 @@ nav:
       - self-hosting/index.md
       - Environment Variables: self-hosting/environment-variables.md
       - Configuration: self-hosting/configuration.md
+      - External Connections Setup: external-connections-setup.md
       - System Architecture: self-hosting/architecture.md
   - CropWizard:
       - cropwizard/index.md
