@@ -152,6 +152,7 @@ Every Qdrant config has one required collection (`default_collection`). All inge
 | `https`                      | boolean | No       | Whether to use HTTPS. Default: `false`.                                                                         |
 | `collections`                | array   | No       | Additional collections to fan out searches across. See [Optional `collections`](#optional-collections-fan-out-search) below. |
 | `skip_quantization_rescore`  | boolean | No       | Skip quantization rescore during search. Default: `true`.                                                       |
+| `apply_course_filter`        | boolean | No       | Whether search constrains payload `course_name`. Default: `true`. Set to `false` for shared corpora (pubmed, patents, …) that are not partitioned by project. Distinct from per-collection `use_filter`, which drops the entire search filter. |
 | `embedding`                  | object  | No       | **Deprecated.** Use the top-level `embedding_config` column instead. Still honored as a fallback when no top-level config is present. See [Embedding Provider Config](#embedding-provider-config) below. |
 
 ### Optional: `collections` (fan-out search)
