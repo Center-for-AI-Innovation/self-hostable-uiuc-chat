@@ -13,7 +13,7 @@ function AspectRatio({
           '--ratio': ratio,
         } as React.CSSProperties
       }
-      className={cn('relative aspect-[var(--ratio)]', className)}
+      className={cn('relative aspect-(--ratio)', className)}
       {...props}
     />
   )

@@ -121,7 +121,7 @@ const SupportedFileUploadTypes = () => {
     {
       icon: IconFileTypeTxt,
       label: 'Text',
-      color: 'text-[--foreground-faded]',
+      color: 'text-(--foreground-faded)',
     },
   ]
 

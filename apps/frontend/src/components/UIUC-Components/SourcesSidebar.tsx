@@ -211,7 +211,7 @@ const SourcesSidebar = ({
       <div className="flex flex-col">
         {citedContexts.length > 0 && (
           <div>
-            <div className="sticky top-0 z-10 border-b border-[--sources-border] bg-[--sources-header-background] px-4 py-3">
+            <div className="sticky top-0 z-10 border-b border-(--sources-border) bg-(--sources-header-background) px-4 py-3">
               <Text
                 className={`text-sm font-semibold ${montserrat_heading.variable} font-montserratHeading`}
               >
@@ -241,7 +241,7 @@ const SourcesSidebar = ({
 
         {remainingContexts.length > 0 && (
           <div>
-            <div className="sticky top-0 z-10 border-b border-[--sources-border] bg-[--sources-header-background] px-4 py-3">
+            <div className="sticky top-0 z-10 border-b border-(--sources-border) bg-(--sources-header-background) px-4 py-3">
               <Text
                 className={`text-sm font-semibold ${montserrat_heading.variable} font-montserratHeading`}
               >
@@ -277,7 +277,7 @@ const SourcesSidebar = ({
         ref={sidebarRef}
         role="complementary"
         aria-label="Sources sidebar"
-        className="fixed bottom-0 right-0 top-20 z-[1000] flex w-[260px] flex-col bg-[--sources-background] text-[--sources-foreground] shadow-lg"
+        className="fixed bottom-0 right-0 top-20 z-1000 flex w-[260px] flex-col bg-(--sources-background) text-(--sources-foreground) shadow-lg"
         style={{ height: 'calc(100vh - 80px)' }}
       >
         <div className="flex-1 overflow-y-auto">{renderContent()}</div>
@@ -285,7 +285,7 @@ const SourcesSidebar = ({
         <button
           ref={closeButtonRef}
           tabIndex={0}
-          className={`absolute right-[270px] top-5 z-50 h-7 w-7 text-[--foreground-faded] hover:text-[--foreground] sm:top-0.5 sm:h-8 sm:w-8`}
+          className={`absolute right-[270px] top-5 z-50 h-7 w-7 text-(--foreground-faded) hover:text-(--foreground) sm:top-0.5 sm:h-8 sm:w-8`}
           type="button"
           aria-label="Close sources sidebar"
           onClick={handleClose}

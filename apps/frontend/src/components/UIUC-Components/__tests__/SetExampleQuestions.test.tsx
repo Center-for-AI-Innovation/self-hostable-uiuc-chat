@@ -148,7 +148,7 @@ describe('SetExampleQuestions', () => {
   // Saving on blur
   // ---------------------------------------------------------------------------
 
-  it('submits filtered questions via callSetCourseMetadata on blur', async () => {
+  it('submits filtered questions via callSetCourseMetadata on blur-sm', async () => {
     const user = userEvent.setup()
     const mock = await getCallSetCourseMetadata()
 
@@ -172,7 +172,7 @@ describe('SetExampleQuestions', () => {
     )
   })
 
-  it('does not save empty questions on blur', async () => {
+  it('does not save empty questions on blur-sm', async () => {
     const mock = await getCallSetCourseMetadata()
 
     renderWithProviders(
@@ -206,7 +206,7 @@ describe('SetExampleQuestions', () => {
     expect(mock).not.toHaveBeenCalled()
   })
 
-  it('shows saved status after successful save on blur', async () => {
+  it('shows saved status after successful save on blur-sm', async () => {
     const user = userEvent.setup()
 
     renderWithProviders(
@@ -675,7 +675,7 @@ describe('SetExampleQuestions', () => {
   // Whitespace-only input is treated as empty
   // ---------------------------------------------------------------------------
 
-  it('does not save whitespace-only questions on blur', async () => {
+  it('does not save whitespace-only questions on blur-sm', async () => {
     const user = userEvent.setup()
     const mock = await getCallSetCourseMetadata()
 

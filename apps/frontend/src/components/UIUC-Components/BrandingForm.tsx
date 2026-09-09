@@ -123,7 +123,7 @@ const BrandingForm = ({
               value={introMessage}
               rightSlot={
                 greetingSaved && !isIntroMessageUpdated ? (
-                  <Check className="size-4 text-[--illinois-prairie]" />
+                  <Check className="size-4 text-(--illinois-prairie)" />
                 ) : null
               }
               onChange={(e) => {
@@ -197,7 +197,7 @@ const BrandingForm = ({
 
         <div className="upload_logo flex flex-col">
           <div className="mt-6 font-semibold">Add a logo</div>
-          <div className="mb-3 text-sm text-[--foreground-faded]">
+          <div className="mb-3 text-sm text-(--foreground-faded)">
             This logo will appear in the header of the chat window.
           </div>
 
@@ -217,21 +217,21 @@ const BrandingForm = ({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={logoStatus === 'uploading'}
-              className={`flex w-full items-center rounded-md border bg-[--background] px-3 py-2 text-sm transition-colors disabled:pointer-events-none disabled:opacity-50 ${
+              className={`flex w-full items-center rounded-md border bg-(--background) px-3 py-2 text-sm transition-colors disabled:pointer-events-none disabled:opacity-50 ${
                 logoStatus === 'error'
-                  ? 'border-[--error]'
-                  : 'border-[--dashboard-border] hover:border-[--foreground-faded]'
+                  ? 'border-(--error)'
+                  : 'border-(--dashboard-border) hover:border-(--foreground-faded)'
               }`}
             >
               <span
                 className={
                   logoStatus === 'error'
-                    ? 'text-[--error]'
+                    ? 'text-(--error)'
                     : logoFileName
                       ? logoStatus === 'success'
-                        ? 'text-[--illinois-prairie]'
-                        : 'text-[--foreground]'
-                      : 'text-[--foreground-faded]'
+                        ? 'text-(--illinois-prairie)'
+                        : 'text-(--foreground)'
+                      : 'text-(--foreground-faded)'
                 }
               >
                 {logoStatus === 'error'
@@ -241,16 +241,16 @@ const BrandingForm = ({
               </span>
               <div className="ml-auto flex shrink-0 items-center pl-3">
                 {logoStatus === 'uploading' ? (
-                  <Spinner className="size-4 text-[--foreground-faded]" />
+                  <Spinner className="size-4 text-(--foreground-faded)" />
                 ) : logoStatus === 'success' ? (
-                  <Check className="size-4 text-[--illinois-prairie]" />
+                  <Check className="size-4 text-(--illinois-prairie)" />
                 ) : logoStatus === 'error' ? (
-                  <AlertCircle className="size-4 text-[--error]" />
+                  <AlertCircle className="size-4 text-(--error)" />
                 ) : (
                   <IconFileUpload
                     size={20}
                     stroke={1}
-                    className="text-[--foreground-faded]"
+                    className="text-(--foreground-faded)"
                   />
                 )}
               </div>

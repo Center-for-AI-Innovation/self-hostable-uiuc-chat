@@ -14,7 +14,7 @@ export function CredentialInput({
 }) {
   return (
     <div className="mb-4 w-full">
-      <Label className="text-[--dashboard-foreground-faded]">
+      <Label className="text-(--dashboard-foreground-faded)">
         {placeholder}
       </Label>
       <div className="mt-1 flex items-center gap-2">
@@ -24,12 +24,12 @@ export function CredentialInput({
           aria-label={placeholder}
           value={field.state.value}
           onChange={(e) => field.handleChange(e.target.value)}
-          className="flex-1 bg-[--background] text-[--foreground]"
+          className="flex-1 bg-(--background) text-(--foreground)"
         />
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-[--foreground-faded] hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground]"
+          className="h-8 w-8 text-(--foreground-faded) hover:bg-(--dashboard-button) hover:text-(--dashboard-button-foreground)"
           onClick={(e) => {
             e.preventDefault()
             field.handleChange('')

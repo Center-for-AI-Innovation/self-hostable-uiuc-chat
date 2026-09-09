@@ -8,20 +8,20 @@ import { cn } from '@/components/shadcn/lib/utils'
 
 const formInputGroupVariants = cva(
   [
-    'flex w-full items-center rounded-md border bg-[--background] transition-colors',
-    'focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[--illinois-orange]',
+    'flex w-full items-center rounded-md border bg-(--background) transition-colors',
+    'focus-within:outline-solid focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-(--illinois-orange)',
     'has-[>textarea]:items-stretch',
   ],
   {
     variants: {
       status: {
         default:
-          'border-[--dashboard-border] focus-within:border-[--foreground]',
+          'border-(--dashboard-border) focus-within:border-(--foreground)',
         success:
-          'border-[--dashboard-border] focus-within:border-[--foreground]',
-        error: 'border-[--error]',
+          'border-(--dashboard-border) focus-within:border-(--foreground)',
+        error: 'border-(--error)',
         loading:
-          'border-[--foreground-faded] focus-within:border-[--foreground]',
+          'border-(--foreground-faded) focus-within:border-(--foreground)',
       },
     },
     defaultVariants: {
@@ -119,8 +119,8 @@ const FormInput = React.forwardRef<
     }, [value, adjustHeight])
 
     const sharedClasses = cn(
-      'w-full bg-transparent px-3 py-2 text-sm text-[--foreground] placeholder:text-[--foreground-faded]',
-      'outline-none focus:outline-none focus-visible:!outline-none focus-visible:ring-0',
+      'w-full bg-transparent px-3 py-2 text-sm text-(--foreground) placeholder:text-(--foreground-faded)',
+      'outline-hidden focus:outline-hidden focus-visible:outline-hidden! focus-visible:ring-0',
       'disabled:cursor-not-allowed disabled:opacity-50',
       inputClassName,
     )
@@ -134,22 +134,22 @@ const FormInput = React.forwardRef<
 
     const statusTextColor =
       status === 'error'
-        ? 'text-[--error]'
+        ? 'text-(--error)'
         : status === 'success'
-          ? 'text-[--illinois-prairie]'
+          ? 'text-(--illinois-prairie)'
           : ''
 
     return (
       <div className={cn('flex flex-col gap-1', className)}>
         {label && (
-          <label className="text-base font-semibold text-[--foreground]">
+          <label className="text-base font-semibold text-(--foreground)">
             {label}
-            {required && <span className="ml-0.5 text-[--error]">*</span>}
+            {required && <span className="ml-0.5 text-(--error)">*</span>}
           </label>
         )}
 
         {description && (
-          <p className="text-sm text-[--foreground-faded]">{description}</p>
+          <p className="text-sm text-(--foreground-faded)">{description}</p>
         )}
 
         <div

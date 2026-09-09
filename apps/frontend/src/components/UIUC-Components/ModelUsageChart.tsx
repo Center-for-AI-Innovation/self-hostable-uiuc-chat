@@ -119,7 +119,7 @@ const ModelUsageChart: React.FC<ModelUsageChartProps> = ({
 
   if (!data || data.length === 0 || chartData.length === 0) {
     return (
-      <div className="rounded-lg bg-[--dashboard-background-faded] p-4">
+      <div className="rounded-lg bg-(--dashboard-background-faded) p-4">
         <Text align="center" style={{ color: 'var(--foreground)' }}>
           No model usage data available
         </Text>

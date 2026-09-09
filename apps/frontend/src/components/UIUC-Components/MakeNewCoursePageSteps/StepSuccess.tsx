@@ -28,7 +28,7 @@ const StepSuccess = ({
     <div className="step">
       <div className="step_content">
         <div className="flex flex-col items-center px-4 pb-4 pt-2">
-          <h2 className="text-center text-2xl font-semibold text-[--foreground]">
+          <h2 className="text-center text-2xl font-semibold text-(--foreground)">
             Success! Your chatbot is live!
           </h2>
 
@@ -36,29 +36,29 @@ const StepSuccess = ({
             {/* Left Card - Dive Right In */}
             <section
               aria-label="Start chatting now"
-              className="flex flex-1 flex-col rounded-lg border border-[--dashboard-border] bg-[--background]"
+              className="flex flex-1 flex-col rounded-lg border border-(--dashboard-border) bg-(--background)"
             >
               <div className="flex flex-1 flex-col">
                 <div className="flex items-center gap-3 px-5 pb-3 pt-4">
                   <MessageSquare
                     size={24}
                     aria-hidden="true"
-                    className="shrink-0 text-[--foreground]"
+                    className="shrink-0 text-(--foreground)"
                   />
-                  <h3 className="text-lg font-semibold text-[--foreground]">
+                  <h3 className="text-lg font-semibold text-(--foreground)">
                     Dive Right In!
                   </h3>
                 </div>
 
                 <div className="px-5 pb-3">
-                  <p className="text-sm leading-relaxed text-[--foreground-faded]">
+                  <p className="text-sm leading-relaxed text-(--foreground-faded)">
                     Start a conversation with the bot you just created! You can
                     always add more data later.
                   </p>
                 </div>
 
                 <div className="px-5 pb-4">
-                  <div className="flex items-center justify-center rounded-md bg-[--background-faded] py-4">
+                  <div className="flex items-center justify-center rounded-md bg-(--background-faded) py-4">
                     <Image
                       src="/media/robot_hatching.svg"
                       alt=""
@@ -70,7 +70,7 @@ const StepSuccess = ({
                 </div>
               </div>
 
-              <div className="border-t border-[--dashboard-border]" />
+              <div className="border-t border-(--dashboard-border)" />
 
               <Button
                 variant="dashboard"
@@ -85,10 +85,10 @@ const StepSuccess = ({
 
             {/* "or" separator */}
             <div className="flex items-center" role="separator" aria-label="or">
-              <div className="flex size-10 items-center justify-center rounded-full bg-[--background-faded]">
+              <div className="flex size-10 items-center justify-center rounded-full bg-(--background-faded)">
                 <span
                   aria-hidden="true"
-                  className="text-sm font-medium text-[--foreground-faded]"
+                  className="text-sm font-medium text-(--foreground-faded)"
                 >
                   or
                 </span>
@@ -98,21 +98,21 @@ const StepSuccess = ({
             {/* Right Card - Fine Tune */}
             <section
               aria-label="Customize your chatbot"
-              className="flex flex-1 flex-col rounded-lg border border-[--dashboard-border] bg-[--background]"
+              className="flex flex-1 flex-col rounded-lg border border-(--dashboard-border) bg-(--background)"
             >
               <div className="flex items-center gap-3 px-5 pb-3 pt-4">
                 <Settings
                   size={24}
                   aria-hidden="true"
-                  className="shrink-0 text-[--foreground]"
+                  className="shrink-0 text-(--foreground)"
                 />
-                <h3 className="text-lg font-semibold text-[--foreground]">
+                <h3 className="text-lg font-semibold text-(--foreground)">
                   Fine Tune
                 </h3>
               </div>
 
               <div className="px-5 pb-3">
-                <p className="text-sm leading-relaxed text-[--foreground-faded]">
+                <p className="text-sm leading-relaxed text-(--foreground-faded)">
                   Make it your own! Illinois Chat makes it easy to create highly
                   customized chatbots that suit your needs.
                 </p>
@@ -140,12 +140,12 @@ const StepSuccess = ({
                 />
               </ul>
 
-              <div className="mt-auto border-t border-[--dashboard-border]" />
+              <div className="mt-auto border-t border-(--dashboard-border)" />
 
               <Button
                 variant="outline"
                 size="lg"
-                className="hover:bg-[--background-faded]/80 w-full rounded-none rounded-b-lg border-0 bg-[--background-faded]"
+                className="hover:bg-(--background-faded)/80 w-full rounded-none rounded-b-lg border-0 bg-(--background-faded)"
                 onClick={onContinueDesigning}
               >
                 Continue Designing
@@ -167,10 +167,10 @@ const FeatureItem = ({
   label: string
 }) => (
   <li className="flex items-center gap-2.5 rounded-md px-2 py-1.5">
-    <span className="shrink-0 text-[--foreground]" aria-hidden="true">
+    <span className="shrink-0 text-(--foreground)" aria-hidden="true">
       {icon}
     </span>
-    <span className="text-sm font-medium text-[--foreground]">{label}</span>
+    <span className="text-sm font-medium text-(--foreground)">{label}</span>
   </li>
 )
 

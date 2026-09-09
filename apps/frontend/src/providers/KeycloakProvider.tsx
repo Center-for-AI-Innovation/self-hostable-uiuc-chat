@@ -218,10 +218,10 @@ export const KeycloakProvider = ({ children }: AuthProviderProps) => {
                     className={`text-5xl font-extrabold tracking-tight text-white sm:text-[5rem] ${montserrat_heading.variable} font-montserratHeading`}
                   >
                     {' '}
-                    <span className="${inter.style.fontFamily} mr-2 text-[--illinois-orange]">
+                    <span className="${inter.style.fontFamily} mr-2 text-(--illinois-orange)">
                       Illinois
                     </span>
-                    <span className="${inter.style.fontFamily} text-[--foreground]">
+                    <span className="${inter.style.fontFamily} text-(--foreground)">
                       Chat
                     </span>{' '}
                   </h1>
@@ -230,7 +230,7 @@ export const KeycloakProvider = ({ children }: AuthProviderProps) => {
               <div className="items-left container flex flex-col justify-center gap-2 py-0">
                 <Flex direction="column" align="center" justify="center">
                   <Title
-                    className={`${montserrat_heading.variable} font-montserratHeading text-[--foreground]`}
+                    className={`${montserrat_heading.variable} font-montserratHeading text-(--foreground)`}
                     order={2}
                     p="xl"
                   >

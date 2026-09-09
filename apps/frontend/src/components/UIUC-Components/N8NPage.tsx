@@ -313,7 +313,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                     border: 'None',
                     color: 'var(--foreground)',
                   }}
-                  className="min-h-full flex-[1_1_100%] bg-[--background] md:flex-[1_1_60%]"
+                  className="min-h-full flex-[1_1_100%] bg-(--background) md:flex-[1_1_60%]"
                 >
                   <Group
                     spacing="lg"
@@ -346,7 +346,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                             href="https://n8n.io"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`text-[--dashboard-button] underline hover:text-[--dashboard-button-hover] ${montserrat_heading.variable} font-montserratHeading`}
+                            className={`text-(--dashboard-button) underline hover:text-(--dashboard-button-hover) ${montserrat_heading.variable} font-montserratHeading`}
                           >
                             n8n.io&apos;s{' '}
                             <IconExternalLink
@@ -365,7 +365,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                               '_blank',
                             )
                           }
-                          className="mx-[8%] mt-2 max-w-[50%] rounded-lg bg-[--dashboard-button] hover:bg-[--dashboard-button-hover] disabled:bg-[--button-disabled] disabled:text-[--button-disabled-text-color] lg:flex-[1_1_50%] lg:self-center"
+                          className="mx-[8%] mt-2 max-w-[50%] rounded-lg bg-(--dashboard-button) hover:bg-(--dashboard-button-hover) disabled:bg-(--button-disabled) disabled:text-(--button-disabled-text-color) lg:flex-[1_1_50%] lg:self-center"
                           type="submit"
                           disabled={!n8nApiKey}
                         >
@@ -404,7 +404,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                             <List
                               type="ordered"
                               withPadding
-                              className={`${montserrat_paragraph.variable} font-montserratParagraph text-[--foreground]`}
+                              className={`${montserrat_paragraph.variable} font-montserratParagraph text-(--foreground)`}
                             >
                               <List.Item>
                                 Tool use via LLMs is invite-only to prevent
@@ -427,7 +427,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                                     href="https://tools.uiuc.chat/setup"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-[--dashboard-button] hover:text-[--dashboard-button-hover]"
+                                    className="text-(--dashboard-button) hover:text-(--dashboard-button-hover)"
                                     style={{
                                       textDecoration: 'underline',
                                     }}
@@ -483,7 +483,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                                 w={'80%'}
                                 type="ordered"
                                 withPadding
-                                className={`${montserrat_paragraph.variable} font-montserratParagraph text-[--foreground]`}
+                                className={`${montserrat_paragraph.variable} font-montserratParagraph text-(--foreground)`}
                               >
                                 <List.Item>
                                   Start by creating your first workflow on{' '}
@@ -491,7 +491,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                                     href="https://tools.uiuc.chat/workflows"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-[--dashboard-button] hover:text-[--dashboard-button-hover] hover:underline"
+                                    className="text-(--dashboard-button) hover:text-(--dashboard-button-hover) hover:underline"
                                   >
                                     N8N
                                   </a>
@@ -523,7 +523,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                                     href={`/${course_name}/chat`}
                                     // target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-[--dashboard-button] hover:text-[--dashboard-button-hover]"
+                                    className="text-(--dashboard-button) hover:text-(--dashboard-button-hover)"
                                     style={{
                                       textDecoration: 'underline',
                                     }}
@@ -587,7 +587,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                         <div className="pt-2" />
                         <Button
                           onClick={(event) => handleSaveApiKey()}
-                          className="rounded-lg bg-[--dashboard-button] text-[--dashboard-button-foreground] hover:bg-[--dashboard-button-hover]"
+                          className="rounded-lg bg-(--dashboard-button) text-(--dashboard-button-foreground) hover:bg-(--dashboard-button-hover)"
                           type="submit"
                           disabled
                         >
@@ -602,7 +602,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
 
             <div
               // Course files header/background
-              className={`mx-auto mt-[2%] items-start rounded-2xl bg-[--background] text-[--foreground] ${cardWidthClasses}`}
+              className={`mx-auto mt-[2%] items-start rounded-2xl bg-(--background) text-(--foreground) ${cardWidthClasses}`}
               style={{ zIndex: 1 }}
             >
               <Flex direction="row" justify="space-between">

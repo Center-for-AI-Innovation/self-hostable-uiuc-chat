@@ -106,7 +106,7 @@ export const UploadCard = memo(function UploadCard({
   }
   return (
     <Card
-      className={`mt-[2%] ${cardWidthClasses} gap-0 rounded-[2rem] border py-0 text-base shadow-none ring-0`}
+      className={`mt-[2%] ${cardWidthClasses} gap-0 rounded-4xl border py-0 text-base shadow-none ring-0`}
       style={{
         backgroundColor: 'var(--background)',
         borderColor: 'var(--dashboard-border)',
@@ -119,21 +119,21 @@ export const UploadCard = memo(function UploadCard({
             border: 'None',
             color: 'var(--foreground)',
           }}
-          className="min-h-full bg-[--background]"
+          className="min-h-full bg-(--background)"
         >
-          <div className="w-full border-b border-[--dashboard-border] px-4 py-3 sm:px-6 sm:py-4 md:px-8">
+          <div className="w-full border-b border-(--dashboard-border) px-4 py-3 sm:px-6 sm:py-4 md:px-8">
             <div className="flex items-center justify-between gap-2">
               <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <h2
-                  className={`${montserrat_heading.variable} font-montserratHeading text-lg font-bold text-[--foreground] sm:text-2xl`}
+                  className={`${montserrat_heading.variable} font-montserratHeading text-lg font-bold text-(--foreground) sm:text-2xl`}
                 >
                   Dashboard
                 </h2>
-                <span className="text-[--foreground]">/</span>
+                <span className="text-(--foreground)">/</span>
                 <h3
                   className={`${
                     montserrat_heading.variable
-                  } min-w-0 font-montserratHeading text-base font-bold text-[--illinois-orange] sm:text-xl ${
+                  } min-w-0 font-montserratHeading text-base font-bold text-(--illinois-orange) sm:text-xl ${
                     projectName.length > 40
                       ? 'max-w-[120px] truncate sm:max-w-[300px] lg:max-w-[400px]'
                       : ''
@@ -148,7 +148,7 @@ export const UploadCard = memo(function UploadCard({
                   type="button"
                   variant="dashboard"
                   onClick={() => setIsShareModalOpen(true)}
-                  className={`relative h-auto transform rounded-3xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button] ${montserrat_paragraph.variable} min-h-[2rem] px-2 font-montserratParagraph text-sm font-normal sm:min-h-[2.5rem] sm:px-4 sm:text-base`}
+                  className={`relative h-auto transform rounded-3xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button) ${montserrat_paragraph.variable} min-h-8 px-2 font-montserratParagraph text-sm font-normal sm:min-h-10 sm:px-4 sm:text-base`}
                 >
                   <span className="hidden sm:inline">Sharing and Access</span>
                   <span className="inline sm:hidden">Access</span>
@@ -219,12 +219,12 @@ export const UploadCard = memo(function UploadCard({
             backgroundColor: 'var(--dashboard-sidebar-background)',
             color: 'var(--dashboard-foreground)',
           }}
-          className="flex-[1_1_100%] p-4 sm:p-6 min-[960px]:flex-[1_1_40%] min-[960px]:border-l min-[960px]:border-[--dashboard-border]"
+          className="flex-[1_1_100%] p-4 sm:p-6 min-[960px]:flex-[1_1_40%] min-[960px]:border-l min-[960px]:border-(--dashboard-border)"
         >
           <div className="flex h-full flex-col justify-start space-y-6">
             <div className="flex flex-col">
               <h3
-                className={`${montserrat_heading.variable} mb-4 font-montserratHeading text-[1.375rem] font-bold text-[--dashboard-foreground]`}
+                className={`${montserrat_heading.variable} mb-4 font-montserratHeading text-[1.375rem] font-bold text-(--dashboard-foreground)`}
               >
                 Project Description
               </h3>
@@ -234,7 +234,7 @@ export const UploadCard = memo(function UploadCard({
                 aria-label="Project Description"
                 value={projectDescription}
                 onChange={(e) => setProjectDescription(e.target.value)}
-                className={`${montserrat_paragraph.variable} max-h-[14rem] min-h-[7rem] overflow-y-auto bg-[--background] font-montserratParagraph text-base text-[--foreground] dark:bg-[--background]`}
+                className={`${montserrat_paragraph.variable} max-h-56 min-h-28 overflow-y-auto bg-(--background) font-montserratParagraph text-base text-(--foreground) dark:bg-(--background)`}
               />
               <Button
                 type="button"
@@ -263,7 +263,7 @@ export const UploadCard = memo(function UploadCard({
 
             <div className="space-y-2">
               <h3
-                className={`${montserrat_heading.variable} font-montserratHeading text-[1.375rem] font-bold text-[--dashboard-foreground]`}
+                className={`${montserrat_heading.variable} font-montserratHeading text-[1.375rem] font-bold text-(--dashboard-foreground)`}
               >
                 Branding
               </h3>
@@ -286,7 +286,7 @@ export const UploadCard = memo(function UploadCard({
                   ref={greetingRef}
                   id="greeting-textarea"
                   placeholder="Enter a greeting to help users get started with your bot"
-                  className={`w-full ${montserrat_paragraph.variable} max-h-[7rem] min-h-[3.5rem] overflow-y-auto bg-[--background] font-montserratParagraph text-[--foreground] dark:bg-[--background]`}
+                  className={`w-full ${montserrat_paragraph.variable} max-h-28 min-h-14 overflow-y-auto bg-(--background) font-montserratParagraph text-(--foreground) dark:bg-(--background)`}
                   value={introMessage}
                   onChange={(e) => {
                     setIntroMessage(e.target.value)
@@ -325,14 +325,14 @@ export const UploadCard = memo(function UploadCard({
                 )}
               </div>
               <p
-                className={`!mt-8 px-1 py-2 ${montserrat_heading.variable} pt-0 font-montserratHeading`}
+                className={`mt-8! px-1 py-2 ${montserrat_heading.variable} pt-0 font-montserratHeading`}
               >
                 <span className="label-text-unused text-lg">
                   Set example questions
                 </span>
               </p>
               <p
-                className={`!mt-0 px-1 py-2 ${montserrat_light.className} pb-0 text-sm`}
+                className={`mt-0! px-1 py-2 ${montserrat_light.className} pb-0 text-sm`}
                 style={{ marginBottom: '-3px' }}
               >
                 Users will likely try these first to get a feel for your bot.
@@ -351,7 +351,7 @@ export const UploadCard = memo(function UploadCard({
                   </span>
                 </label>
                 <p
-                  className={`!mt-0 px-1 py-2 ${montserrat_light.className} text-sm`}
+                  className={`mt-0! px-1 py-2 ${montserrat_light.className} text-sm`}
                 >
                   This logo will appear in the header of the chat page.
                 </p>
@@ -359,7 +359,7 @@ export const UploadCard = memo(function UploadCard({
                   id="upload-logo-input"
                   tabIndex={0}
                   type="file"
-                  className={`h-12 w-full cursor-pointer overflow-hidden rounded-lg border-2 border-[--foreground] bg-[--background] pr-4 text-sm text-[--foreground] shadow-inner file:mr-4 file:inline-flex file:h-full file:items-center file:border-0 file:bg-transparent file:px-4 file:text-sm file:font-medium file:text-[--foreground] hover:border-[--dashboard-button] hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground] focus:border-[--dashboard-button] ${montserrat_paragraph.variable} font-montserratParagraph`}
+                  className={`h-12 w-full cursor-pointer overflow-hidden rounded-lg border-2 border-(--foreground) bg-(--background) pr-4 text-sm text-(--foreground) shadow-inner file:mr-4 file:inline-flex file:h-full file:items-center file:border-0 file:bg-transparent file:px-4 file:text-sm file:font-medium file:text-(--foreground) hover:border-(--dashboard-button) hover:bg-(--dashboard-button) hover:text-(--dashboard-button-foreground) focus:border-(--dashboard-button) ${montserrat_paragraph.variable} font-montserratParagraph`}
                   onChange={async (e) => {
                     // Assuming the file is converted to a URL somewhere else
                     if (e.target.files?.length) {

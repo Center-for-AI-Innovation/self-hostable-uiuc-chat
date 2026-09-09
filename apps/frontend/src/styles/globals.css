@@ -1,6 +1,34 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/*
+  Tailwind v4 normally emits preflight and the utilities into real CSS cascade
+  layers. Mantine v6 injects its emotion styles unlayered at runtime, and
+  unlayered CSS beats every layer regardless of specificity — so layered
+  preflight and utilities would lose to Mantine everywhere. Importing these two
+  parts without `layer(...)` keeps them unlayered, which is how they behaved in
+  v3. Theme stays layered: it only defines custom properties.
+*/
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css';
+@import 'tailwindcss/utilities.css';
+
+@config '../../tailwind.config.ts';
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 /*
  * WCAG 2.4.7 – Focus Visible (Level AA)
@@ -1146,7 +1174,7 @@ button.css-s37qmw {
 
 /* Think Tag Dropdown Styles */
 .think-tag-dropdown {
-  @apply mb-4 w-full rounded-lg border border-gray-200 bg-gray-50/30 shadow-sm transition-all duration-200 hover:border-[--dashboard-button];
+  @apply mb-4 w-full rounded-lg border border-gray-200 bg-gray-50/30 shadow-xs transition-all duration-200 hover:border-(--dashboard-button);
   overflow: hidden;
   /*  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); */
 }
@@ -1162,7 +1190,7 @@ button.css-s37qmw {
 }
 
 .think-tag-brain-icon {
-  @apply text-[--accent];
+  @apply text-(--accent);
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
   transition: transform 0.2s ease;
 }
@@ -1293,12 +1321,12 @@ button.css-s37qmw {
 
 /* Add subtle highlight to the container on hover instead */
 .think-tag-dropdown:hover {
-  @apply border-[--dashboard-button];
+  @apply border-(--dashboard-button);
   /*  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); */
 }
 
 .think-tag-content.expanded:focus {
-  @apply outline-none ring-2 ring-[--accent];
+  @apply ring-2 ring-(--accent) outline-hidden;
 }
 
 .think-tag-content.expanded > div {
@@ -1325,7 +1353,7 @@ button.css-s37qmw {
 }
 
 .think-tag-header:focus-visible {
-  @apply outline-none;
+  @apply outline-hidden;
   box-shadow: inset 0 0 0 2px var(--accent);
 }
 
@@ -1334,12 +1362,12 @@ button.css-s37qmw {
 }
 
 .think-tag-header:hover .think-tag-icon {
-  @apply text-[--dashboard-button];
+  @apply text-(--dashboard-button);
 }
 
 .think-tag-icon.expanded {
   transform: rotate(180deg);
-  @apply text-[--accent];
+  @apply text-(--accent);
 }
 
 /* Update the link styles to show proper cursor and interaction states */

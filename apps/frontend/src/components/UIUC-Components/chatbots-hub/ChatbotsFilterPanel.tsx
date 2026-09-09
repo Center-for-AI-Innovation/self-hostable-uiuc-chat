@@ -31,8 +31,8 @@ type PillProps = {
 
 function FilterPill({ label, active, onClick, ariaLabel }: PillProps) {
   const stateClass = active
-    ? 'border-[--illinois-blue] bg-[--illinois-blue] text-white hover:bg-[--illinois-blue] hover:text-white dark:border-white dark:bg-white dark:text-[--illinois-blue] dark:hover:bg-white'
-    : 'hover:bg-[--illinois-blue]/5 border-[#e5e7eb] bg-white text-[--illinois-blue] dark:border-[#32517a] dark:bg-[#13294b] dark:text-white dark:hover:bg-white/5'
+    ? 'border-(--illinois-blue) bg-(--illinois-blue) text-white hover:bg-(--illinois-blue) hover:text-white dark:border-white dark:bg-white dark:text-(--illinois-blue) dark:hover:bg-white'
+    : 'hover:bg-(--illinois-blue)/5 border-[#e5e7eb] bg-white text-(--illinois-blue) dark:border-[#32517a] dark:bg-[#13294b] dark:text-white dark:hover:bg-white/5'
 
   return (
     <Button
@@ -76,10 +76,10 @@ export function ChatbotsFilterPanel({
     >
       <div className="space-y-5">
         <div>
-          <h3 className="mb-1 text-sm font-bold text-[--illinois-blue] dark:text-white">
+          <h3 className="mb-1 text-sm font-bold text-(--illinois-blue) dark:text-white">
             Category
           </h3>
-          <p className="mb-3 text-xs text-[--illinois-storm-medium] dark:text-[#94a3b8]">
+          <p className="mb-3 text-xs text-(--illinois-storm-medium) dark:text-[#94a3b8]">
             Project-type tags from the chatbot editor.
           </p>
           <div className="flex flex-wrap gap-2">
@@ -100,7 +100,7 @@ export function ChatbotsFilterPanel({
         </div>
 
         <div>
-          <h3 className="mb-3 text-sm font-bold text-[--illinois-blue] dark:text-white">
+          <h3 className="mb-3 text-sm font-bold text-(--illinois-blue) dark:text-white">
             Privacy
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -121,7 +121,7 @@ export function ChatbotsFilterPanel({
         </div>
 
         <div>
-          <h3 className="mb-3 text-sm font-bold text-[--illinois-blue] dark:text-white">
+          <h3 className="mb-3 text-sm font-bold text-(--illinois-blue) dark:text-white">
             My Bots
           </h3>
           <FilterPill

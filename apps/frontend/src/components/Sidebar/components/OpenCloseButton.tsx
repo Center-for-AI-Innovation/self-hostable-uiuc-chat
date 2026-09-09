@@ -11,7 +11,7 @@ export const CloseSidebarButton = ({ onClick, side }: Props) => {
       <button
         className={`absolute top-5 ${
           side === 'right' ? 'right-[270px]' : 'left-[270px]'
-        } z-50 h-7 w-7 text-[--foreground-faded] hover:text-[--foreground] sm:top-0.5 sm:${
+        } z-50 h-7 w-7 text-(--foreground-faded) hover:text-(--foreground) sm:top-0.5 sm:${
           side === 'right' ? 'right-[270px]' : 'left-[270px]'
         } sm:h-8 sm:w-8`}
         onClick={onClick}
@@ -38,7 +38,7 @@ export const OpenSidebarButton = ({ onClick, side }: Props) => {
       data-promptbar-open-button={side === 'right' ? 'true' : 'false'}
       className={`absolute top-2.5 ${
         side === 'right' ? 'right-2' : 'left-2'
-      } z-50 h-7 w-7 text-[--foreground-faded] hover:text-[--foreground] sm:top-0.5 sm:${
+      } z-50 h-7 w-7 text-(--foreground-faded) hover:text-(--foreground) sm:top-0.5 sm:${
         side === 'right' ? 'right-2' : 'left-2'
       } sm:h-8 sm:w-8`}
       onClick={onClick}

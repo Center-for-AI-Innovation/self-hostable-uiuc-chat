@@ -88,7 +88,7 @@
 //                     Google API Key
 //                   </div>
 //                   <input
-//                     className="mt-2 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow focus:outline-none dark:border-neutral-800 dark:border-opacity-50 dark:bg-[#40414F] dark:text-neutral-100"
+//                     className="mt-2 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow-sm focus:outline-hidden dark:border-neutral-800 dark:border-opacity-50 dark:bg-[#40414F] dark:text-neutral-100"
 //                     type="password"
 //                     value={
 //                       pluginKeys
@@ -147,7 +147,7 @@
 //                     Google CSE ID
 //                   </div>
 //                   <input
-//                     className="mt-2 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow focus:outline-none dark:border-neutral-800 dark:border-opacity-50 dark:bg-[#40414F] dark:text-neutral-100"
+//                     className="mt-2 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow-sm focus:outline-hidden dark:border-neutral-800 dark:border-opacity-50 dark:bg-[#40414F] dark:text-neutral-100"
 //                     type="password"
 //                     value={
 //                       pluginKeys
@@ -203,7 +203,7 @@
 //                   />
 
 //                   <button
-//                     className="mt-6 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow hover:bg-neutral-100 focus:outline-none dark:border-neutral-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-neutral-300"
+//                     className="mt-6 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow-sm hover:bg-neutral-100 focus:outline-hidden dark:border-neutral-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-neutral-300"
 //                     onClick={() => {
 //                       const pluginKey = pluginKeys.find(
 //                         (p) => p.pluginId === PluginID.GOOGLE_SEARCH,
@@ -220,7 +220,7 @@
 
 //                 <button
 //                   type="button"
-//                   className="mt-6 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow hover:bg-neutral-100 focus:outline-none dark:border-neutral-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-neutral-300"
+//                   className="mt-6 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow-sm hover:bg-neutral-100 focus:outline-hidden dark:border-neutral-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-neutral-300"
 //                   onClick={() => setIsChanging(false)}
 //                 >
 //                   {t('Save')}

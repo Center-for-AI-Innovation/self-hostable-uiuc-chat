@@ -43,7 +43,7 @@ export const ContextCards = ({
         // TODO: Re-enable loading state, after I get "localStorage" working for each context.
         // For now, it's just distracting to see loading with no results.
 
-        // <div role="status" className="max-w-sm p-4 border border-gray-200 rounded shadow animate-pulse md:p-6 dark:border-gray-700">
+        // <div role="status" className="max-w-sm p-4 border border-gray-200 rounded shadow-sm animate-pulse md:p-6 dark:border-gray-700">
 
         //   {/* <script async type="application/javascript" src="https://cdn.scite.ai/badge/scite-badge-latest.min.js"></script><div className="scite-badge" data-doi="10.1016/j.biopsych.2005.08.012" data-tally-show='true' data-show-labels='true' data-section-tally-show='false' /> */}
         //     <div className="flex items-center justify-center h-48 mb-4 bg-gray-300 rounded dark:bg-gray-700">
@@ -148,7 +148,7 @@ function DynamicMaterialsCard(context: ContextWithMetadata) {
         target="_blank"
       >
         <Card
-          bg="bg-[--background-dark]"
+          bg="bg-(--background-dark)"
           style={{ maxWidth: '20rem' }} // maxHeight: '15rem'
           shadow="sm"
           padding="sm"

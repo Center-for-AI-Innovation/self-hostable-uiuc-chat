@@ -67,7 +67,7 @@ export default function ResumeToChat({
       >
         {isLoading ? (
           <>
-            <Spinner className="size-4 shrink-0 text-[--spinner]" />
+            <Spinner className="size-4 shrink-0 text-(--spinner)" />
           </>
         ) : (
           <>

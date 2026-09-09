@@ -38,14 +38,14 @@ export default function OllamaProviderInput({
       <form.Field name={`providers.${ProviderNames.Ollama}.baseUrl`}>
         {(field: any) => (
           <div className="mb-3">
-            <Label className="text-[--dashboard-foreground-faded]">
+            <Label className="text-(--dashboard-foreground-faded)">
               Base URL
             </Label>
             <Input
               placeholder="http://your-domain.com"
               value={field.state.value}
               onChange={(e) => field.handleChange(e.target.value)}
-              className="mt-1 bg-[--background] text-[--foreground]"
+              className="mt-1 bg-(--background) text-(--foreground)"
             />
           </div>
         )}
