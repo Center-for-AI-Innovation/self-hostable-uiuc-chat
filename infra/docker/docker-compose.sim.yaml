@@ -189,7 +189,10 @@ services:
       SSO_PROVIDER_TYPE: oidc
       SSO_PROVIDER_ID: ${SIM_SSO_PROVIDER_ID:-uiuc-keycloak}
       SSO_ISSUER: http://localhost:8080/realms/${NEXT_PUBLIC_KEYCLOAK_REALM:-illinois_chat_realm}
-      SSO_DOMAIN: ${SIM_SSO_DOMAIN:-illinois.edu,gmail.com}
+      # One registrable domain only. Sim's SSO admission compares
+      # normalizeSSODomain(user email) with normalizeSSODomain(this), and a
+      # comma-separated list normalises to null, which denies every sign-in.
+      SSO_DOMAIN: ${SIM_SSO_DOMAIN:-illinois.edu}
       SSO_USER_EMAIL: sim-sso-provider@localhost.invalid
       SSO_OIDC_CLIENT_ID: ${SIM_KEYCLOAK_CLIENT_ID:-simai}
       SSO_OIDC_CLIENT_SECRET: ${SIM_KEYCLOAK_CLIENT_SECRET:-simai-local-secret}

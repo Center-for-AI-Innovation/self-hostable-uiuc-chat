@@ -13,8 +13,8 @@ account you use for the chat app — there is no separate Sim password.
 1. Open the Sim app (`http://localhost:3010` on the local stack, or your deployment's
    Sim URL).
 2. On the login page, enter your email address and choose the single sign-on option.
-   Email domains listed in `SIM_SSO_DOMAIN` (default: `illinois.edu,gmail.com`) are
-   routed to the Keycloak provider.
+   The single email domain in `SIM_SSO_DOMAIN` (default: `illinois.edu`) is routed
+   to the Keycloak provider; addresses in any other domain are refused.
 3. You are redirected to Keycloak. Log in with your Illinois Chat credentials.
 4. Keycloak sends you back to Sim, which creates your Sim identity automatically on the
    first sign-in.

@@ -133,6 +133,10 @@ if [ "$with_sim" = true ]; then
 		echo "[ERROR] SIM_APPROVAL_ADMIN_EMAIL is not set in .env. It names the account that bootstraps as Sim platform admin, so it must be chosen per deployment. Set it (or pass --no-sim)."
 		exit 1
 	fi
+	if [ -n "${SIM_SSO_DOMAIN:-}" ] && ! printf %s "$SIM_SSO_DOMAIN" | grep -Eq '^[a-z0-9-]+(\.[a-z0-9-]+)+$'; then
+		echo "[ERROR] SIM_SSO_DOMAIN must be exactly one registrable domain (e.g. illinois.edu), not a list. Sim denies every SSO sign-in when it cannot normalise this value to a single domain."
+		exit 1
+	fi
 
 	log "Pulling Sim AI images"
 	"${COMPOSE[@]}" pull simstudio sim-realtime sim-migrations
