@@ -98,9 +98,10 @@ const ConversationsPerDayChart: React.FC<ChartProps> = ({
 
   if (isLoading) {
     return (
-      <Text>
-        Loading chart <LoadingSpinner size="xs" />
-      </Text>
+      <div className="flex items-center gap-2">
+        <LoadingSpinner size="xs" />
+        <Text>Loading chart...</Text>
+      </div>
     )
   }
 
