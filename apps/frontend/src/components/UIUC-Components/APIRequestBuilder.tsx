@@ -245,7 +245,7 @@ fetch('${baseUrl}/api/chat-api/chat', {
     <div className="api-request-builder w-full px-4 sm:px-10">
       <Title
         order={3}
-        className={`text-left ${montserrat_heading.variable} font-montserratHeading text-[--dashboard-foreground]`}
+        className={`text-left ${montserrat_heading.variable} font-montserratHeading text-(--dashboard-foreground)`}
       >
         Request Builder
       </Title>
@@ -253,7 +253,7 @@ fetch('${baseUrl}/api/chat-api/chat', {
       <Divider
         my="lg"
         size="md"
-        className="-mx-4 border-[--dashboard-background-dark] sm:-mx-10"
+        className="-mx-4 border-(--dashboard-background-dark) sm:-mx-10"
       />
 
       <div className="space-y-6">
@@ -307,7 +307,7 @@ fetch('${baseUrl}/api/chat-api/chat', {
                 color: theme.colors.gray[5],
               },
             })}
-            className={`w-full flex-shrink-0 sm:w-[150px] ${montserrat_paragraph.variable} font-montserratParagraph`}
+            className={`w-full shrink-0 sm:w-[150px] ${montserrat_paragraph.variable} font-montserratParagraph`}
             rightSection={<IconChevronDown size={14} aria-hidden="true" />}
           />
           <div className="flex w-full items-center gap-2">
@@ -369,7 +369,7 @@ fetch('${baseUrl}/api/chat-api/chat', {
               }
               variant="subtle"
               size="xs"
-              className="h-[36px] w-[50px] flex-shrink-0 transform rounded-md bg-[--dashboard-button] text-[--dashboard-button-foreground] hover:bg-[--dashboard-button-hover] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+              className="h-[36px] w-[50px] shrink-0 transform rounded-md bg-(--dashboard-button) text-(--dashboard-button-foreground) hover:bg-(--dashboard-button-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)"
             >
               {copiedCodeSnippet ? (
                 <IconCheck aria-hidden="true" />
@@ -383,7 +383,7 @@ fetch('${baseUrl}/api/chat-api/chat', {
         <div className="space-y-2">
           <Title
             order={4}
-            className={`font-medium ${montserrat_paragraph.variable} font-montserratParagraph text-[--dashboard-foreground]`}
+            className={`font-medium ${montserrat_paragraph.variable} font-montserratParagraph text-(--dashboard-foreground)`}
           >
             System Prompt
           </Title>
@@ -412,7 +412,7 @@ fetch('${baseUrl}/api/chat-api/chat', {
         <div className="space-y-2">
           <Title
             order={4}
-            className={`font-medium ${montserrat_paragraph.variable} font-montserratParagraph text-[--dashboard-foreground]`}
+            className={`font-medium ${montserrat_paragraph.variable} font-montserratParagraph text-(--dashboard-foreground)`}
           >
             User Query
           </Title>
@@ -441,7 +441,7 @@ fetch('${baseUrl}/api/chat-api/chat', {
         <div className="space-y-2">
           <Title
             order={4}
-            className={`font-medium ${montserrat_paragraph.variable} font-montserratParagraph text-[--dashboard-foreground]`}
+            className={`font-medium ${montserrat_paragraph.variable} font-montserratParagraph text-(--dashboard-foreground)`}
           >
             Temperature
           </Title>
@@ -553,7 +553,7 @@ fetch('${baseUrl}/api/chat-api/chat', {
             href="https://docs.uiuc.chat/api/endpoints#image-input-example"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[--foreground] underline hover:text-[--dashboard-button-hover]"
+            className="text-(--foreground) underline hover:text-(--dashboard-button-hover)"
           >
             Using image inputs (docs) →
           </a>
@@ -565,7 +565,7 @@ fetch('${baseUrl}/api/chat-api/chat', {
           variant="unstyled"
           aria-label="Code snippet"
           readOnly
-          className="relative mt-4 w-full min-w-0 overflow-x-auto rounded-xl bg-[--background] pl-4 text-sm sm:min-w-[20rem] sm:pl-8 sm:text-base"
+          className="relative mt-4 w-full min-w-0 overflow-x-auto rounded-xl bg-(--background) pl-4 text-sm sm:min-w-80 sm:pl-8 sm:text-base"
           styles={{
             input: {
               color: 'var(--foreground)',

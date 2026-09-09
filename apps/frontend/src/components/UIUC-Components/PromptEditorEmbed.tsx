@@ -858,7 +858,7 @@ CRITICAL: The optimized prompt must:
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Text className="text-[--foreground-faded]">Loading...</Text>
+        <Text className="text-(--foreground-faded)">Loading...</Text>
       </div>
     )
   }
@@ -868,7 +868,7 @@ CRITICAL: The optimized prompt must:
       <Flex direction={isSmallScreen || isEmbedded ? 'column' : 'row'}>
         {/* Left Side - Main Content */}
         <div
-          className={`min-h-full bg-[--background] ${
+          className={`min-h-full bg-(--background) ${
             isEmbedded ? 'w-full' : 'flex-[1_1_60%]'
           }`}
         >
@@ -877,14 +877,14 @@ CRITICAL: The optimized prompt must:
               <div className="flex items-center gap-2">
                 <Title
                   order={2}
-                  className={`text-lg text-[--foreground] sm:text-2xl`}
+                  className={`text-lg text-(--foreground) sm:text-2xl`}
                 >
                   Prompting
                 </Title>
-                <Text className="text-[--foreground]">/</Text>
+                <Text className="text-(--foreground)">/</Text>
                 <Title
                   order={3}
-                  className={`text-base text-[--illinois-orange] sm:text-xl`}
+                  className={`text-base text-(--illinois-orange) sm:text-xl`}
                 >
                   {project_name}
                 </Title>
@@ -895,7 +895,7 @@ CRITICAL: The optimized prompt must:
           <div className={`${isEmbedded ? '' : 'p-4'}`}>
             {/* Prompt Engineering Guide */}
             <Paper
-              className="w-full rounded-xl bg-[--dashboard-background-faded] px-6"
+              className="w-full rounded-xl bg-(--dashboard-background-faded) px-6"
               p="md"
               sx={{
                 transition: 'all 0.2s ease',
@@ -920,7 +920,7 @@ CRITICAL: The optimized prompt must:
                     }}
                   />
                   <Title
-                    className={`py-2 pl-1 pr-0 text-[--dashboard-foreground] md:pl-0 md:pr-2`}
+                    className={`py-2 pl-1 pr-0 text-(--dashboard-foreground) md:pl-0 md:pr-2`}
                     order={4}
                   >
                     Prompt Engineering Guide
@@ -941,7 +941,7 @@ CRITICAL: The optimized prompt must:
               </Flex>
 
               <Collapse in={insightsOpen} transitionDuration={200}>
-                <div className="mt-4 px-2 text-[--dashboard-foreground]">
+                <div className="mt-4 px-2 text-(--dashboard-foreground)">
                   <Text size="md" className={`select-text`}>
                     For additional insights and best practices on prompt
                     creation, please review:
@@ -963,7 +963,7 @@ CRITICAL: The optimized prompt must:
                     >
                       <List.Item>
                         <a
-                          className={`text-sm text-[--dashboard-button] transition-colors duration-200 hover:text-[--dashboard-button-hover]`}
+                          className={`text-sm text-(--dashboard-button) transition-colors duration-200 hover:text-(--dashboard-button-hover)`}
                           href="https://platform.openai.com/docs/guides/prompt-engineering"
                           target="_blank"
                           rel="noopener noreferrer"
@@ -982,7 +982,7 @@ CRITICAL: The optimized prompt must:
                       </List.Item>
                       <List.Item>
                         <a
-                          className={`text-sm text-[--dashboard-button] transition-colors duration-200 hover:text-[--dashboard-button-hover]`}
+                          className={`text-sm text-(--dashboard-button) transition-colors duration-200 hover:text-(--dashboard-button-hover)`}
                           href="https://docs.anthropic.com/claude/prompt-library"
                           target="_blank"
                           rel="noopener noreferrer"
@@ -1010,7 +1010,7 @@ CRITICAL: The optimized prompt must:
                       role, tone, and behavior. Consider including:
                       <List
                         withPadding
-                        className="mt-2 text-[--dashboard-foreground]"
+                        className="mt-2 text-(--dashboard-foreground)"
                         spacing="xs"
                         icon={
                           <div
@@ -1057,7 +1057,7 @@ CRITICAL: The optimized prompt must:
                 <Flex justify="space-between" align="center" mb="md">
                   <Flex align="center" className="-mt-2 gap-4">
                     <Title
-                      className={`py-2 pl-1 pr-0 text-[--dashboard-foreground] md:pl-0 md:pr-2`}
+                      className={`py-2 pl-1 pr-0 text-(--dashboard-foreground) md:pl-0 md:pr-2`}
                       order={4}
                     >
                       System Prompt
@@ -1381,7 +1381,7 @@ CRITICAL: The optimized prompt must:
                       <div>
                         <IconInfoCircle
                           size={18}
-                          className="text-[--foreground-faded] transition-colors duration-200 hover:text-[--foreground]"
+                          className="text-(--foreground-faded) transition-colors duration-200 hover:text-(--foreground)"
                           style={{ cursor: 'pointer' }}
                         />
                       </div>
@@ -1400,7 +1400,7 @@ CRITICAL: The optimized prompt must:
                               tabIndex={0}
                               aria-label="Close Prompt Builder"
                               stroke={2}
-                              className="text-[--foreground-faded] transition-colors duration-200 hover:text-[--foreground]"
+                              className="text-(--foreground-faded) transition-colors duration-200 hover:text-(--foreground)"
                               onClick={() => setIsRightSideVisible(false)}
                             />
                           </div>
@@ -1413,7 +1413,7 @@ CRITICAL: The optimized prompt must:
                           >
                             <IconLayoutSidebarRightExpand
                               stroke={2}
-                              className="text-[--foreground-faded] transition-colors duration-200 hover:text-[--foreground]"
+                              className="text-(--foreground-faded) transition-colors duration-200 hover:text-(--foreground)"
                               onClick={() => setIsRightSideVisible(true)}
                             />
                           </div>
@@ -1581,8 +1581,8 @@ CRITICAL: The optimized prompt must:
 
             {/* Behavior Settings - shown inline when embedded */}
             {isEmbedded && (
-              <div className="mt-6 rounded-xl bg-[--dashboard-background-faded] p-4 sm:p-6">
-                <Title order={4} className={`mb-4 text-[--foreground]`}>
+              <div className="mt-6 rounded-xl bg-(--dashboard-background-faded) p-4 sm:p-6">
+                <Title order={4} className={`mb-4 text-(--foreground)`}>
                   AI Behavior Settings
                 </Title>
 

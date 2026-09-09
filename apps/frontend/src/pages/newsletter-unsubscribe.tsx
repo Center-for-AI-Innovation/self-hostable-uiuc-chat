@@ -110,7 +110,7 @@ export default function Unsubscribe() {
 
         <div>
           <button
-            className="flex w-full justify-center rounded-md border border-transparent bg-[--button] px-4 py-2 text-sm font-medium text-[--button-text-color] hover:bg-[--button-hover] hover:text-[--button-hover-text-color] focus:outline-none focus:ring-2"
+            className="flex w-full justify-center rounded-md border border-transparent bg-(--button) px-4 py-2 text-sm font-medium text-(--button-text-color) hover:bg-(--button-hover) hover:text-(--button-hover-text-color) focus:outline-hidden focus:ring-2"
             onClick={handleSubmit}
           >
             Unsubscribe

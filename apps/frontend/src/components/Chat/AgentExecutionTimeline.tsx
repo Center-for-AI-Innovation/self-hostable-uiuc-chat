@@ -296,24 +296,24 @@ export const AgentExecutionTimeline = ({
   }
 
   return (
-    <div className="w-[95%] overflow-hidden rounded-lg bg-[--background] shadow-md">
+    <div className="w-[95%] overflow-hidden rounded-lg bg-(--background) shadow-md">
       <ChainOfThought
         open={isOpen}
         onOpenChange={setIsOpen}
-        className="w-full max-w-none [&_.bg-border]:bg-[--foreground-faded]"
+        className="w-full max-w-none [&_.bg-border]:bg-(--foreground-faded)"
       >
         <ChainOfThoughtHeader className="p-3 pb-0">
           <div className="flex w-full items-center justify-between">
             <span>Agent reasoning</span>
             <div className="flex items-center gap-3">
               {/* Elapsed time */}
-              <span className="flex items-center gap-1 text-xs text-[--foreground-faded]">
+              <span className="flex items-center gap-1 text-xs text-(--foreground-faded)">
                 <Clock className="h-3 w-3" />
                 {formatElapsedTime(elapsedSeconds)}
               </span>
               {streaming && (
-                <span className="flex items-center gap-1.5 text-xs text-[--foreground-faded]">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[--primary]" />
+                <span className="flex items-center gap-1.5 text-xs text-(--foreground-faded)">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-(--primary)" />
                   Active
                 </span>
               )}
@@ -327,7 +327,7 @@ export const AgentExecutionTimeline = ({
             {/* Queries list */}
             <div
               ref={previewRef}
-              className="max-h-36 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,rgba(0,0,0,0.1),rgba(0,0,0,0.5),rgba(0,0,0,1))]"
+              className="max-h-36 overflow-hidden mask-[linear-gradient(to_bottom,transparent,rgba(0,0,0,0.1),rgba(0,0,0,0.5),rgba(0,0,0,1))]"
             >
               <div className="space-y-1">
                 {allQueries.map((q, idx) => {
@@ -342,22 +342,22 @@ export const AgentExecutionTimeline = ({
                         className={cn(
                           'mt-0.5 h-3 w-3 shrink-0',
                           isRunning
-                            ? 'animate-pulse text-[--primary]'
-                            : 'text-[--foreground-faded]',
+                            ? 'animate-pulse text-(--primary)'
+                            : 'text-(--foreground-faded)',
                         )}
                       />
                       <span
                         className={cn(
                           'flex-1 truncate',
                           isRunning
-                            ? 'text-[--foreground]'
-                            : 'text-[--foreground-faded]',
+                            ? 'text-(--foreground)'
+                            : 'text-(--foreground-faded)',
                         )}
                       >
                         {q.query}
                       </span>
                       {isDone && q.count !== undefined && (
-                        <span className="text-[--foreground-faded]/60 shrink-0">
+                        <span className="text-(--foreground-faded)/60 shrink-0">
                           {q.count}
                         </span>
                       )}
@@ -368,10 +368,10 @@ export const AgentExecutionTimeline = ({
             </div>
             {/* Summary line - always visible when collapsed (not part of delayed animation) */}
             {totalChunks > 0 && (
-              <div className="border-[--foreground-faded]/10 mt-3 flex items-center gap-1.5 border-t pt-2 text-xs text-[--foreground-faded]">
+              <div className="border-(--foreground-faded)/10 mt-3 flex items-center gap-1.5 border-t pt-2 text-xs text-(--foreground-faded)">
                 {streaming ? (
                   <>
-                    <span className="h-3 w-3 shrink-0 animate-pulse rounded-full bg-[--primary]" />
+                    <span className="h-3 w-3 shrink-0 animate-pulse rounded-full bg-(--primary)" />
                     <span>{totalChunks} chunks so far</span>
                   </>
                 ) : (
@@ -406,12 +406,12 @@ export const AgentExecutionTimeline = ({
                   icon={icon}
                   label={
                     <div className="space-y-2">
-                      <div className="font-medium text-[--foreground]">
+                      <div className="font-medium text-(--foreground)">
                         {queryCount > 1
                           ? `Searching ${queryCount} queries`
                           : 'Searching documents'}
                         {status === 'complete' && totalChunksInGroup > 0 && (
-                          <span className="font-normal text-[--foreground-faded]">
+                          <span className="font-normal text-(--foreground-faded)">
                             {' '}
                             · {totalChunksInGroup} chunks
                           </span>
@@ -422,13 +422,13 @@ export const AgentExecutionTimeline = ({
                         {event.retrievals.map((r, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center gap-2 text-xs text-[--foreground-faded] md:text-sm"
+                            className="flex items-center gap-2 text-xs text-(--foreground-faded) md:text-sm"
                           >
                             <span
                               className={cn(
                                 'h-1 w-1 shrink-0 rounded-full md:h-1.5 md:w-1.5',
                                 r.status === 'running'
-                                  ? 'animate-pulse bg-[--primary]'
+                                  ? 'animate-pulse bg-(--primary)'
                                   : r.status === 'error'
                                     ? 'bg-red-500'
                                     : 'bg-green-500',
@@ -438,7 +438,7 @@ export const AgentExecutionTimeline = ({
                               {`"${r.query}"`}
                             </span>
                             {r.count !== undefined && r.status === 'done' && (
-                              <span className="text-[--foreground-faded]/60 shrink-0">
+                              <span className="text-(--foreground-faded)/60 shrink-0">
                                 {r.count}
                               </span>
                             )}
@@ -462,7 +462,7 @@ export const AgentExecutionTimeline = ({
                     <div className="absolute bottom-0 left-1/2 top-7 -mx-px w-px bg-border" />
                   </div>
                   <div className="flex-1">
-                    <div className="text-[--foreground]">{event.title}</div>
+                    <div className="text-(--foreground)">{event.title}</div>
                   </div>
                 </div>
               )
@@ -476,9 +476,9 @@ export const AgentExecutionTimeline = ({
                 icon={icon}
                 label={
                   <div className="space-y-1">
-                    <div className="text-[--foreground]">{event.title}</div>
+                    <div className="text-(--foreground)">{event.title}</div>
                     {event.detail && (
-                      <div className="text-sm text-[--foreground-faded]">
+                      <div className="text-sm text-(--foreground-faded)">
                         {event.detail}
                       </div>
                     )}
@@ -494,10 +494,10 @@ export const AgentExecutionTimeline = ({
           })}
           {/* Total chunks indicator at bottom of expanded view */}
           {totalChunks > 0 && (
-            <div className="border-[--foreground-faded]/10 mt-3 flex items-center gap-1.5 border-t pt-2 text-xs text-[--foreground-faded] md:gap-2 md:text-sm">
+            <div className="border-(--foreground-faded)/10 mt-3 flex items-center gap-1.5 border-t pt-2 text-xs text-(--foreground-faded) md:gap-2 md:text-sm">
               {streaming ? (
                 <>
-                  <span className="h-3 w-3 shrink-0 animate-pulse rounded-full bg-[--primary] md:h-4 md:w-4" />
+                  <span className="h-3 w-3 shrink-0 animate-pulse rounded-full bg-(--primary) md:h-4 md:w-4" />
                   <span>{totalChunks} chunks retrieved so far</span>
                 </>
               ) : (

@@ -261,7 +261,7 @@ export default function ShareSettingsModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
@@ -276,7 +276,7 @@ export default function ShareSettingsModal({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.2 }}
-        className="relative mx-4 max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-[--modal] text-[--modal-text] shadow-2xl ring-1 ring-white/10 focus:outline-none"
+        className="relative mx-4 max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-(--modal) text-(--modal-text) shadow-2xl ring-1 ring-white/10 focus:outline-hidden"
         style={{ scrollbarGutter: 'stable' }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -284,7 +284,7 @@ export default function ShareSettingsModal({
         <div className="blur-xlxl absolute inset-0 -z-10 rounded-2xl" />
 
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[--modal-border] px-6 py-4">
+        <div className="flex items-center justify-between border-b border-(--modal-border) px-6 py-4">
           <div className="flex flex-col">
             <h2
               id="share-modal-title"
@@ -293,7 +293,7 @@ export default function ShareSettingsModal({
               Sharing and Access
             </h2>
             <p
-              className={`${montserrat_paragraph.variable} mt-1 font-montserratParagraph text-sm text-[--foreground-faded]`}
+              className={`${montserrat_paragraph.variable} mt-1 font-montserratParagraph text-sm text-(--foreground-faded)`}
             >
               Collaborate with members on this project
             </p>
@@ -301,7 +301,7 @@ export default function ShareSettingsModal({
           <button
             onClick={onClose}
             aria-label="Close dialog"
-            className="rounded-full p-2 transition-colors hover:bg-[--background-faded]"
+            className="rounded-full p-2 transition-colors hover:bg-(--background-faded)"
           >
             <div className="flex h-5 w-5 items-center justify-center rounded-full">
               ✕
@@ -326,13 +326,13 @@ export default function ShareSettingsModal({
                   value={shareUrl}
                   readOnly
                   aria-label="Share link"
-                  className={`${montserrat_paragraph.variable} w-full rounded-lg bg-[--background-faded] px-4 py-2.5 font-montserratParagraph text-sm text-[--foreground] ring-1 ring-[--background-dark] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[--illinois-orange]`}
+                  className={`${montserrat_paragraph.variable} w-full rounded-lg bg-(--background-faded) px-4 py-2.5 font-montserratParagraph text-sm text-(--foreground) ring-1 ring-(--background-dark) transition-all duration-300 focus:outline-hidden focus:ring-2 focus:ring-(--illinois-orange)`}
                 />
               </div>
               <button
                 onClick={handleCopy}
                 aria-label="Copy share link"
-                className="flex min-w-[42px] items-center justify-center rounded-lg bg-[--dashboard-button] p-2.5 text-[--dashboard-button-foreground] transition-all duration-300 hover:bg-[--dashboard-button-hover] active:scale-95"
+                className="flex min-w-[42px] items-center justify-center rounded-lg bg-(--dashboard-button) p-2.5 text-(--dashboard-button-foreground) transition-all duration-300 hover:bg-(--dashboard-button-hover) active:scale-95"
               >
                 {isCopied ? <IconCheck size={16} /> : <IconCopy size={16} />}
               </button>
@@ -348,18 +348,18 @@ export default function ShareSettingsModal({
             </h3>
 
             {/* Unified Access dropdown */}
-            <div className="rounded-lg bg-[--background-faded] p-4 transition-all duration-300">
+            <div className="rounded-lg bg-(--background-faded) p-4 transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[--modal]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--modal)">
                     {currentAccessLevel === 'invited' && (
-                      <IconLock className="h-5 w-5 text-[--foreground-faded]" />
+                      <IconLock className="h-5 w-5 text-(--foreground-faded)" />
                     )}
                     {currentAccessLevel === 'logged_in' && (
-                      <IconUsers className="h-5 w-5 text-[--foreground-faded]" />
+                      <IconUsers className="h-5 w-5 text-(--foreground-faded)" />
                     )}
                     {currentAccessLevel === 'public' && (
-                      <IconLockOpen className="h-5 w-5 text-[--foreground-faded]" />
+                      <IconLockOpen className="h-5 w-5 text-(--foreground-faded)" />
                     )}
                   </div>
                   <div>
@@ -380,7 +380,7 @@ export default function ShareSettingsModal({
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger
                     render={
-                      <button className="flex items-center gap-2 rounded-lg border border-[--background-dark] bg-[--modal] px-3 py-2 text-sm transition-colors hover:bg-[--background-dark]">
+                      <button className="flex items-center gap-2 rounded-lg border border-(--background-dark) bg-(--modal) px-3 py-2 text-sm transition-colors hover:bg-(--background-dark)">
                         <span className="hidden sm:inline">Change access</span>
                         <span className="sm:hidden">Access</span>
                         <IconChevronDown className="h-4 w-4" />
@@ -391,7 +391,7 @@ export default function ShareSettingsModal({
                     align="end"
                     side="bottom"
                     sideOffset={8}
-                    className="w-72 rounded-lg border-[--background-dark] bg-[--modal] p-1.5 text-[--foreground] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 sm:w-80"
+                    className="w-72 rounded-lg border-(--background-dark) bg-(--modal) p-1.5 text-(--foreground) data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 sm:w-80"
                     style={{
                       animationDuration: '100ms',
                       willChange: 'transform, opacity',
@@ -407,12 +407,12 @@ export default function ShareSettingsModal({
                         <DropdownMenuRadioItem
                           key={opt.key}
                           value={opt.key}
-                          className="my-1 cursor-pointer gap-3 rounded-md !pl-2 !pr-2 hover:rounded-md hover:bg-[--background-dark] focus:rounded-md focus:bg-[--background-dark] focus:text-[--foreground] [&>span:first-child]:hidden"
+                          className="my-1 cursor-pointer gap-3 rounded-md pl-2! pr-2! hover:rounded-md hover:bg-(--background-dark) focus:rounded-md focus:bg-(--background-dark) focus:text-(--foreground) [&>span:first-child]:hidden"
                         >
                           {opt.icon}
                           <div className="flex flex-col">
                             <span>{opt.label}</span>
-                            <span className="text-xs text-[--foreground-faded]">
+                            <span className="text-xs text-(--foreground-faded)">
                               {opt.description}
                             </span>
                           </div>
@@ -453,7 +453,7 @@ export default function ShareSettingsModal({
                       defaultValue={
                         isTransitioningToInvited ? undefined : ['members']
                       }
-                      className="w-full bg-[--dashboard-background]"
+                      className="w-full bg-(--dashboard-background)"
                     >
                       <EmailListAccordion
                         course_name={projectName}
@@ -465,12 +465,12 @@ export default function ShareSettingsModal({
                     </Accordion>
                   </motion.div>
                 ) : (
-                  <div className="pointer-events-none w-full rounded-lg bg-[--background-faded]">
+                  <div className="pointer-events-none w-full rounded-lg bg-(--background-faded)">
                     <Accordion className="w-full" value={[]}>
                       <div className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[--modal]">
-                            <IconUsers className="h-5 w-5 text-[--foreground-faded]" />
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--modal)">
+                            <IconUsers className="h-5 w-5 text-(--foreground-faded)" />
                           </div>
                           <div className="flex flex-col items-start">
                             <span
@@ -479,7 +479,7 @@ export default function ShareSettingsModal({
                               Members
                             </span>
                             <span
-                              className={`${montserrat_paragraph.variable} font-montserratParagraph text-xs text-[--foreground-faded]`}
+                              className={`${montserrat_paragraph.variable} font-montserratParagraph text-xs text-(--foreground-faded)`}
                             >
                               {currentAccessLevel === 'logged_in'
                                 ? 'Member management is only available for private chatbots'

@@ -128,7 +128,7 @@ const Dashboard = ({
           </div>
 
           <Card
-            className="mt-8 min-h-[10rem] gap-0 rounded-[2rem] border py-0 text-base shadow-none ring-0"
+            className="mt-8 min-h-40 gap-0 rounded-4xl border py-0 text-base shadow-none ring-0"
             style={{
               backgroundColor: 'var(--background)',
               borderColor: 'var(--dashboard-border)',

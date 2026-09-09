@@ -369,17 +369,17 @@ const MakeNewCoursePage = ({
   // <Flex direction="column" className="p-6 sm:p-10">
   // <Title
   // order={3}
-  // className={`${montserrat_heading.variable} font-montserratHeading text-[--foreground]`}
+  // className={`${montserrat_heading.variable} font-montserratHeading text-(--foreground)`}
   // >
   // New project creation is currently disabled
   // </Title>
   // <div
-  // className={`mt-3 text-sm sm:text-base ${montserrat_paragraph.variable} font-montserratParagraph text-[--foreground]`}
+  // className={`mt-3 text-sm sm:text-base ${montserrat_paragraph.variable} font-montserratParagraph text-(--foreground)`}
   // >
   // We’re getting ready to transition to{' '}
   // <a
   // href="https://chat.illinois.edu"
-  // className="text-[--illinois-orange] underline"
+  // className="text-(--illinois-orange) underline"
   // target="_blank"
   // rel="noopener noreferrer"
   // >
@@ -389,7 +389,7 @@ const MakeNewCoursePage = ({
   // questions, please email us at{' '}
   // <a
   // href="mailto:genaisupport@mx.uillinois.edu"
-  // className="text-[--illinois-orange] underline"
+  // className="text-(--illinois-orange) underline"
   // >
   // genaisupport@mx.uillinois.edu
   // </a>
@@ -423,11 +423,11 @@ const MakeNewCoursePage = ({
             padding="none"
             withBorder={true}
             radius="lg"
-            className="my-auto flex w-full max-w-[720px] flex-col !border-[--dashboard-border] bg-[--background] px-6 py-8 text-[--foreground] sm:px-10 sm:py-10"
+            className="my-auto flex w-full max-w-[720px] flex-col border-(--dashboard-border)! bg-(--background) px-6 py-8 text-(--foreground) sm:px-10 sm:py-10"
           >
             <div
               ref={stepContainerRef}
-              className="step_container flex min-h-[22rem] flex-col"
+              className="step_container flex min-h-88 flex-col"
               aria-label={`Step ${currentStep + 1} of ${totalSteps}: ${
                 stepNames[currentStep]
               }`}
@@ -448,13 +448,13 @@ const MakeNewCoursePage = ({
         {/* Sticky Footer Navigation */}
         <nav
           aria-label="Wizard navigation"
-          className="fixed bottom-0 left-0 right-0 z-40 border-t border-[--dashboard-border] bg-[--background]"
+          className="fixed bottom-0 left-0 right-0 z-40 border-t border-(--dashboard-border) bg-(--background)"
         >
           <div className="mx-auto flex max-w-[720px] items-center justify-between px-4 py-3 sm:px-6">
             <Button
               variant="outline"
               size="sm"
-              className="hover:bg-[--foreground]/10 border-[--foreground] text-[--foreground] hover:text-[--foreground]"
+              className="hover:bg-(--foreground)/10 border-(--foreground) text-(--foreground) hover:text-(--foreground)"
               onClick={goToPreviousStep}
               disabled={isFirstStep || shouldBlockNavigation}
               aria-label="Go to previous step"
@@ -476,7 +476,7 @@ const MakeNewCoursePage = ({
                     stepNames[index]
                   }${currentStep === index ? ' (current)' : ''}`}
                   aria-current={currentStep === index ? 'step' : undefined}
-                  className={`rounded-full bg-[--foreground] transition-all duration-200 ${currentStep === index ? 'h-2.5 w-2.5 opacity-100' : 'h-2 w-2 opacity-25'}`}
+                  className={`rounded-full bg-(--foreground) transition-all duration-200 ${currentStep === index ? 'h-2.5 w-2.5 opacity-100' : 'h-2 w-2 opacity-25'}`}
                 />
               ))}
             </div>
@@ -484,7 +484,7 @@ const MakeNewCoursePage = ({
             <Button
               variant="outline"
               size="sm"
-              className="hover:bg-[--foreground]/10 border-[--foreground] text-[--foreground] hover:text-[--foreground]"
+              className="hover:bg-(--foreground)/10 border-(--foreground) text-(--foreground) hover:text-(--foreground)"
               aria-label={
                 isLastStep
                   ? 'Start chatting with your new chatbot'

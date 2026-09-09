@@ -129,10 +129,10 @@ export default function MITIngestForm({
         <DialogTrigger
           tabIndex={0}
           nativeButton={false}
-          className="focus:bg-[--dashboard-background-dark]"
+          className="focus:bg-(--dashboard-background-dark)"
           render={
             <Card
-              className="group relative cursor-pointer overflow-hidden rounded-2xl border border-[--dashboard-border] bg-transparent px-6 py-4 text-[--dashboard-foreground] transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+              className="group relative cursor-pointer overflow-hidden rounded-2xl border border-(--dashboard-border) bg-transparent px-6 py-4 text-(--dashboard-foreground) transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
               style={{ height: '100%' }}
             >
               <div className="-ml-2 mb-2 flex items-center justify-between">
@@ -150,11 +150,11 @@ export default function MITIngestForm({
                 </div>
               </div>
 
-              <Text className="mb-4 text-sm leading-relaxed text-[--dashboard-foreground-faded]">
+              <Text className="mb-4 text-sm leading-relaxed text-(--dashboard-foreground-faded)">
                 Import content from MIT OpenCourseWare, including lecture notes,
                 assignments, and course materials.
               </Text>
-              <div className="mt-auto flex items-center text-sm font-bold text-[--dashboard-button]">
+              <div className="mt-auto flex items-center text-sm font-bold text-(--dashboard-button)">
                 <span>Configure import</span>
                 <IconArrowRight
                   size={16}
@@ -166,7 +166,7 @@ export default function MITIngestForm({
           }
         />
 
-        <DialogContent className="mx-auto h-auto max-h-[85vh] w-[95%] max-w-2xl overflow-y-auto !rounded-2xl border-0 bg-[--modal] px-4 py-6 text-[--modal-text] sm:px-6">
+        <DialogContent className="mx-auto h-auto max-h-[85vh] w-[95%] max-w-2xl overflow-y-auto rounded-2xl! border-0 bg-(--modal) px-4 py-6 text-(--modal-text) sm:px-6">
           <DialogHeader>
             <DialogTitle className="mb-4 text-left text-xl font-bold">
               Ingest MIT Course
@@ -175,13 +175,13 @@ export default function MITIngestForm({
           <div className="">
             <div className="">
               <div>
-                <div className="break-words text-sm sm:text-base">
-                  <Text className="mb-2 text-sm font-semibold text-[--illinois-orange]">
+                <div className="wrap-break-word text-sm sm:text-base">
+                  <Text className="mb-2 text-sm font-semibold text-(--illinois-orange)">
                     Coming soon: MIT ingest is temporarily unavailable.
                   </Text>
                   <strong>For MIT Open Course Ware</strong>, just enter a URL
                   like{' '}
-                  <code className="inline-flex items-center rounded-md bg-[--illinois-orange] px-2 py-1 font-mono text-xs text-[--illinois-white] sm:text-sm">
+                  <code className="inline-flex items-center rounded-md bg-(--illinois-orange) px-2 py-1 font-mono text-xs text-(--illinois-white) sm:text-sm">
                     ocw.mit.edu/courses/ANY_COURSE
                   </code>
                   ,<br />
@@ -194,7 +194,7 @@ export default function MITIngestForm({
                         'https://ocw.mit.edu/courses/8-321-quantum-theory-i-fall-2017'
                       }
                       onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                      className="text-[--dashboard-button]"
+                      className="text-(--dashboard-button)"
                     >
                       https://ocw.mit.edu/courses/8-321-quantum-theory-i-fall-2017
                     </NextLink>
@@ -247,7 +247,7 @@ export default function MITIngestForm({
             <Button
               onClick={handleIngest}
               disabled
-              className="h-11 w-full rounded-xl bg-[--dashboard-button] text-[--dashboard-button-foreground] transition-colors hover:bg-[--dashboard-button-hover] disabled:bg-[--background-faded] disabled:text-[--background-dark]"
+              className="h-11 w-full rounded-xl bg-(--dashboard-button) text-(--dashboard-button-foreground) transition-colors hover:bg-(--dashboard-button-hover) disabled:bg-(--background-faded) disabled:text-(--background-dark)"
             >
               Ingest MIT Course
             </Button>

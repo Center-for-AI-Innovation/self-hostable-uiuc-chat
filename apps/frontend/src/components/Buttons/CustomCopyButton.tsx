@@ -29,7 +29,7 @@ const CustomCopyButton: React.FC<CustomCopyButtonProps> = ({
       onClick={onClick}
     >
       <Button
-        className={`relative flex items-center justify-center bg-[--dashboard-button] px-3 py-2 text-center text-[--dashboard-button-foreground] transition-colors duration-200 hover:bg-[--dashboard-button-hover] active:bg-[--dashboard-button] ${montserrat_paragraph.variable} font-montserratParagraph`}
+        className={`relative flex items-center justify-center bg-(--dashboard-button) px-3 py-2 text-center text-(--dashboard-button-foreground) transition-colors duration-200 hover:bg-(--dashboard-button-hover) active:bg-(--dashboard-button) ${montserrat_paragraph.variable} font-montserratParagraph`}
         styles={{
           root: {
             height: 'auto',
@@ -57,7 +57,7 @@ const CustomCopyButton: React.FC<CustomCopyButtonProps> = ({
         <IconCopy size={18} aria-hidden="true" />
       </Button>
       <span
-        className={`${montserrat_paragraph.variable} text-md ml-3 flex items-center font-montserratParagraph text-[--dashboard-foreground] transition-colors duration-200 ease-in-out`}
+        className={`${montserrat_paragraph.variable} text-md ml-3 flex items-center font-montserratParagraph text-(--dashboard-foreground) transition-colors duration-200 ease-in-out`}
       >
         {label}
         <Tooltip
@@ -96,7 +96,7 @@ const CustomCopyButton: React.FC<CustomCopyButtonProps> = ({
               size={16}
               aria-hidden="true"
               className={
-                isHovered ? 'text-[--dashboard-foreground]' : 'text-gray-400'
+                isHovered ? 'text-(--dashboard-foreground)' : 'text-gray-400'
               }
               style={{ transition: 'all 0.2s ease-in-out' }}
             />

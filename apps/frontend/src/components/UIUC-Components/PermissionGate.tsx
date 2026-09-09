@@ -64,10 +64,10 @@ export const PermissionGate = ({
               className={`text-5xl font-extrabold tracking-tight text-white sm:text-[5rem] ${montserrat_heading.variable} font-montserratHeading`}
             >
               {' '}
-              <span className="${inter.style.fontFamily} mr-2 text-[--illinois-orange]">
+              <span className="${inter.style.fontFamily} mr-2 text-(--illinois-orange)">
                 Illinois
               </span>
-              <span className="${inter.style.fontFamily} text-[--foreground]">
+              <span className="${inter.style.fontFamily} text-(--foreground)">
                 Chat
               </span>{' '}
             </h1>
@@ -76,20 +76,20 @@ export const PermissionGate = ({
         <div className="items-left container flex flex-col justify-center gap-2 py-0">
           <div className="flex flex-col items-center justify-center">
             <h2
-              className={`${montserrat_heading.variable} p-8 font-montserratHeading text-4xl font-bold text-[--foreground]`}
+              className={`${montserrat_heading.variable} p-8 font-montserratHeading text-4xl font-bold text-(--foreground)`}
             >
               {' '}
               {getTitle()}
             </h2>
             <p
-              className={`${montserrat_heading.variable} p-4 text-center font-montserratHeading text-lg text-[--foreground]`}
+              className={`${montserrat_heading.variable} p-4 text-center font-montserratHeading text-lg text-(--foreground)`}
             >
               {getErrorMessage()}
             </p>
             {errorType === 403 && (
               <Link href="/chatbots">
                 <Button
-                  className="login-btn h-auto min-h-12 bg-[--button] text-white hover:bg-[--button-hover]"
+                  className="login-btn h-auto min-h-12 bg-(--button) text-white hover:bg-(--button-hover)"
                   style={{ fontSize: '24px' }}
                 >
                   My Chatbots →
@@ -105,7 +105,7 @@ export const PermissionGate = ({
                 }
               >
                 <Button
-                  className="login-btn h-auto min-h-12 bg-[--button] text-white hover:bg-[--button-hover]"
+                  className="login-btn h-auto min-h-12 bg-(--button) text-white hover:bg-(--button-hover)"
                   style={{ fontSize: '24px' }}
                 >
                   Create New →
@@ -115,7 +115,7 @@ export const PermissionGate = ({
             {errorType !== 404 && errorType !== 403 && (
               <Link href="/sign-in">
                 <Button
-                  className="login-btn h-auto min-h-12 bg-[--button] text-white hover:bg-[--button-hover]"
+                  className="login-btn h-auto min-h-12 bg-(--button) text-white hover:bg-(--button-hover)"
                   style={{ fontSize: '24px' }}
                   onClick={handleSignIn}
                 >

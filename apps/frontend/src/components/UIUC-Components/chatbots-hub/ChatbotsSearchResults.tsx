@@ -37,11 +37,11 @@ export function ChatbotsSearchResults({
   if (results.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
-        <SearchX className="h-10 w-10 text-[--illinois-storm-medium] dark:text-[#94a3b8]" />
-        <p className="text-sm text-[--illinois-storm-dark] dark:text-[#c8d2e3]">
+        <SearchX className="h-10 w-10 text-(--illinois-storm-medium) dark:text-[#94a3b8]" />
+        <p className="text-sm text-(--illinois-storm-dark) dark:text-[#c8d2e3]">
           No chatbots found matching your search.
         </p>
-        <p className="text-xs text-[--illinois-storm-medium] dark:text-[#94a3b8]">
+        <p className="text-xs text-(--illinois-storm-medium) dark:text-[#94a3b8]">
           Try adjusting your filters or search terms.
         </p>
       </div>
@@ -50,7 +50,7 @@ export function ChatbotsSearchResults({
 
   return (
     <div>
-      <p className="mb-4 text-sm text-[--illinois-storm-medium] dark:text-[#94a3b8]">
+      <p className="mb-4 text-sm text-(--illinois-storm-medium) dark:text-[#94a3b8]">
         {total} {total === 1 ? 'result' : 'results'}
       </p>
       {/* Match the default page: each card is locked to 320px (see

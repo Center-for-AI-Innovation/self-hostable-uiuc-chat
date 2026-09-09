@@ -24,7 +24,7 @@ import { useQuery } from '@tanstack/react-query'
 // Shared cell styling: keep the word-wrap/padding/color behavior of the
 // previous custom table (cells must wrap, fixed layout).
 const cellClasses =
-  'whitespace-normal break-words p-2 text-left text-[--foreground] [hyphens:auto]'
+  'whitespace-normal wrap-break-word p-2 text-left text-(--foreground) [hyphens:auto]'
 
 type SortDirection = 'asc' | 'desc' | null
 type SortableColumn = 'name' | 'privacy' | 'owner' | 'admins'
@@ -141,7 +141,7 @@ const ListProjectTable: React.FC = () => {
             tabIndex={0}
             aria-label={courseName}
             key={courseName}
-            className="cursor-pointer border-[--table-border] text-[--foreground] hover:bg-[--background-faded]"
+            className="cursor-pointer border-(--table-border) text-(--foreground) hover:bg-(--background-faded)"
             onClick={(e) => {
               // Check if cmd (Mac) or ctrl (Windows/Linux) key is pressed
               if (e.metaKey || e.ctrlKey) {
@@ -193,7 +193,7 @@ const ListProjectTable: React.FC = () => {
         <>
           {/* Todo: add enticing copy for new recruits */}
           {/* <Title order={3}>
-            <Link className="text-[--dashboard-button] underline" href="/new">Make your own project here</Link>
+            <Link className="text-(--dashboard-button) underline" href="/new">Make your own project here</Link>
           </Title> */}
         </>
       )
@@ -216,7 +216,7 @@ const ListProjectTable: React.FC = () => {
                   aria-label="Chatbots list"
                 >
                   <TableHeader>
-                    <TableRow className="border-[--table-border] hover:bg-transparent">
+                    <TableRow className="border-(--table-border) hover:bg-transparent">
                       {[
                         { label: 'Chatbot Name', key: 'name' },
                         { label: 'Privacy', key: 'privacy' },

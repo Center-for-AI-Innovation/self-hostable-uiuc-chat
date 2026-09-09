@@ -57,7 +57,7 @@ export default function BedrockProviderInput({
 
       <div className="mt-4 flex justify-start">
         <Button
-          className="bg-[--dashboard-button] text-[--dashboard-button-foreground] hover:bg-[--dashboard-button-hover]"
+          className="bg-(--dashboard-button) text-(--dashboard-button-foreground) hover:bg-(--dashboard-button-hover)"
           size="sm"
           onClick={handleSaveCredentials}
           disabled={isSaving}

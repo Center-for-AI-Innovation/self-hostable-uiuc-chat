@@ -172,7 +172,7 @@ export const N8nWorkflowsTable = ({
       </Title> */}
       <Text
         // w={isWideScreen ? '85%' : '92%'}
-        className={`pb-2 text-[--dashboard-foreground] ${widthClasses}`}
+        className={`pb-2 text-(--dashboard-foreground) ${widthClasses}`}
       >
         These tools can be automatically invoked by the LLM to fetch additional
         data to answer user questions on the{' '}
@@ -180,7 +180,7 @@ export const N8nWorkflowsTable = ({
           href={`/${course_name}/chat`}
           // target="_blank"
           rel="noopener noreferrer"
-          className="text-[--dashboard-button] hover:text-[--dashboard-button-hover]"
+          className="text-(--dashboard-button) hover:text-(--dashboard-button-hover)"
           style={{
             textDecoration: 'underline',
           }}

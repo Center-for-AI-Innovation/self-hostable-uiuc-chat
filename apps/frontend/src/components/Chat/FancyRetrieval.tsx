@@ -35,7 +35,7 @@ export const FancyRetrieval = () => {
   return (
     <>
       <div
-        className="flex h-full w-[100%] flex-col space-y-4 rounded-lg p-3"
+        className="flex h-full w-full flex-col space-y-4 rounded-lg p-3"
         style={{ position: 'relative' }}
       >
         <Tooltip
@@ -50,14 +50,14 @@ export const FancyRetrieval = () => {
           classNames={{
             tooltip: `${
               isSmallScreen ? 'text-xs' : 'text-sm'
-            } text-[--tooltip] bg-[--tooltip-background] ${
+            } text-(--tooltip) bg-(--tooltip-background) ${
               montserrat_paragraph.variable
             } font-montserratParagraph`,
           }}
         >
           <div>
             <Title
-              className={`${montserrat_heading.variable} rounded-lg bg-[--modal-dark] p-4 font-montserratHeading text-[--modal-text]`}
+              className={`${montserrat_heading.variable} rounded-lg bg-(--modal-dark) p-4 font-montserratHeading text-(--modal-text)`}
               color="white"
               order={isSmallScreen ? 5 : 4}
             >

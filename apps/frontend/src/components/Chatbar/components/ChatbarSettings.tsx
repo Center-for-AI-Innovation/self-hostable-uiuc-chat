@@ -21,7 +21,7 @@ export const ChatbarSettings = () => {
     useContext(ChatbarContext)
 
   return (
-    <div className="flex flex-col items-center space-y-1 border-t border-[--dashboard-border] pt-1 text-sm">
+    <div className="flex flex-col items-center space-y-1 border-t border-(--dashboard-border) pt-1 text-sm">
       {conversations.length > 0 ? (
         <ClearConversations onClearConversations={handleClearConversations} />
       ) : null}
@@ -35,7 +35,7 @@ export const ChatbarSettings = () => {
       />
 
       {/* Theme Toggle */}
-      <div className="mt-auto w-full border-t border-[--dashboard-border] pt-4">
+      <div className="mt-auto w-full border-t border-(--dashboard-border) pt-4">
         <div className="flex w-full items-center justify-center rounded-lg px-2 py-2">
           <ThemeToggle />
         </div>

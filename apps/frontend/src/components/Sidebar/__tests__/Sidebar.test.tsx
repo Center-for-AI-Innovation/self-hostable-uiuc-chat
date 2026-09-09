@@ -84,7 +84,7 @@ describe('Sidebar', () => {
     })
     expect(handleSearchTerm).toHaveBeenCalledWith('hi')
 
-    const scrollContainer = container.querySelector('.flex-grow') as HTMLElement
+    const scrollContainer = container.querySelector('.grow') as HTMLElement
     fireEvent.scroll(scrollContainer)
     expect(onScroll).toHaveBeenCalled()
 

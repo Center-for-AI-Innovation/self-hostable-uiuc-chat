@@ -235,13 +235,13 @@ export const CitationCard = ({
       className="-m-0.5 w-full rounded-md p-0.5 transition-all duration-300 hover:opacity-100"
     >
       <Paper
-        className="flex flex-col overflow-hidden border-[1px] border-[--sources-border] bg-[--sources-item-background] text-[--sources-foreground] transition-all duration-300 ease-in-out hover:border-[--sources-border-hover]"
+        className="flex flex-col overflow-hidden border border-(--sources-border) bg-(--sources-item-background) text-(--sources-foreground) transition-all duration-300 ease-in-out hover:border-(--sources-border-hover)"
         radius="md"
       >
         <div className="flex h-full flex-col">
           {thumbnailUrl ? (
             <div
-              className={`relative flex w-full ${isWebIcon ? 'justify-center bg-[--sources-item-header-background] p-2' : 'h-32 overflow-hidden'}`}
+              className={`relative flex w-full ${isWebIcon ? 'justify-center bg-(--sources-item-header-background) p-2' : 'h-32 overflow-hidden'}`}
             >
               <Image
                 src={thumbnailUrl}
@@ -266,7 +266,7 @@ export const CitationCard = ({
                       variant="filled"
                       radius="sm"
                       size="xs"
-                      className="bg-[--sources-badge] text-[--background]"
+                      className="bg-(--sources-badge) text-(--background)"
                     >
                       {index + 1}
                     </Badge>
@@ -276,12 +276,12 @@ export const CitationCard = ({
                       {isWebIcon || isPDF ? (
                         <IconExternalLink
                           size={14}
-                          className="text-[--sources-badge]"
+                          className="text-(--sources-badge)"
                         />
                       ) : (
                         <IconDownload
                           size={14}
-                          className="text-[--sources-badge]"
+                          className="text-(--sources-badge)"
                         />
                       )}
                     </div>
@@ -290,7 +290,7 @@ export const CitationCard = ({
               )}
             </div>
           ) : (
-            <div className="relative flex w-full justify-center bg-[--sources-item-header-background] p-2">
+            <div className="relative flex w-full justify-center bg-(--sources-item-header-background) p-2">
               <div className="flex h-12 w-12 items-center justify-center">
                 {getFileType() === 'md' ? (
                   <IconMarkdown size={32} />
@@ -309,7 +309,7 @@ export const CitationCard = ({
                       variant="filled"
                       radius="sm"
                       size="xs"
-                      className="bg-[--sources-badge] text-[--background]"
+                      className="bg-(--sources-badge) text-(--background)"
                     >
                       {index + 1}
                     </Badge>
@@ -319,12 +319,12 @@ export const CitationCard = ({
                       {isWebIcon || isPDF ? (
                         <IconExternalLink
                           size={14}
-                          className="text-[--sources-badge]"
+                          className="text-(--sources-badge)"
                         />
                       ) : (
                         <IconDownload
                           size={14}
-                          className="text-[--sources-badge]"
+                          className="text-(--sources-badge)"
                         />
                       )}
                     </div>
@@ -338,7 +338,7 @@ export const CitationCard = ({
             <div className="min-w-0 flex-1">
               <div className="flex flex-col gap-1.5">
                 <Text
-                  className={`text-xs font-semibold ${montserrat_heading.variable} break-words font-montserratHeading leading-tight`}
+                  className={`text-xs font-semibold ${montserrat_heading.variable} wrap-break-word font-montserratHeading leading-tight`}
                   style={{ wordBreak: 'break-word' }}
                 >
                   {readable_filename}
@@ -346,14 +346,14 @@ export const CitationCard = ({
                 <div className="flex flex-col gap-0.5">
                   {isPDF && hasPageNumber && (
                     <Text
-                      className={`text-xs text-[--foreground-faded] ${montserrat_paragraph.variable} font-montserratParagraph`}
+                      className={`text-xs text-(--foreground-faded) ${montserrat_paragraph.variable} font-montserratParagraph`}
                     >
                       Page {effectivePageNumber}
                     </Text>
                   )}
                   {text && (
                     <Text
-                      className={`text-xs text-[--foreground-faded] ${montserrat_paragraph.variable} line-clamp-2 font-montserratParagraph`}
+                      className={`text-xs text-(--foreground-faded) ${montserrat_paragraph.variable} line-clamp-2 font-montserratParagraph`}
                     >
                       {text}
                     </Text>

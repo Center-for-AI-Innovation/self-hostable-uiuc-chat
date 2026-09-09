@@ -103,7 +103,7 @@ export function ChatbotsSearchBar({
         <div className="relative flex-1">
           <Search
             aria-hidden="true"
-            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[--illinois-storm-medium] dark:text-[#94a3b8]"
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--illinois-storm-medium) dark:text-[#94a3b8]"
           />
           <Input
             type="search"
@@ -111,7 +111,7 @@ export function ChatbotsSearchBar({
             value={localQuery}
             onChange={handleInputChange}
             aria-label="Search chatbots"
-            className="h-12 rounded-xl border-[#e5e7eb] bg-white pl-10 pr-10 text-sm text-[--illinois-blue] placeholder:text-[--illinois-storm-medium] focus-visible:ring-[--illinois-blue] dark:border-[#32517a] dark:bg-[#13294b] dark:text-white dark:placeholder:text-[#94a3b8] dark:focus-visible:ring-white/30"
+            className="h-12 rounded-xl border-[#e5e7eb] bg-white pl-10 pr-10 text-sm text-(--illinois-blue) placeholder:text-(--illinois-storm-medium) focus-visible:ring-(--illinois-blue) dark:border-[#32517a] dark:bg-[#13294b] dark:text-white dark:placeholder:text-[#94a3b8] dark:focus-visible:ring-white/30"
           />
           {localQuery && (
             <Button
@@ -121,7 +121,7 @@ export function ChatbotsSearchBar({
               onClick={handleClear}
               aria-label="Clear search"
             >
-              <X className="h-4 w-4 text-[--illinois-storm-medium] dark:text-[#94a3b8]" />
+              <X className="h-4 w-4 text-(--illinois-storm-medium) dark:text-[#94a3b8]" />
             </Button>
           )}
         </div>
@@ -131,9 +131,9 @@ export function ChatbotsSearchBar({
           aria-pressed={isFiltersOpen}
           aria-expanded={isFiltersOpen}
           aria-controls="chatbot-filters-panel"
-          className={`hover:bg-[--illinois-blue]/5 h-12 gap-2 rounded-xl border-[#e5e7eb] bg-white px-5 text-sm font-semibold text-[--illinois-blue] dark:border-[#32517a] dark:bg-[#13294b] dark:text-white dark:hover:bg-white/5 ${
+          className={`hover:bg-(--illinois-blue)/5 h-12 gap-2 rounded-xl border-[#e5e7eb] bg-white px-5 text-sm font-semibold text-(--illinois-blue) dark:border-[#32517a] dark:bg-[#13294b] dark:text-white dark:hover:bg-white/5 ${
             isFiltersOpen
-              ? 'border-[--illinois-orange] ring-1 ring-[--illinois-orange]'
+              ? 'border-(--illinois-orange) ring-1 ring-(--illinois-orange)'
               : ''
           }`}
         >
@@ -152,12 +152,12 @@ export function ChatbotsSearchBar({
             <Badge
               key={filter.key}
               variant="secondary"
-              className="bg-[--illinois-blue]/10 gap-1 text-[--illinois-blue] dark:bg-white/10 dark:text-white"
+              className="bg-(--illinois-blue)/10 gap-1 text-(--illinois-blue) dark:bg-white/10 dark:text-white"
             >
               {filter.label}
               <button
                 onClick={() => handleRemoveFilter(filter.key)}
-                className="hover:bg-[--illinois-blue]/20 ml-0.5 rounded-full p-0.5 dark:hover:bg-white/20"
+                className="hover:bg-(--illinois-blue)/20 ml-0.5 rounded-full p-0.5 dark:hover:bg-white/20"
                 aria-label={`Remove ${filter.label} filter`}
               >
                 <X className="h-3 w-3" />

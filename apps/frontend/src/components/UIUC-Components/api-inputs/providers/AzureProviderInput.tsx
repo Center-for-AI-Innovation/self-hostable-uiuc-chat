@@ -37,7 +37,7 @@ export default function AzureProviderInput({
           <div className="mb-3">
             <Label
               htmlFor="azure-endpoint"
-              className="text-[--dashboard-foreground-faded]"
+              className="text-(--dashboard-foreground-faded)"
             >
               Azure Endpoint
             </Label>
@@ -46,7 +46,7 @@ export default function AzureProviderInput({
               placeholder="https://your-resource-name.openai.azure.com/"
               value={field.state.value}
               onChange={(e) => field.handleChange(e.target.value)}
-              className="mt-1 bg-[--background] text-[--foreground]"
+              className="mt-1 bg-(--background) text-(--foreground)"
             />
           </div>
         )}

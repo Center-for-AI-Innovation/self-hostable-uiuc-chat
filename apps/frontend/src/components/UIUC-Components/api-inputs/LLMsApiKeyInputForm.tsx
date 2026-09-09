@@ -137,7 +137,7 @@ export const APIKeyInput = ({
             field.form.handleSubmit()
           }}
           type="submit"
-          className="text-[--foreground-faded] hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground] hover:text-[white]"
+          className="text-(--foreground-faded) hover:bg-(--dashboard-button) hover:text-(--dashboard-button-foreground) hover:text-[white]"
           style={{ marginLeft: '8px' }}
         >
           <IconX size={12} aria-hidden="true" />
@@ -160,7 +160,7 @@ export const APIKeyInput = ({
         <div>
           <Button
             compact
-            className="bg-[--dashboard-button] text-[--dashboard-button-foreground] hover:bg-[--dashboard-button-hover]"
+            className="bg-(--dashboard-button) text-(--dashboard-button-foreground) hover:bg-(--dashboard-button-hover)"
             onClick={() => {
               field.form.handleSubmit()
             }}
@@ -245,7 +245,7 @@ const NewModelDropdown: React.FC<{
         Select default model
       </label>
       <Select
-        className="z-[30] flex w-full flex-col flex-wrap p-2 text-sm"
+        className="z-30 flex w-full flex-col flex-wrap p-2 text-sm"
         size="md"
         aria-label="Select default model"
         aria-labelledby="default-model-label"
@@ -727,17 +727,17 @@ export default function APIKeyInputForm({
       >
         <div>
           {/* Default Model Section */}
-          <div className="rounded-lg border border-[--dashboard-border] bg-[--dashboard-sidebar-background] p-4">
-            <h4 className="text-lg font-bold text-[--foreground]">
+          <div className="rounded-lg border border-(--dashboard-border) bg-(--dashboard-sidebar-background) p-4">
+            <h4 className="text-lg font-bold text-(--foreground)">
               Default Model
             </h4>
-            <p className="mb-3 text-sm text-[--foreground-faded]">
+            <p className="mb-3 text-sm text-(--foreground-faded)">
               Choose the default model for your chatbot. Users can still
               override this default.
             </p>
             <div className="flex justify-center">
               {isLoadingLLMProviders ? (
-                <Skeleton className="h-10 w-full rounded-md bg-[--dashboard-background-faded]" />
+                <Skeleton className="h-10 w-full rounded-md bg-(--dashboard-background-faded)" />
               ) : llmProviders ? (
                 <NewModelDropdown
                   value={findDefaultModel(llmProviders) as AnySupportedModel}
@@ -764,10 +764,10 @@ export default function APIKeyInputForm({
           </div>
 
           {/* Open source LLMs */}
-          <h4 className="mt-6 text-lg font-bold text-[--foreground]">
+          <h4 className="mt-6 text-lg font-bold text-(--foreground)">
             Open source LLMs
           </h4>
-          <p className="mb-3 text-sm text-[--foreground-faded]">
+          <p className="mb-3 text-sm text-(--foreground-faded)">
             Your weights, your rules.
           </p>
           <Flex
@@ -800,10 +800,10 @@ export default function APIKeyInputForm({
             />
           </Flex>
 
-          <h4 className="mt-6 text-lg font-bold text-[--foreground]">
+          <h4 className="mt-6 text-lg font-bold text-(--foreground)">
             Closed source LLMs
           </h4>
-          <p className="mb-3 text-sm text-[--foreground-faded]">
+          <p className="mb-3 text-sm text-(--foreground-faded)">
             The best performers, but you gotta pay their prices and follow their
             rules.
           </p>
@@ -896,9 +896,9 @@ export default function APIKeyInputForm({
                 <div
                   style={{
                     border: 'None',
-                    color: 'text-[--foreground]',
+                    color: 'text-(--foreground)',
                   }}
-                  className="min-h-full flex-[1_1_100%] bg-[--background] md:flex-[1_1_70%]"
+                  className="min-h-full flex-[1_1_100%] bg-(--background) md:flex-[1_1_70%]"
                 >
                   <Flex
                     gap="md"
@@ -910,13 +910,13 @@ export default function APIKeyInputForm({
                     <Title
                       order={2}
                       align="left"
-                      className={`pl-4 pr-2 pt-4 ${montserrat_heading.variable} font-montserratHeading text-[--foreground]`}
+                      className={`pl-4 pr-2 pt-4 ${montserrat_heading.variable} font-montserratHeading text-(--foreground)`}
                     >
                       {/* API Keys: Add LLMs to your Chatbot */}
                       Configure LLM Providers for your Chatbot
                     </Title>
                     <Title
-                      className={`${montserrat_heading.variable} flex-[1_1_50%] font-montserratHeading text-[--foreground]`}
+                      className={`${montserrat_heading.variable} flex-[1_1_50%] font-montserratHeading text-(--foreground)`}
                       order={3}
                       px={18}
                       ml={'md'}
@@ -944,13 +944,13 @@ export default function APIKeyInputForm({
                         >
                           <>
                             <Title
-                              className={`${montserrat_heading.variable} mt-4 font-montserratHeading text-[--foreground]`}
+                              className={`${montserrat_heading.variable} mt-4 font-montserratHeading text-(--foreground)`}
                               order={3}
                             >
                               Closed source LLMs
                             </Title>
                             <Text
-                              className={`pl-1 ${montserrat_paragraph.variable} font-montserratParagraph text-[--foreground-faded]`}
+                              className={`pl-1 ${montserrat_paragraph.variable} font-montserratParagraph text-(--foreground-faded)`}
                               size="md"
                             >
                               The best performers, but you gotta pay their
@@ -1014,13 +1014,13 @@ export default function APIKeyInputForm({
                               />
                             </Flex>
                             <Title
-                              className={`-mb-3 ${montserrat_heading.variable} mt-4 font-montserratHeading text-[--foreground]`}
+                              className={`-mb-3 ${montserrat_heading.variable} mt-4 font-montserratHeading text-(--foreground)`}
                               order={3}
                             >
                               Open source LLMs
                             </Title>
                             <Text
-                              className={`pl-1 ${montserrat_paragraph.variable} font-montserratParagraph text-[--foreground-faded]`}
+                              className={`pl-1 ${montserrat_paragraph.variable} font-montserratParagraph text-(--foreground-faded)`}
                               size="md"
                             >
                               Your weights, your rules.
@@ -1102,7 +1102,7 @@ export default function APIKeyInputForm({
                         <br />
                         <div className="flex justify-center">
                           {isLoadingLLMProviders ? (
-                            <Skeleton className="h-10 w-full rounded-md bg-[--dashboard-background-faded]" />
+                            <Skeleton className="h-10 w-full rounded-md bg-(--dashboard-background-faded)" />
                           ) : llmProviders ? (
                             <NewModelDropdown
                               value={

@@ -25,10 +25,10 @@ export const MainPageBackground: React.FC<MainPageBackgroundProps> = ({
         <div className="container flex flex-col items-center justify-center gap-8 px-4 py-5 pt-20">
           <Link href="/">
             <h1
-              className={`text-5xl font-extrabold tracking-tight text-[--primary] sm:text-[5rem] ${montserrat_heading.variable} font-montserratHeading`}
+              className={`text-5xl font-extrabold tracking-tight text-(--primary) sm:text-[5rem] ${montserrat_heading.variable} font-montserratHeading`}
             >
               Illinois
-              <span className="${inter.style.fontFamily} ml-2 text-[--foreground]">
+              <span className="${inter.style.fontFamily} ml-2 text-(--foreground)">
                 Chat
               </span>
             </h1>

@@ -110,18 +110,18 @@ const Dashboard = ({
       >
         <h1 className="sr-only">Explore Chatbots</h1>
         <Card
-          className="mx-auto mt-[2%] w-[96%] gap-0 rounded-[2rem] border py-0 text-base shadow-none ring-0 md:w-[90%] 2xl:w-[90%]"
+          className="mx-auto mt-[2%] w-[96%] gap-0 rounded-4xl border py-0 text-base shadow-none ring-0 md:w-[90%] 2xl:w-[90%]"
           style={{
             backgroundColor: 'var(--background)',
             borderColor: 'var(--dashboard-border)',
           }}
         >
           <div className="flex min-h-[70vh] flex-col items-center justify-center">
-            <div className="text-2xl text-[--illinois-orange]">
+            <div className="text-2xl text-(--illinois-orange)">
               [[ coming soon ]]
             </div>
 
-            <div className="mt-4 text-[--foreground-faded]">
+            <div className="mt-4 text-(--foreground-faded)">
               LLMs, chatbots, and AI…oh my!
             </div>
           </div>

@@ -126,7 +126,7 @@ describe('ChatInput', () => {
     expect(alertSpy).toHaveBeenCalled()
   })
 
-  it('does not manage the parent focus ring inline', () => {
+  it('does not manage the parent focus ring-3 inline', () => {
     const { container } = renderWithProviders(
       <ChatInput
         onSend={vi.fn()}
