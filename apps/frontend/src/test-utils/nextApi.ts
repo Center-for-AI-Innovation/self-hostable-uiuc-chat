@@ -7,6 +7,8 @@ export type MockNextApiRequest = Partial<NextApiRequest> & {
   body?: any
   headers?: Record<string, any>
   user?: any
+  /** Set by the course-access middleware once it has authorized the request. */
+  courseName?: string
 }
 
 export function createMockReq(overrides: MockNextApiRequest = {}) {
