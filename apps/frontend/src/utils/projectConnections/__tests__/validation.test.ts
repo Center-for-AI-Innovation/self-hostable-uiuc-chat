@@ -187,6 +187,15 @@ describe('projectConnections/validation — Qdrant', () => {
     expect(parsed.success).toBe(true)
     if (parsed.success) expect(parsed.data.sort_combined).toBe(false)
   })
+
+  it('preserves apply_course_filter so upserts do not strip it', () => {
+    const parsed = qdrantConfigSchema.safeParse({
+      ...base,
+      apply_course_filter: false,
+    })
+    expect(parsed.success).toBe(true)
+    if (parsed.success) expect(parsed.data.apply_course_filter).toBe(false)
+  })
 })
 
 describe('projectConnections/validation — embedding', () => {

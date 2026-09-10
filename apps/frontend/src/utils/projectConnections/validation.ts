@@ -111,6 +111,9 @@ export const qdrantConfigSchema = z.object({
   parallel: z.boolean().optional(),
   // Re-sort merged fan-out results by score (backend default: true).
   sort_combined: z.boolean().optional(),
+  // When false, search omits the course_name payload constraint (shared
+  // corpora like pubmed). Backend defaults to true when this key is omitted.
+  apply_course_filter: z.boolean().optional(),
 }) satisfies z.ZodType
 
 // Per-project embedding provider override. Consumed by the backend's

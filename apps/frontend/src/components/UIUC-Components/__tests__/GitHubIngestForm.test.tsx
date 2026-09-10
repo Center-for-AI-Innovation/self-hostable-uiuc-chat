@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { createTestQueryClient } from '~/test-utils/renderWithProviders'
@@ -30,6 +30,27 @@ vi.mock('~/utils/toastUtils', () => ({
 
 vi.mock('axios', () => ({ default: { post: vi.fn() } }))
 
+/**
+ * Stateful harness: the gated poller only runs while `uploadFiles` contains
+ * active github entries, so tests must hold real state for the gate to open.
+ */
+function Harness(props: any) {
+  const [files, setFiles] = useState<FileUpload[]>(props.initialFiles ?? [])
+  return (
+    <div>
+      <div data-testid="files">{JSON.stringify(files)}</div>
+      <props.Component
+        project_name="CS101"
+        uploadFiles={files}
+        setUploadFiles={setFiles}
+        queryClient={props.queryClient}
+      />
+    </div>
+  )
+}
+
+const filesJson = () => screen.getByTestId('files').textContent ?? ''
+
 describe('GitHubIngestForm', () => {
   afterEach(() => {
     vi.restoreAllMocks()
@@ -39,11 +60,6 @@ describe('GitHubIngestForm', () => {
     const user = userEvent.setup()
     const queryClient = createTestQueryClient()
     const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries')
-
-    let uploads: FileUpload[] = []
-    const setUploadFiles = vi.fn((updater: any) => {
-      uploads = typeof updater === 'function' ? updater(uploads) : updater
-    })
 
     // Avoid the hard-coded 8s wait.
     const nativeSetTimeout = globalThis.setTimeout
@@ -70,8 +86,15 @@ describe('GitHubIngestForm', () => {
     // First poll: docs in progress (creates additional file entries)
     // Second poll: completed docs (marks additional entries complete)
     let pollStep = 0
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input: any) => {
+    const requestBodies: any[] = []
+    vi.spyOn(globalThis, 'fetch').mockImplementation((async (
+      input: any,
+      init?: any,
+    ) => {
       const url = String(input?.url ?? input)
+      if (url.includes('/api/materialsTable/')) {
+        requestBodies.push(JSON.parse(init?.body ?? '{}'))
+      }
       if (url.includes('/api/materialsTable/docsInProgress')) {
         pollStep += 1
         if (pollStep === 1) {
@@ -119,18 +142,13 @@ describe('GitHubIngestForm', () => {
         status: 200,
         headers: { 'content-type': 'application/json' },
       })
-    })
+    }) as any)
 
     const GitHubIngestForm = (await import('../GitHubIngestForm')).default
-    render(
-      <GitHubIngestForm
-        project_name="CS101"
-        setUploadFiles={setUploadFiles as any}
-        queryClient={queryClient}
-      />,
-    )
+    render(<Harness Component={GitHubIngestForm} queryClient={queryClient} />)
 
-    await waitFor(() => expect(setIntervalSpy).toHaveBeenCalled())
+    // Gated poller: no interval while nothing is being ingested.
+    expect(setIntervalSpy).not.toHaveBeenCalled()
 
     await user.click(screen.getByText(/^GitHub$/i))
     expect(
@@ -150,8 +168,15 @@ describe('GitHubIngestForm', () => {
     await user.click(ingestButton)
     await waitFor(() => expect(axios.post).toHaveBeenCalled())
 
-    if (intervalCallback) await intervalCallback()
-    if (intervalCallback) await intervalCallback()
+    // The gate opens once the base entry is tracked.
+    await waitFor(() => expect(intervalCallback).toBeDefined())
+
+    await act(async () => {
+      if (intervalCallback) await intervalCallback()
+    })
+    await act(async () => {
+      if (intervalCallback) await intervalCallback()
+    })
 
     await waitFor(() =>
       expect(invalidateQueries).toHaveBeenCalledWith({
@@ -159,18 +184,22 @@ describe('GitHubIngestForm', () => {
       }),
     )
 
+    // Every status request filters on the tracked repo (base) URL.
+    expect(requestBodies.length).toBeGreaterThan(0)
+    for (const body of requestBodies) {
+      expect(body).toEqual({
+        course_name: 'CS101',
+        base_urls: ['https://github.com/user/repo'],
+      })
+    }
+
     // Ensure at least one additional file entry became complete.
-    expect(uploads.some((u) => u.status === 'complete')).toBe(true)
+    expect(filesJson()).toContain('"status":"complete"')
   })
 
   it('shows an error toast and marks the upload errored when scraping fails', async () => {
     const user = userEvent.setup()
     const queryClient = createTestQueryClient()
-
-    let uploads: FileUpload[] = []
-    const setUploadFiles = vi.fn((updater: any) => {
-      uploads = typeof updater === 'function' ? updater(uploads) : updater
-    })
 
     const nativeSetTimeout = globalThis.setTimeout
     vi.spyOn(globalThis, 'setTimeout').mockImplementation(((fn: any) => {
@@ -196,13 +225,7 @@ describe('GitHubIngestForm', () => {
     const { showToast } = await import('~/utils/toastUtils')
     const GitHubIngestForm = (await import('../GitHubIngestForm')).default
 
-    render(
-      <GitHubIngestForm
-        project_name="CS101"
-        setUploadFiles={setUploadFiles as any}
-        queryClient={queryClient}
-      />,
-    )
+    render(<Harness Component={GitHubIngestForm} queryClient={queryClient} />)
 
     await user.click(screen.getByText(/^GitHub$/i))
     expect(
@@ -227,6 +250,6 @@ describe('GitHubIngestForm', () => {
         }),
       ),
     )
-    expect(uploads.some((u) => u.status === 'error')).toBe(true)
+    await waitFor(() => expect(filesJson()).toContain('"status":"error"'))
   })
 })

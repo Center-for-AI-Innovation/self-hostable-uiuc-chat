@@ -22,6 +22,7 @@ import {
   IconCheck,
   IconCopy,
   IconEye,
+  IconRefresh,
   IconTrash,
   IconX,
 } from '@tabler/icons-react'
@@ -63,6 +64,11 @@ const GlobalStyle = createGlobalStyle`
 `
 
 const PAGE_SIZE = 100
+
+// The table refreshes on a slow interval (plus window-focus refetch and the
+// event-driven invalidations fired by the upload pollers); the refresh button
+// refetches immediately, which also restarts this countdown.
+const TABLE_REFRESH_INTERVAL_MS = 5 * 60_000
 
 const dataTableTitleStyles = {
   color: 'var(--table-header)',
@@ -169,7 +175,7 @@ export function ProjectFilesTable({
     error: documentsError,
     refetch: refetchDocuments,
   } = useQuery({
-    refetchInterval: 12_000,
+    refetchInterval: TABLE_REFRESH_INTERVAL_MS,
     queryKey: [
       'documents',
       course_name,
@@ -201,8 +207,9 @@ export function ProjectFilesTable({
     isLoading: isLoadingFailedDocuments,
     isError: isErrorFailedDocuments,
     error: failedDocumentsError,
+    refetch: refetchFailedDocuments,
   } = useQuery({
-    refetchInterval: 20_000,
+    refetchInterval: TABLE_REFRESH_INTERVAL_MS,
     queryKey: [
       'failedDocuments',
       course_name,
@@ -233,6 +240,18 @@ export function ProjectFilesTable({
     isError: isErrorDocumentGroups,
     refetch: refetchDocumentGroups,
   } = useFetchDocumentGroups(course_name)
+
+  // react-query re-arms refetchInterval after every successful fetch, so a
+  // manual refresh also restarts the countdown.
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false)
+  const handleManualRefresh = () => {
+    setIsManualRefreshing(true)
+    void Promise.allSettled([
+      refetchDocuments(),
+      refetchFailedDocuments(),
+      refetchDocumentGroups(),
+    ]).finally(() => setIsManualRefreshing(false))
+  }
 
   useEffect(() => {
     if (tabValue === 'failed') {
@@ -491,10 +510,33 @@ export function ProjectFilesTable({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Tooltip
+              label="Table auto-refreshes every 5 minutes (and when you return to this tab). Click to refresh now."
+              position="top"
+              withArrow
+              multiline
+              width={260}
+              style={{
+                color: 'var(--tooltip)',
+                backgroundColor: 'var(--tooltip-background)',
+              }}
+            >
+              <ActionIcon
+                onClick={handleManualRefresh}
+                aria-label="Refresh documents table"
+                size="lg"
+                variant="subtle"
+                loading={isManualRefreshing}
+                className="text-[--foreground] transition-colors duration-300 hover:bg-[--dashboard-background-faded] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+              >
+                <IconRefresh size={20} />
+              </ActionIcon>
+            </Tooltip>
             {tabValue !== 'failed' && (
               <Button
+                variant="dashboard"
                 onClick={() => setExportModalOpened(true)}
-                className={`w-full border-0 bg-[--dashboard-button] px-4 py-2 text-xs transition-colors duration-300 hover:bg-[--dashboard-button-hover] sm:w-auto sm:px-6 sm:py-3 ${montserrat_paragraph.variable} font-montserratParagraph focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]`}
+                className={`w-full border-0 bg-[--dashboard-button] px-4 py-2 text-xs text-[--dashboard-button-foreground] transition-colors duration-300 hover:bg-[--dashboard-button-hover] sm:w-auto sm:px-6 sm:py-3 ${montserrat_paragraph.variable} font-montserratParagraph focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]`}
               >
                 Export
               </Button>
@@ -512,10 +554,11 @@ export function ProjectFilesTable({
                     }}
                   >
                     <Button
+                      variant="dashboard"
                       onClick={() => {
                         setShowMultiSelect(true)
                       }}
-                      className={`mb-2 w-full bg-[--dashboard-button] px-4 py-2 text-xs transition-colors duration-300 hover:bg-[--dashboard-button-hover] sm:mb-0 sm:w-auto sm:px-6 sm:py-3 ${montserrat_paragraph.variable} border-0 font-montserratParagraph focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]`}
+                      className={`mb-2 w-full bg-[--dashboard-button] px-4 py-2 text-xs text-[--dashboard-button-foreground] transition-colors duration-300 hover:bg-[--dashboard-button-hover] sm:mb-0 sm:w-auto sm:px-6 sm:py-3 ${montserrat_paragraph.variable} border-0 font-montserratParagraph focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]`}
                     >
                       <span className="block sm:hidden">Add to Groups</span>
                       <span className="hidden sm:block">
@@ -1274,7 +1317,7 @@ export function ProjectFilesTable({
               Cancel
             </Button>
             <Button
-              className="btext-[--dashboard-button-foreground] min-w-[3rem] -translate-x-1 transform rounded-s-md bg-[--dashboard-button] hover:bg-[--dashboard-button-hover] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+              className="text-[--dashboard-button-foreground] min-w-[3rem] -translate-x-1 transform rounded-s-md bg-[--dashboard-button] hover:bg-[--dashboard-button-hover] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
               onClick={async () => {
                 setModalOpened(false)
                 setIsDeletingDocuments(true)

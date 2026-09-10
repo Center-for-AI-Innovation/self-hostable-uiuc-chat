@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import {
   Text,
   Card,
@@ -35,17 +35,26 @@ import { showToast } from '~/utils/toastUtils'
 import axios from 'axios'
 import { type FileUpload } from './UploadNotification'
 import { type QueryClient } from '@tanstack/react-query'
+import { useGatedIngestPoller } from '~/hooks/useGatedIngestPoller'
 
+const POLL_INTERVAL_MS = 3000
+
+// Strip trailing slashes so the user-entered URL and the backend-stored
+// base_url compare equal even when one has a trailing slash and the
+// other doesn't.
+const normalizeUrl = (url: string | undefined | null) =>
+  (url ?? '').replace(/\/+$/, '')
 export default function WebsiteIngestForm({
   project_name,
+  uploadFiles,
   setUploadFiles,
   queryClient,
 }: {
   project_name: string
+  uploadFiles: FileUpload[]
   setUploadFiles: React.Dispatch<React.SetStateAction<FileUpload[]>>
   queryClient: QueryClient
 }): JSX.Element {
-  const [isUrlUpdated, setIsUrlUpdated] = useState(false)
   const [isUrlValid, setIsUrlValid] = useState(false)
   const [url, setUrl] = useState('')
   const [maxUrls, setMaxUrls] = useState('50')
@@ -133,17 +142,11 @@ export default function WebsiteIngestForm({
       setUploadFiles((prevFiles) => [...prevFiles, newFile])
 
       try {
-        const response = await scrapeWeb(
+        await scrapeWeb(
           ingestUrl,
           project_name,
           maxUrls.trim() !== '' ? parseInt(maxUrls) : 50,
           scrapeStrategy,
-        )
-        // Transition to 'ingesting' status after API call succeeds
-        setUploadFiles((prevFiles) =>
-          prevFiles.map((file) =>
-            file.name === url ? { ...file, status: 'ingesting' } : file,
-          ),
         )
         // Transition to 'ingesting' status after API call succeeds
         setUploadFiles((prevFiles) =>
@@ -167,31 +170,27 @@ export default function WebsiteIngestForm({
     await new Promise((resolve) => setTimeout(resolve, 8000))
   }
 
-  useEffect(() => {
-    if (url && url.length > 0 && validateUrl(url)) {
-      setIsUrlUpdated(true)
-    } else {
-      setIsUrlUpdated(false)
-    }
-  }, [url])
-
-  useEffect(() => {
-    const checkIngestStatus = async () => {
-      const response = await fetch(
-        `/api/materialsTable/docsInProgress?course_name=${project_name}`,
-      )
-      const data = await response.json()
-      const docsResponse = await fetch(
-        `/api/materialsTable/successDocs?course_name=${project_name}`,
-      )
-      const docsData = await docsResponse.json()
-
-      // Strip trailing slashes so the user-entered URL and the backend-stored
-      // base_url compare equal even when one has a trailing slash and the
-      // other doesn't.
-      const normalizeUrl = (url: string | undefined | null) =>
-        (url ?? '').replace(/\/+$/, '')
-
+  // Poll ingest status only while webscrape uploads are in flight, sending
+  // the tracked base URLs as a server-side filter so the endpoints never
+  // return the whole documents table.
+  useGatedIngestPoller({
+    courseName: project_name,
+    uploadFiles,
+    setUploadFiles,
+    queryClient,
+    type: 'webscrape',
+    intervalMs: POLL_INTERVAL_MS,
+    // Filter on the base URLs of ALL tracked base entries regardless of their
+    // status: child rows carry the base's base_url, so this returns every row
+    // the matching below needs — including children that are still resolving
+    // after the base entry itself went terminal.
+    buildFilter: (files) => ({
+      base_urls: files
+        .filter((file) => file.type === 'webscrape' && file.isBaseUrl)
+        .map((file) => normalizeUrl(file.url ?? file.name))
+        .filter((baseUrl) => baseUrl.length > 0),
+    }),
+    applyStatus: (status, currentFiles) => {
       const baseUrlMatchesFile = (
         docBaseUrl: string,
         file: FileUpload,
@@ -247,8 +246,8 @@ export default function WebsiteIngestForm({
                   (f) => f.status === 'complete' || f.status === 'error',
                 )
 
-              const isInCompletedDocs = docsData?.documents?.some(
-                (doc: { url: string; base_url?: string }) =>
+              const isInCompletedDocs = status.completed.some(
+                (doc) =>
                   normalizeUrl(doc.url) === normalizeUrl(file.url) ||
                   (file.isBaseUrl &&
                     normalizeUrl(doc.base_url) === normalizeUrl(file.url)),
@@ -323,43 +322,28 @@ export default function WebsiteIngestForm({
         return newFiles
       }
 
-      setUploadFiles((prev) => {
-        const matchingDocsInProgress =
-          data?.documents?.filter((doc: { base_url: string }) =>
-            prev.some((file) => baseUrlMatchesFile(doc.base_url, file)),
-          ) || []
+      const matchingDocsInProgress = status.inProgress.filter((doc) =>
+        currentFiles.some((file) => baseUrlMatchesFile(doc.base_url, file)),
+      )
 
-        const matchingSuccessDocs =
-          docsData?.documents?.filter((doc: { base_url: string }) =>
-            prev.some((file) => baseUrlMatchesFile(doc.base_url, file)),
-          ) || []
+      const matchingSuccessDocs = status.completed.filter((doc) =>
+        currentFiles.some((file) => baseUrlMatchesFile(doc.base_url, file)),
+      )
 
-        const inProgressBaseUrlMap = organizeDocsByBaseUrl(
-          matchingDocsInProgress,
-        )
-        const successBaseUrlMap = organizeDocsByBaseUrl(matchingSuccessDocs)
+      const additionalFiles = createAdditionalFileEntries(
+        organizeDocsByBaseUrl(matchingDocsInProgress),
+        organizeDocsByBaseUrl(matchingSuccessDocs),
+        currentFiles,
+      )
 
-        const additionalFiles = createAdditionalFileEntries(
-          inProgressBaseUrlMap,
-          successBaseUrlMap,
-          prev,
-        )
+      const updatedFiles = updateExistingFiles(
+        currentFiles,
+        matchingDocsInProgress,
+      )
 
-        const updatedFiles = updateExistingFiles(prev, matchingDocsInProgress)
-
-        return [...updatedFiles, ...additionalFiles]
-      })
-
-      await queryClient.invalidateQueries({
-        queryKey: ['documents', project_name],
-      })
-    }
-
-    const interval = setInterval(checkIngestStatus, 3000)
-    return () => {
-      clearInterval(interval)
-    }
-  }, [project_name])
+      return [...updatedFiles, ...additionalFiles]
+    },
+  })
 
   const scrapeWeb = async (
     url: string | null,
@@ -405,7 +389,6 @@ export default function WebsiteIngestForm({
           if (!isOpen) {
             setUrl('')
             setIsUrlValid(false)
-            setIsUrlUpdated(false)
             setMaxUrls('50')
             setInputErrors((prev) => ({
               ...prev,
