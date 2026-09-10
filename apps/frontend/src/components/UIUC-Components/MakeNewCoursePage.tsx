@@ -245,11 +245,11 @@ const MakeNewCoursePage = ({
             'Error fetching course metadata after creation:',
             metadataError,
           )
-          notifications.show({
+          showToast({
             title: 'Project created, but its settings could not be loaded',
             message:
               'The project was created successfully, but its settings could not be fetched. Refresh the page if upload options look wrong.',
-            color: 'yellow',
+            type: 'warning',
             autoClose: 8000,
           })
         }

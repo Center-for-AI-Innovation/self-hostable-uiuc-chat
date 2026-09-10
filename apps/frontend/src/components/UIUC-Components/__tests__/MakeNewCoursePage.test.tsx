@@ -581,7 +581,7 @@ describe('MakeNewCoursePage', () => {
       vi.spyOn(console, 'error').mockImplementation(() => {})
 
       const apiUtils = await import('~/utils/apiUtils')
-      const { notifications } = await import('@mantine/notifications')
+      const { showToast } = await import('~/utils/toastUtils')
       ;(
         apiUtils.createProject as ReturnType<typeof vi.fn>
       ).mockResolvedValueOnce(true)
@@ -617,10 +617,10 @@ describe('MakeNewCoursePage', () => {
         queryClient.getQueryData(['courseMetadata', 'NewBot']),
       ).toBeUndefined()
       await waitFor(() => {
-        expect(notifications.show).toHaveBeenCalledWith(
+        expect(showToast).toHaveBeenCalledWith(
           expect.objectContaining({
             title: 'Project created, but its settings could not be loaded',
-            color: 'yellow',
+            type: 'warning',
           }),
         )
       })
