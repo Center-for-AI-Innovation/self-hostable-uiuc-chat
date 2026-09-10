@@ -178,6 +178,15 @@ describe('projectConnections/validation — Qdrant', () => {
       qdrantConfigSchema.safeParse({ ...base, parallel: false }).success,
     ).toBe(true)
   })
+
+  it('preserves apply_course_filter so upserts do not strip it', () => {
+    const parsed = qdrantConfigSchema.safeParse({
+      ...base,
+      apply_course_filter: false,
+    })
+    expect(parsed.success).toBe(true)
+    if (parsed.success) expect(parsed.data.apply_course_filter).toBe(false)
+  })
 })
 
 describe('projectConnections/validation — embedding', () => {

@@ -251,6 +251,7 @@ services:
       # project external connections (per-project S3/Postgres/Qdrant/embeddings)
       ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:-}
       ALLOWED_EMBEDDING_PROVIDERS: ${ALLOWED_EMBEDDING_PROVIDERS:-openai,ollama}
+      SUPER_ADMIN_EMAILS: ${SUPER_ADMIN_EMAILS:-}
       # llms
       OLLAMA_SERVER_URL: ${OLLAMA_SERVER_URL:-}
       NCSA_HOSTED_VLM_BASE_URL: ${NCSA_HOSTED_VLM_BASE_URL:-}
