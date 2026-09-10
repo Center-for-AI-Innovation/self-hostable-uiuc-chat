@@ -20,6 +20,10 @@ import {
   TooltipTrigger,
 } from '@/components/shadcn/ui/tooltip'
 import {
+  getProjectNameError,
+  PROJECT_NAME_MAX_LENGTH,
+} from '~/utils/projectName'
+import {
   CHATBOT_PROJECT_TYPES,
   COMMON_ORGANIZATIONS,
   type ChatbotProjectType,
@@ -70,8 +74,11 @@ const StepCreate = ({
     onUpdateDescription(projectDescription)
   }, [projectDescription])
 
+  const nameError = getProjectNameError(projectName)
+
   const getNameStatus = (): FormInputStatus => {
     if (!projectName) return 'default'
+    if (nameError) return 'error'
     if (isCheckingAvailability) return 'loading'
     if (isCourseAvailable) return 'success'
     return 'error'
@@ -89,9 +96,9 @@ const StepCreate = ({
         <TooltipProvider>
           <Tooltip
             open={
-              !isCheckingAvailability &&
-              isCourseAvailable === false &&
-              projectName.length > 0
+              projectName.length > 0 &&
+              (nameError !== null ||
+                (!isCheckingAvailability && isCourseAvailable === false))
             }
           >
             <TooltipTrigger
@@ -107,8 +114,17 @@ const StepCreate = ({
                   disabled={!is_new_course}
                   autoFocus
                   status={getNameStatus()}
+                  maxLength={PROJECT_NAME_MAX_LENGTH}
                   rightSlot={
-                    isCheckingAvailability ? (
+                    nameError && projectName ? (
+                      <span role="status">
+                        <XCircle
+                          className="size-4 text-red-500"
+                          aria-hidden="true"
+                        />
+                        <span className="sr-only">Name is invalid</span>
+                      </span>
+                    ) : isCheckingAvailability ? (
                       <span role="status">
                         <LoaderCircle
                           className="size-4 animate-spin text-[--foreground-faded]"
@@ -148,7 +164,8 @@ const StepCreate = ({
               side="right"
               className="border-red-500 bg-red-500 text-white"
             >
-              This name is already taken. Please choose a different name.
+              {nameError ??
+                'This name is already taken. Please choose a different name.'}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

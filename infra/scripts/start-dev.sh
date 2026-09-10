@@ -103,6 +103,7 @@ ensure_local_app_envs() {
 	local keycloak_password="${KEYCLOAK_ADMIN_PASSWORD:-admin}"
 	local encryption_master_key="${ENCRYPTION_MASTER_KEY:-}"
 	local allowed_embedding_providers="${ALLOWED_EMBEDDING_PROVIDERS:-openai,ollama}"
+	local default_course_admins="${DEFAULT_COURSE_ADMINS:-}"
 
 	local backend_env="apps/backend/.env"
 	ensure_env_file "$backend_env" "Backend and worker local development env"
@@ -121,7 +122,7 @@ ensure_local_app_envs() {
 	append_env_if_missing "$backend_env" "KEYCLOAK_DB_SSL" "false"
 	append_env_if_missing "$backend_env" "RABBITMQ_URL" "amqp://${rabbitmq_user}:${rabbitmq_pass}@localhost:5672"
 	append_env_if_missing "$backend_env" "REDIS_URL" "redis://default:${redis_password}@localhost:6379"
-	append_env_if_missing "$backend_env" "KV_REST_API_TOKEN" "$redis_password"
+	append_env_if_missing "$backend_env" "DEFAULT_COURSE_ADMINS" "$default_course_admins"
 	append_env_if_missing "$backend_env" "QDRANT_COLLECTION_NAME" "$qdrant_collection"
 	append_env_if_missing "$backend_env" "QDRANT_URL" "http://localhost:6333"
 	append_env_if_missing "$backend_env" "QDRANT_API_KEY" "$qdrant_api_key"

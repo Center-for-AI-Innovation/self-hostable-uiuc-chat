@@ -1,6 +1,7 @@
 import { type NextApiResponse } from 'next'
 import { withAuth, type AuthenticatedRequest } from '~/utils/authMiddleware'
 import { getBackendUrl } from '~/utils/apiUtils'
+import { getProjectNameError, isValidProjectName } from '~/utils/projectName'
 import { checkCourseExists } from './getCourseExists'
 import { getCourseMetadata } from './getCourseMetadata'
 import { writeCourseMetadata } from '~/utils/courseMetadataStore'
@@ -17,6 +18,15 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (!project_name || !project_owner_email) {
     return res.status(400).json({
       error: 'project_name and project_owner_email are required',
+    })
+  }
+
+  if (!isValidProjectName(project_name)) {
+    return res.status(400).json({
+      error: 'Invalid project name',
+      message:
+        getProjectNameError(project_name) ??
+        'Project names can only use letters, numbers, dashes, underscores, and dots (a dot cannot be the first character).',
     })
   }
 
@@ -62,8 +72,17 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         'Failed to create the project. Err status:',
         response.status,
       )
+      // Forward the backend's JSON error body when it has one; Flask abort()
+      // responses are HTML, so parse defensively and keep the status either way.
+      const backendBody = (await response.json().catch(() => null)) as {
+        error?: string
+        message?: string
+      } | null
       return res.status(response.status).json({
-        error: `Failed to create the project. Status: ${response.status}`,
+        error:
+          backendBody?.error ??
+          `Failed to create the project. Status: ${response.status}`,
+        ...(backendBody?.message ? { message: backendBody.message } : {}),
       })
     }
 

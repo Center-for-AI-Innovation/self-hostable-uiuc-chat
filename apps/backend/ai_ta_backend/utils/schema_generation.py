@@ -11,40 +11,41 @@ OLLAMA_CLIENT = Client(host=OLLAMA_SERVER_URL, headers={"Authorization": f"Beare
 LLM = 'qwen3:32b'
 
 
+DEFAULT_SCHEMA = {
+    "document_type": {
+        "type": "string",
+    },
+    "document_title": {
+        "type": "string",
+    },
+    "author": {
+        "type": "string",
+    },
+    "creation_date": {
+        "type": "string",
+        "format": "date",
+    },
+    "keywords": {
+        "type": "array",
+        "items": {
+            "type": "string",
+        }
+    },
+    "category": {
+        "type": "string",
+    },
+    "summary": {
+        "type": "string",
+    },
+}
+
+
 def generate_schema_from_project_description(project_name: str, project_description: str | None) -> dict:
   """
     Generate metadata schema using project_name and project_description
     """
-  default_schema = {
-      "document_type": {
-          "type": "string",
-      },
-      "document_title": {
-          "type": "string",
-      },
-      "author": {
-          "type": "string",
-      },
-      "creation_date": {
-          "type": "string",
-          "format": "date",
-      },
-      "keywords": {
-          "type": "array",
-          "items": {
-              "type": "string",
-          }
-      },
-      "category": {
-          "type": "string",
-      },
-      "summary": {
-          "type": "string",
-      },
-  }
-
   if not project_description:
-    return default_schema
+    return dict(DEFAULT_SCHEMA)
 
   try:
     prompt = """You are an expert in metadata extraction and insight generation. 
@@ -127,4 +128,4 @@ def generate_schema_from_project_description(project_name: str, project_descript
   except Exception as e:
     print(f"Error in generate_schema_from_project_description: {e}")
     print("Returning default schema...")
-    return default_schema
+    return dict(DEFAULT_SCHEMA)

@@ -37,6 +37,66 @@ describe('UIUC-api/createProject', () => {
     expect(res.status).toHaveBeenCalledWith(400)
   })
 
+  it('returns 400 for invalid names without touching Redis or the backend', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+
+    for (const badName of ['my bot', '.hidden', 'a'.repeat(65)]) {
+      hoisted.checkCourseExists.mockClear()
+      const res = createMockRes()
+      await handler(
+        createMockReq({
+          method: 'POST',
+          body: { project_name: badName, project_owner_email: 'o@example.com' },
+        }) as any,
+        res as any,
+      )
+      expect(res.status).toHaveBeenCalledWith(400)
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: 'Invalid project name',
+          message: expect.stringMatching(
+            /letters, numbers|characters or fewer/,
+          ),
+        }),
+      )
+      expect(hoisted.checkCourseExists).not.toHaveBeenCalled()
+    }
+
+    expect(fetchSpy).not.toHaveBeenCalled()
+    fetchSpy.mockRestore()
+  })
+
+  it('forwards the backend JSON error body and preserves the status', async () => {
+    hoisted.checkCourseExists.mockResolvedValueOnce(false)
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          error: 'Project name already exists',
+          message: "A project named 'x' already exists.",
+        }),
+        { status: 409, headers: { 'content-type': 'application/json' } },
+      ),
+    )
+
+    const res = createMockRes()
+    await handler(
+      createMockReq({
+        method: 'POST',
+        body: { project_name: 'x', project_owner_email: 'o@example.com' },
+      }) as any,
+      res as any,
+    )
+    expect(res.status).toHaveBeenCalledWith(409)
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: 'Project name already exists',
+        message: "A project named 'x' already exists.",
+      }),
+    )
+
+    fetchSpy.mockRestore()
+  })
+
   it('returns 409 when project exists and 503 when existence check fails', async () => {
     hoisted.checkCourseExists.mockResolvedValueOnce(true)
     const res1 = createMockRes()

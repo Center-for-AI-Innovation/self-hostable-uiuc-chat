@@ -407,6 +407,37 @@ describe('MakeNewCoursePage', () => {
       expect(continueBtn).toBeDisabled()
     })
 
+    it('disables Continue and skips the availability check for invalid names', async () => {
+      const fetchSpy = mockFetchCourseAvailable(false)
+      const apiUtils = await import('~/utils/apiUtils')
+      const MakeNewCoursePage = await importComponent()
+
+      renderWithProviders(
+        <MakeNewCoursePage
+          project_name="my bot"
+          current_user_email="owner@example.com"
+          is_new_course={true}
+        />,
+      )
+
+      const continueBtn = await screen.findByRole('button', {
+        name: /Continue to next step/i,
+      })
+      expect(continueBtn).toBeDisabled()
+
+      // Wait past the 1s debounce: the availability query must never fire
+      // for a name that cannot be created.
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const availabilityCalls = fetchSpy.mock.calls.filter(([input]) =>
+        String((input as any)?.url ?? input).includes(
+          '/api/UIUC-api/getCourseExists',
+        ),
+      )
+      expect(availabilityCalls).toHaveLength(0)
+      expect(continueBtn).toBeDisabled()
+      expect(apiUtils.createProject).not.toHaveBeenCalled()
+    })
+
     it('disables Continue when course name is taken (not available)', async () => {
       mockFetchCourseAvailable(true) // exists = true => not available
       const MakeNewCoursePage = await importComponent()
@@ -544,12 +575,13 @@ describe('MakeNewCoursePage', () => {
       })
     })
 
-    it('uses fallback metadata when fetchCourseMetadata fails', async () => {
+    it('warns and caches nothing when fetchCourseMetadata fails', async () => {
       const user = userEvent.setup()
       mockFetchCourseAvailable(false)
       vi.spyOn(console, 'error').mockImplementation(() => {})
 
       const apiUtils = await import('~/utils/apiUtils')
+      const { showToast } = await import('~/utils/toastUtils')
       ;(
         apiUtils.createProject as ReturnType<typeof vi.fn>
       ).mockResolvedValueOnce(true)
@@ -577,18 +609,20 @@ describe('MakeNewCoursePage', () => {
       })
       await user.click(continueBtn)
 
-      // Should still advance (fallback metadata used)
+      // Creation succeeded, so the wizard still advances
       expect(await screen.findByTestId('step-success')).toBeInTheDocument()
 
-      // Fallback metadata should be cached
+      // No fabricated metadata is cached; a visible warning is shown instead
+      expect(
+        queryClient.getQueryData(['courseMetadata', 'NewBot']),
+      ).toBeUndefined()
       await waitFor(() => {
-        const cached = queryClient.getQueryData([
-          'courseMetadata',
-          'NewBot',
-        ]) as any
-        expect(cached).toBeDefined()
-        expect(cached.course_owner).toBe('owner@example.com')
-        expect(cached.is_private).toBe(true)
+        expect(showToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Project created, but its settings could not be loaded',
+            type: 'warning',
+          }),
+        )
       })
     })
 
@@ -982,6 +1016,58 @@ describe('MakeNewCoursePage', () => {
 
       await user.click(backBtn)
       expect(await screen.findByTestId('step-branding')).toBeInTheDocument()
+    })
+
+    it('pushes the exact raw-name chat path from the last step', async () => {
+      const user = userEvent.setup()
+      globalThis.__TEST_ROUTER__ = { push: vi.fn() }
+
+      try {
+        const apiUtils = await import('~/utils/apiUtils')
+        ;(apiUtils.createProject as ReturnType<typeof vi.fn>).mockResolvedValue(
+          true,
+        )
+
+        const MakeNewCoursePage = await importComponent()
+        renderWithProviders(
+          <MakeNewCoursePage
+            project_name="NavTest"
+            current_user_email="owner@example.com"
+            is_new_course={true}
+          />,
+        )
+
+        const continueBtn = await screen.findByRole('button', {
+          name: /Continue to next step/i,
+        })
+        await waitFor(() => expect(continueBtn).not.toBeDisabled(), {
+          timeout: 3000,
+        })
+
+        // Walk to the last step (create → success → upload → branding → llm → prompt)
+        await user.click(continueBtn)
+        expect(await screen.findByTestId('step-success')).toBeInTheDocument()
+        for (const step of ['step-upload', 'step-branding', 'step-llm']) {
+          await user.click(
+            screen.getByRole('button', { name: /Continue to next step/i }),
+          )
+          expect(await screen.findByTestId(step)).toBeInTheDocument()
+        }
+        await user.click(
+          screen.getByRole('button', { name: /Continue to next step/i }),
+        )
+        expect(await screen.findByTestId('step-prompt')).toBeInTheDocument()
+
+        // The final navigation must use the raw stored name, not a mangled one
+        await user.click(
+          screen.getByRole('button', { name: /Start Chatting/i }),
+        )
+        expect(globalThis.__TEST_ROUTER__?.push).toHaveBeenCalledWith(
+          '/NavTest/chat',
+        )
+      } finally {
+        globalThis.__TEST_ROUTER__ = undefined
+      }
     })
 
     it('Back button does not go below step 0', async () => {

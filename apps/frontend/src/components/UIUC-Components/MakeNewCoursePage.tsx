@@ -27,32 +27,7 @@ import StepSuccess from './MakeNewCoursePageSteps/StepSuccess'
 import { useAuth } from 'react-oidc-context'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import GlobalFooter from './GlobalFooter'
-
-/**
- * Build a safe relative URL for navigating to a project's chat page.
- * Guards against open-redirect attacks by ensuring the project name
- * is converted into a single, safe path segment and cannot influence
- * the host, protocol, or parent path.
- */
-const buildProjectChatPath = (name: string): string => {
-  // Normalize to string and trim whitespace
-  const raw = String(name || '').trim()
-
-  // Allow only URL-safe characters for a single path segment:
-  // letters, numbers, dash, underscore. Replace others with '-'.
-  let safeSegment = raw.replace(/[^a-zA-Z0-9_-]+/g, '-')
-
-  // Remove any leading dots or slashes to avoid path traversal or
-  // protocol-relative URL patterns like "../" or "//evil.com".
-  safeSegment = safeSegment.replace(/^[./\\]+/, '')
-
-  // Fallback to a safe placeholder if nothing remains
-  if (!safeSegment) {
-    return '/chat'
-  }
-
-  return `/${safeSegment}/chat`
-}
+import { buildProjectChatPath, isValidProjectName } from '~/utils/projectName'
 
 const MakeNewCoursePage = ({
   project_name,
@@ -106,7 +81,10 @@ const MakeNewCoursePage = ({
         }
         return response.json() as Promise<boolean>
       },
-      enabled: debouncedProjectName.length > 0 && is_new_course,
+      enabled:
+        debouncedProjectName.length > 0 &&
+        is_new_course &&
+        isValidProjectName(debouncedProjectName),
       retry: 1,
     })
 
@@ -267,31 +245,13 @@ const MakeNewCoursePage = ({
             'Error fetching course metadata after creation:',
             metadataError,
           )
-          const fallbackMetadata: CourseMetadata = {
-            is_frozen: false,
-            is_private: true,
-            course_owner: current_user_email,
-            course_admins: [],
-            approved_emails_list: [],
-            example_questions: undefined,
-            banner_image_s3: undefined,
-            course_intro_message: undefined,
-            system_prompt: undefined,
-            openai_api_key: undefined,
-            disabled_models: undefined,
-            project_description,
-            documentsOnly: undefined,
-            disableCitations: undefined,
-            guidedLearning: undefined,
-            systemPromptOnly: undefined,
-            vector_search_rewrite_disabled: undefined,
-            allow_logged_in_users: undefined,
-            tags: initialTags,
-          }
-          queryClient.setQueryData(
-            ['courseMetadata', project_name],
-            fallbackMetadata,
-          )
+          showToast({
+            title: 'Project created, but its settings could not be loaded',
+            message:
+              'The project was created successfully, but its settings could not be fetched. Refresh the page if upload options look wrong.',
+            type: 'warning',
+            autoClose: 8000,
+          })
         }
       }
 
@@ -496,6 +456,7 @@ const MakeNewCoursePage = ({
                   if (!hasCreatedProject) {
                     if (
                       projectName === '' ||
+                      !isValidProjectName(projectName) ||
                       isLoading ||
                       !isCourseAvailable ||
                       isWaitingForAvailabilityCheck
@@ -531,6 +492,7 @@ const MakeNewCoursePage = ({
                 (currentStep === 0 &&
                   !hasCreatedProject &&
                   (projectName === '' ||
+                    !isValidProjectName(projectName) ||
                     !isCourseAvailable ||
                     isLoading ||
                     isWaitingForAvailabilityCheck))

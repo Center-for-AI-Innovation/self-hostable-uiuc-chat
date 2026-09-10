@@ -43,7 +43,11 @@ from ai_ta_backend.executors.thread_pool_executor import (
 from ai_ta_backend.service.export_service import ExportService
 from ai_ta_backend.service.nomic_service import NomicService
 from ai_ta_backend.service.posthog_service import PosthogService
-from ai_ta_backend.service.project_service import ProjectService
+from ai_ta_backend.service.project_service import (
+    ProjectAlreadyExistsError,
+    ProjectService,
+    is_valid_project_name,
+)
 from ai_ta_backend.service.retrieval_service import RetrievalService
 from ai_ta_backend.service.workflow_service import WorkflowService
 from ai_ta_backend.utils.email.send_transactional_email import send_email
@@ -832,13 +836,30 @@ def createProject(service: ProjectService, flaskExecutor: ExecutorInterface) -> 
   if project_name == '':
     # proper web error "400 Bad request"
     abort(400, description=f"Missing one or more required parameters: 'project_name' must be provided.")
+  if not is_valid_project_name(project_name):
+    abort(400,
+          description="Invalid 'project_name': names may only contain letters, numbers, "
+          "dashes, underscores, and dots — a dot cannot be the first character (max 64 characters).")
   print(f"In /createProject for: {project_name}")
-  result = service.create_project(project_name, project_description, project_owner_email, is_private, allow_logged_in_users)
+  try:
+    service.create_project(project_name, project_description, project_owner_email, is_private, allow_logged_in_users)
+  except ProjectAlreadyExistsError as e:
+    response = jsonify(error='Project name already exists', message=str(e))
+    response.status_code = 409
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+  except Exception as e:
+    response = jsonify(error=str(e), message=f"Error while creating project: {e}")
+    response.status_code = 500
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
-  # Do long-running LLM task in the background.
-  flaskExecutor.submit(service.generate_json_schema, project_name, project_description)
+  # Do the long-running LLM schema generation in the background; with no
+  # description it would just regenerate the default schema already inserted.
+  if project_description:
+    flaskExecutor.submit(service.generate_json_schema, project_name, project_description)
 
-  response = jsonify(result)
+  response = jsonify({"success": True})
   response.headers.add('Access-Control-Allow-Origin', '*')
   return response
 
