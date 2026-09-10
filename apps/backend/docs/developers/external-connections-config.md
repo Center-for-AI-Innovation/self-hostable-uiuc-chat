@@ -202,7 +202,7 @@ Add `collections` when your project needs to search across multiple Qdrant colle
 | ------------ | ------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`       | string  | **Yes**  | Qdrant collection name                                                                                                                                   |
 | `top_n`      | integer | No       | Maximum results to retrieve from this collection. Defaults to the request-level `top_n` (typically 100).                                                 |
-| `use_filter` | boolean | No       | Whether to apply the course-name filter to this collection. Default: `true`. Set to `false` for shared collections not partitioned by course/project.    |
+| `use_filter` | boolean | No       | Whether to apply the search filter (`conversation_id` / `doc_groups` / optional `course_name`) to this collection. Default: `true`. Set to `false` for shared collections that should be searched unfiltered. Distinct from `apply_course_filter`, which only drops the `course_name` constraint. |
 | `processor`  | string  | No       | Post-processor key for normalizing results. One of: `pubmed`, `patents`, `ncbi_books`, `clinical_trials`. See [Post-Processors](#post-processors-for-vector-search) below. |
 
 #### Top-Level Fan-Out Settings
