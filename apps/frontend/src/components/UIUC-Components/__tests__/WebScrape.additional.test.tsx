@@ -66,7 +66,7 @@ describe('WebScrape - additional coverage', () => {
       await user.click(screen.getByRole('button', { name: /Ingest/i }))
 
       expect(
-        await screen.findByText(/Please provide an input for Max URLs/i),
+        await screen.findByText(/Please provide an input for Max Pages/i),
       ).toBeInTheDocument()
     })
 
@@ -87,7 +87,7 @@ describe('WebScrape - additional coverage', () => {
       await user.click(screen.getByRole('button', { name: /Ingest/i }))
 
       expect(
-        await screen.findByText(/Max URLs should be between 1 and 500/i),
+        await screen.findByText(/Max Pages should be between 1 and 500/i),
       ).toBeInTheDocument()
     })
 
@@ -108,7 +108,7 @@ describe('WebScrape - additional coverage', () => {
       await user.click(screen.getByRole('button', { name: /Ingest/i }))
 
       expect(
-        await screen.findByText(/Max URLs should be between 1 and 500/i),
+        await screen.findByText(/Max Pages should be between 1 and 500/i),
       ).toBeInTheDocument()
     })
   })
