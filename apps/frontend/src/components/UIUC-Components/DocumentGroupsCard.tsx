@@ -21,7 +21,7 @@ function DocumentGroupsCard({
 
   return (
     <Card
-      className={`mt-[2%] ${cardWidthClasses} gap-0 rounded-[2rem] border py-0 text-base shadow-none ring-0`}
+      className={`mt-[2%] ${cardWidthClasses} gap-0 rounded-4xl border py-0 text-base shadow-none ring-0`}
       style={{
         backgroundColor: 'var(--background)',
         borderColor: 'var(--dashboard-border)',
@@ -31,13 +31,13 @@ function DocumentGroupsCard({
         style={{
           color: 'white',
         }}
-        className="min-h-full bg-[--background]"
+        className="min-h-full bg-(--background)"
       >
-        <div className="w-full border-b border-[--dashboard-border] px-4 py-3 sm:px-6 sm:py-4 md:px-8">
+        <div className="w-full border-b border-(--dashboard-border) px-4 py-3 sm:px-6 sm:py-4 md:px-8">
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
               <h3
-                className={`${montserrat_heading.variable} font-montserratHeading text-lg font-bold text-[--foreground] sm:text-2xl`}
+                className={`${montserrat_heading.variable} font-montserratHeading text-lg font-bold text-(--foreground) sm:text-2xl`}
               >
                 Document Groups
               </h3>
@@ -47,10 +47,10 @@ function DocumentGroupsCard({
                 size="icon-sm"
                 onClick={() => setAccordionOpened(!accordionOpened)}
                 title="More info on document groups"
-                className="hover:bg-[--background] [&_svg]:size-6 hover:[&_svg]:text-[--foreground]"
+                className="hover:bg-(--background) [&_svg]:size-6 [&_svg]:hover:text-(--foreground)"
               >
                 <IconInfoCircle
-                  className="text-[--foreground-faded]"
+                  className="text-(--foreground-faded)"
                   aria-hidden="true"
                 />
               </Button>
@@ -58,7 +58,7 @@ function DocumentGroupsCard({
           </div>
         </div>
 
-        <div className="bg-[--background] px-4 py-4 sm:px-6 sm:py-6 md:px-8">
+        <div className="bg-(--background) px-4 py-4 sm:px-6 sm:py-6 md:px-8">
           <AnimatePresence>
             {accordionOpened && (
               <motion.div
@@ -68,32 +68,32 @@ function DocumentGroupsCard({
                 transition={{ duration: 0.2, ease: 'easeInOut' }}
                 className="mb-6 overflow-hidden"
               >
-                <div className="flex bg-[--background-faded]">
-                  <div className="w-1 bg-[--illinois-orange]" />
+                <div className="flex bg-(--background-faded)">
+                  <div className="w-1 bg-(--illinois-orange)" />
                   <div
-                    className={`${montserrat_paragraph.variable} mb-4 flex-1 p-4 font-montserratParagraph`}
+                    className={`${montserrat_paragraph.variable} font-montserratParagraph mb-4 flex-1 p-4`}
                   >
                     <p
-                      className={`${montserrat_paragraph.variable} mb-4 font-montserratParagraph text-[--foreground]`}
+                      className={`${montserrat_paragraph.variable} font-montserratParagraph mb-4 text-(--foreground)`}
                     >
                       Document Groups help you organize and control your
                       content:
                     </p>
-                    <ul className="list-inside list-disc space-y-2 text-[--foreground]">
+                    <ul className="list-inside list-disc space-y-2 text-(--foreground)">
                       <li className="text-sm">
-                        <span className="text-[--illinois-orange]">
+                        <span className="text-(--illinois-orange)">
                           Organize
                         </span>{' '}
                         documents into clear categories
                       </li>
                       <li className="text-sm">
-                        <span className="text-[--illinois-orange]">
+                        <span className="text-(--illinois-orange)">
                           Enable/disable
                         </span>{' '}
                         groups to control visibility
                       </li>
                       <li className="text-sm">
-                        <span className="text-[--illinois-orange]">
+                        <span className="text-(--illinois-orange)">
                           Filter chats
                         </span>{' '}
                         to specific document groups

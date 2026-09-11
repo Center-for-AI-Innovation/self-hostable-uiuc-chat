@@ -78,20 +78,20 @@ export default function Unsubscribe() {
         <div className="space-y-2 text-center">
           <Title
             size="h3"
-            className={`${montserrat_heading.className} inline-block select-text p-0 text-neutral-200`}
+            className={`${montserrat_heading.className} inline-block p-0 text-neutral-200 select-text`}
           >
             Unsubscribe <span style={{ fontSize: '22px' }}>🎉</span>
           </Title>
         </div>
         <Text
           size="md"
-          className={`${montserrat_paragraph.className} inline-block select-text p-0 text-neutral-200`}
+          className={`${montserrat_paragraph.className} inline-block p-0 text-neutral-200 select-text`}
         >
           Unsubscribe from the UIUC.chat email newsletter.
         </Text>
         <Text
           size="sm"
-          className={`${montserrat_paragraph.className} select-text p-0 text-neutral-200`}
+          className={`${montserrat_paragraph.className} p-0 text-neutral-200 select-text`}
         >
           I guess your inbox just got a little bit cleaner, but less exciting
           😒{' '}
@@ -99,7 +99,7 @@ export default function Unsubscribe() {
         <Group>
           <Text
             size="md"
-            className={`${montserrat_paragraph.className} select-text p-0 text-neutral-200`}
+            className={`${montserrat_paragraph.className} p-0 text-neutral-200 select-text`}
           >
             Email:
           </Text>
@@ -110,7 +110,7 @@ export default function Unsubscribe() {
 
         <div>
           <button
-            className="flex w-full justify-center rounded-md border border-transparent bg-[--button] px-4 py-2 text-sm font-medium text-[--button-text-color] hover:bg-[--button-hover] hover:text-[--button-hover-text-color] focus:outline-none focus:ring-2"
+            className="flex w-full justify-center rounded-md border border-transparent bg-(--button) px-4 py-2 text-sm font-medium text-(--button-text-color) hover:bg-(--button-hover) hover:text-(--button-hover-text-color) focus:ring-2 focus:outline-hidden"
             onClick={handleSubmit}
           >
             Unsubscribe

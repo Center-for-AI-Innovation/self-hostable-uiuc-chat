@@ -17,7 +17,7 @@ const HeaderStepNavigation = ({
     <div className="step_header mb-6">
       {project_name && (
         <p
-          className={`mb-2 text-xs font-medium uppercase tracking-wider text-[--foreground-faded] ${montserrat_paragraph.variable} font-montserratParagraph`}
+          className={`mb-2 text-xs font-medium tracking-wider text-(--foreground-faded) uppercase ${montserrat_paragraph.variable} font-montserratParagraph`}
         >
           {project_name}
         </p>
@@ -25,7 +25,7 @@ const HeaderStepNavigation = ({
 
       {title && (
         <h2
-          className={`text-2xl font-bold tracking-tight text-[--foreground] sm:text-3xl ${montserrat_heading.variable} font-montserratHeading`}
+          className={`text-2xl font-bold tracking-tight text-(--foreground) sm:text-3xl ${montserrat_heading.variable} font-montserratHeading`}
           aria-describedby={description ? descriptionId : undefined}
         >
           {title}
@@ -35,7 +35,7 @@ const HeaderStepNavigation = ({
       {description && (
         <p
           id={descriptionId}
-          className={`mt-1.5 text-sm text-[--foreground-faded] sm:text-base ${montserrat_paragraph.variable} font-montserratParagraph`}
+          className={`mt-1.5 text-sm text-(--foreground-faded) sm:text-base ${montserrat_paragraph.variable} font-montserratParagraph`}
         >
           {description}
         </p>

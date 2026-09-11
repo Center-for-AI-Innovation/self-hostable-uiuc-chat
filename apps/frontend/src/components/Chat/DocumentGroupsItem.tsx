@@ -52,13 +52,13 @@ export const DocumentGroupsItem = ({}) => {
   return (
     <>
       <div
-        className="flex h-full w-[100%] flex-col space-y-4 rounded-lg p-3"
+        className="flex h-full w-full flex-col space-y-4 rounded-lg p-3"
         style={{ position: 'relative', zIndex: 100 }}
       >
         <div>
           <div className="flex flex-col"></div>
           <Title
-            className={`px-4 pt-4 ${montserrat_heading.variable} rounded-lg bg-[--modal-dark] p-4 font-montserratHeading md:rounded-lg`}
+            className={`px-4 pt-4 ${montserrat_heading.variable} font-montserratHeading rounded-lg bg-(--modal-dark) p-4 md:rounded-lg`}
             order={isSmallScreen ? 5 : 3}
           >
             Document Groups
@@ -93,7 +93,7 @@ export const DocumentGroupsItem = ({}) => {
             <Table
               aria-label="Document groups configuration"
               variant="striped"
-              className="text-[--modal-text]"
+              className="text-(--modal-text)"
               style={{
                 width: '90%',
               }}

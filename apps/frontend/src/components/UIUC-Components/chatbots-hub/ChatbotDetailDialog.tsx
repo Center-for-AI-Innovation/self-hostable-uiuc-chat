@@ -125,26 +125,26 @@ export function ChatbotDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] max-w-lg flex-col overflow-hidden border-[#e5e7eb] bg-white p-0 text-[--illinois-blue] dark:border-[#32517a] dark:bg-[#15172b] dark:text-white [&>*]:max-w-full">
+      <DialogContent className="flex max-h-[85vh] max-w-lg flex-col overflow-hidden border-[#e5e7eb] bg-white p-0 text-(--illinois-blue) *:max-w-full dark:border-[#32517a] dark:bg-[#15172b] dark:text-white">
         <DialogTitle className="sr-only">{title} Details</DialogTitle>
         <DialogDescription className="sr-only">
           {description || `Details for the ${title} chatbot.`}
         </DialogDescription>
 
         {/* Scrollable body */}
-        <div className="scrollbar-thin-auto min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="scrollbar-thin-auto min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
           {/* Header section */}
-          <div className="space-y-3 px-6 pb-2 pt-6">
+          <div className="space-y-3 px-6 pt-6 pb-2">
             <ChatbotUserRoleBadge role={resolvedUserRole} />
 
-            <h2 className="text-2xl font-bold leading-tight">{title}</h2>
+            <h2 className="text-2xl leading-tight font-bold">{title}</h2>
 
-            <p className="text-sm leading-relaxed text-[--illinois-storm-dark] dark:text-[#94a3b8]">
+            <p className="text-sm leading-relaxed text-(--illinois-storm-dark) dark:text-[#94a3b8]">
               {description}
             </p>
 
             {/* Metadata row: created date + last access */}
-            <div className="flex flex-wrap items-center gap-x-3 text-xs text-[--illinois-storm-medium] dark:text-[#94a3b8]">
+            <div className="flex flex-wrap items-center gap-x-3 text-xs text-(--illinois-storm-medium) dark:text-[#94a3b8]">
               {createdAt && (
                 <span>
                   Created {formatDate(createdAt)} by{' '}
@@ -186,7 +186,7 @@ export function ChatbotDetailDialog({
               <h3 className="mb-2 text-base font-semibold">
                 About this Chatbot
               </h3>
-              <p className="text-sm leading-relaxed text-[--illinois-storm-dark] dark:text-[#94a3b8]">
+              <p className="text-sm leading-relaxed text-(--illinois-storm-dark) dark:text-[#94a3b8]">
                 {aboutText}
               </p>
             </div>
@@ -208,7 +208,7 @@ export function ChatbotDetailDialog({
                       {m.avatar_url && (
                         <AvatarImage src={m.avatar_url} alt={m.display_name} />
                       )}
-                      <AvatarFallback className="bg-[#e5e7eb] text-sm font-medium text-[--illinois-blue] dark:bg-[#32517a] dark:text-white">
+                      <AvatarFallback className="bg-[#e5e7eb] text-sm font-medium text-(--illinois-blue) dark:bg-[#32517a] dark:text-white">
                         {getInitials(m.display_name ?? m.email)}
                       </AvatarFallback>
                     </Avatar>
@@ -216,12 +216,12 @@ export function ChatbotDetailDialog({
                       <p className="truncate text-sm font-medium">
                         {m.display_name ?? extractNameFromEmail(m.email)}
                         {m.email === currentUserEmail && (
-                          <span className="ml-1 text-[--illinois-storm-medium] dark:text-[#94a3b8]">
+                          <span className="ml-1 text-(--illinois-storm-medium) dark:text-[#94a3b8]">
                             (Me)
                           </span>
                         )}
                       </p>
-                      <p className="truncate text-xs text-[--illinois-storm-medium] dark:text-[#94a3b8]">
+                      <p className="truncate text-xs text-(--illinois-storm-medium) dark:text-[#94a3b8]">
                         {m.email}
                       </p>
                     </div>
@@ -233,8 +233,8 @@ export function ChatbotDetailDialog({
 
           {/* Last Updated */}
           {lastUpdatedAt && (
-            <div className="px-6 pb-4 pt-2">
-              <p className="flex items-center gap-1.5 text-xs text-[--illinois-storm-medium] dark:text-[#94a3b8]">
+            <div className="px-6 pt-2 pb-4">
+              <p className="flex items-center gap-1.5 text-xs text-(--illinois-storm-medium) dark:text-[#94a3b8]">
                 <Calendar className="h-3.5 w-3.5" />
                 Project last updated {formatRelativeTime(lastUpdatedAt)}
               </p>
@@ -250,7 +250,7 @@ export function ChatbotDetailDialog({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 gap-1.5 whitespace-nowrap border-[#e5e7eb] bg-white px-4 text-sm font-medium text-[--illinois-blue] hover:bg-[#f3f4f6] dark:border-[#32517a] dark:bg-[#13294b] dark:text-white dark:hover:bg-[#1a3a6b]"
+                  className="h-10 gap-1.5 border-[#e5e7eb] bg-white px-4 text-sm font-medium whitespace-nowrap text-(--illinois-blue) hover:bg-[#f3f4f6] dark:border-[#32517a] dark:bg-[#13294b] dark:text-white dark:hover:bg-[#1a3a6b]"
                 >
                   <Settings className="h-4 w-4 shrink-0" />
                   Admin Settings
@@ -260,7 +260,7 @@ export function ChatbotDetailDialog({
             <Button
               variant="outline"
               size="sm"
-              className="h-10 gap-1.5 whitespace-nowrap border-[#e5e7eb] bg-white px-4 text-sm font-medium text-[--illinois-blue] hover:bg-[#f3f4f6] dark:border-[#32517a] dark:bg-[#13294b] dark:text-white dark:hover:bg-[#1a3a6b]"
+              className="h-10 gap-1.5 border-[#e5e7eb] bg-white px-4 text-sm font-medium whitespace-nowrap text-(--illinois-blue) hover:bg-[#f3f4f6] dark:border-[#32517a] dark:bg-[#13294b] dark:text-white dark:hover:bg-[#1a3a6b]"
               onClick={() => {
                 onOpenChange(false)
                 onShareClick()
@@ -274,7 +274,7 @@ export function ChatbotDetailDialog({
           <NextLink href={`/${course_name}/chat`}>
             <Button
               size="sm"
-              className="h-10 gap-1.5 whitespace-nowrap bg-[--illinois-blue] px-6 text-sm font-medium text-white hover:bg-[--foreground-dark] dark:bg-[#1d4ed8] dark:hover:bg-[#2563eb]"
+              className="h-10 gap-1.5 bg-(--illinois-blue) px-6 text-sm font-medium whitespace-nowrap text-white hover:bg-(--foreground-dark) dark:bg-[#1d4ed8] dark:hover:bg-[#2563eb]"
             >
               <MessageSquare className="h-4 w-4 shrink-0" />
               Start Chatting
@@ -314,7 +314,7 @@ function DocumentSummarySection({
     return (
       <div className="rounded-xl border border-[#e5e7eb] p-4 dark:border-[#32517a]">
         <h3 className="mb-3 text-base font-semibold">Data in This Project</h3>
-        <p className="text-sm text-[--illinois-storm-medium] dark:text-[#94a3b8]">
+        <p className="text-sm text-(--illinois-storm-medium) dark:text-[#94a3b8]">
           No document data available yet.
         </p>
       </div>
@@ -341,15 +341,15 @@ function DocumentSummarySection({
       >
         <CollapsibleTrigger
           disabled={!hasFiles}
-          className="flex w-full items-center justify-between px-4 pb-3 pt-1 disabled:cursor-default"
+          className="flex w-full items-center justify-between px-4 pt-1 pb-3 disabled:cursor-default"
         >
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e5e7eb] dark:bg-[#1e293b]">
-              <FileText className="h-5 w-5 text-[--illinois-storm-medium] dark:text-[#94a3b8]" />
+              <FileText className="h-5 w-5 text-(--illinois-storm-medium) dark:text-[#94a3b8]" />
             </div>
             <div className="text-left">
               <p className="text-sm font-medium">Document Summary</p>
-              <p className="text-xs text-[--illinois-storm-medium] dark:text-[#94a3b8]">
+              <p className="text-xs text-(--illinois-storm-medium) dark:text-[#94a3b8]">
                 Overview of all files in this project
               </p>
             </div>
@@ -357,13 +357,13 @@ function DocumentSummarySection({
           <div className="flex items-center gap-3">
             <div className="text-right">
               <p className="text-sm font-semibold">{fileCountLabel}</p>
-              <p className="text-xs text-[--illinois-storm-medium] dark:text-[#94a3b8]">
+              <p className="text-xs text-(--illinois-storm-medium) dark:text-[#94a3b8]">
                 {formatBytes(summary.total_size_bytes)}
               </p>
             </div>
             {hasFiles && (
               <ChevronDown
-                className={`h-4 w-4 text-[--illinois-storm-medium] transition-transform duration-200 dark:text-[#94a3b8] ${
+                className={`h-4 w-4 text-(--illinois-storm-medium) transition-transform duration-200 dark:text-[#94a3b8] ${
                   isOpen ? 'rotate-180' : ''
                 }`}
               />
@@ -385,7 +385,7 @@ function DocumentSummarySection({
 
 function DocumentTypeRow({ stat }: { readonly stat: DocumentTypeStat }) {
   const icon = FILE_TYPE_ICONS[stat.type] ?? (
-    <FileText className="h-4 w-4 text-[--illinois-storm-medium]" />
+    <FileText className="h-4 w-4 text-(--illinois-storm-medium)" />
   )
   const countLabel =
     stat.type === 'Websites-crawled'
@@ -398,7 +398,7 @@ function DocumentTypeRow({ stat }: { readonly stat: DocumentTypeStat }) {
         {icon}
         <span className="text-sm">{stat.type}</span>
       </div>
-      <div className="flex items-center gap-4 text-right text-sm text-[--illinois-storm-medium] dark:text-[#94a3b8]">
+      <div className="flex items-center gap-4 text-right text-sm text-(--illinois-storm-medium) dark:text-[#94a3b8]">
         <span>{countLabel}</span>
         <span className="w-16 text-right">
           {formatBytes(stat.total_size_bytes)}

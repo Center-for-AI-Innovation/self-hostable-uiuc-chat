@@ -4,7 +4,7 @@ import { type ChatbotSectionData } from './chatbots.types'
 export function ChatbotsSection({ title, cards }: ChatbotSectionData) {
   return (
     <section className="px-4 py-10 sm:px-8">
-      <h2 className="mb-6 text-2xl font-bold text-[--illinois-blue] dark:text-white">
+      <h2 className="mb-6 text-2xl font-bold text-(--illinois-blue) dark:text-white">
         {title}
       </h2>
       <div className="scrollbar-thin-auto -mx-6 flex gap-5 overflow-x-auto px-6 py-6">

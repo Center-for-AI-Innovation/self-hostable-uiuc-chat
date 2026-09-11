@@ -127,7 +127,7 @@ const StepCreate = ({
                     ) : isCheckingAvailability ? (
                       <span role="status">
                         <LoaderCircle
-                          className="size-4 animate-spin text-[--foreground-faded]"
+                          className="size-4 animate-spin text-(--foreground-faded)"
                           aria-hidden="true"
                         />
                         <span className="sr-only">
@@ -174,10 +174,10 @@ const StepCreate = ({
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="step-create-project-type"
-              className="text-sm font-medium text-[--foreground]"
+              className="text-sm font-medium text-(--foreground)"
             >
               Project Type{' '}
-              <span className="font-normal text-[--foreground-faded]">
+              <span className="font-normal text-(--foreground-faded)">
                 (optional)
               </span>
             </label>
@@ -206,7 +206,7 @@ const StepCreate = ({
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-[--foreground-faded]">
+            <p className="text-xs text-(--foreground-faded)">
               Helps people find your bot in the hub.
             </p>
           </div>
@@ -214,10 +214,10 @@ const StepCreate = ({
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="step-create-organization"
-              className="text-sm font-medium text-[--foreground]"
+              className="text-sm font-medium text-(--foreground)"
             >
               Organization{' '}
-              <span className="font-normal text-[--foreground-faded]">
+              <span className="font-normal text-(--foreground-faded)">
                 (optional)
               </span>
             </label>
@@ -244,7 +244,7 @@ const StepCreate = ({
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-[--foreground-faded]">
+            <p className="text-xs text-(--foreground-faded)">
               The college, department, or group running this bot.
             </p>
           </div>

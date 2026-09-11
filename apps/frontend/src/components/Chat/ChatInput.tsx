@@ -945,7 +945,7 @@ export const ChatInput = ({
                 <div
                   role="status"
                   aria-live="polite"
-                  className="relative rounded-2xl bg-[#FBEDE5] px-5 py-4 text-[#2A1B3D] shadow-sm"
+                  className="relative rounded-2xl bg-[#FBEDE5] px-5 py-4 text-[#2A1B3D] shadow-xs"
                 >
                   <div className="mb-2 inline-flex items-center gap-1.5 rounded-md bg-[#F5D9CC] px-2 py-0.5 text-xs font-medium text-[#7A2E1F]">
                     <IconAlertTriangle
@@ -957,7 +957,7 @@ export const ChatInput = ({
                   </div>
                   <span
                     aria-hidden="true"
-                    className="absolute right-3 top-3 inline-flex text-[#2A1B3D]/60"
+                    className="absolute top-3 right-3 inline-flex text-[#2A1B3D]/60"
                   >
                     <IconInfoCircle size={16} stroke={2} />
                   </span>
@@ -987,7 +987,7 @@ export const ChatInput = ({
                           setCocBannerVisible(false)
                         }
                       }}
-                      className="rounded-md border border-[#2A1B3D]/20 bg-white px-3 py-1.5 text-sm font-medium text-[#2A1B3D] transition hover:bg-[#2A1B3D]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+                      className="rounded-md border border-[#2A1B3D]/20 bg-white px-3 py-1.5 text-sm font-medium text-[#2A1B3D] transition hover:bg-[#2A1B3D]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)"
                     >
                       I Understand
                     </button>
@@ -999,7 +999,7 @@ export const ChatInput = ({
                           value: true,
                         })
                       }}
-                      className="rounded-md bg-[#1B1336] px-3 py-1.5 text-sm font-medium text-white transition hover:bg-[#2A1B3D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+                      className="rounded-md bg-[#1B1336] px-3 py-1.5 text-sm font-medium text-white transition hover:bg-[#2A1B3D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)"
                     >
                       Switch Model in Use
                     </button>
@@ -1017,13 +1017,13 @@ export const ChatInput = ({
       >
         <div
           ref={chatInputParentContainerRef}
-          className="chat_input_container fixed bottom-0 z-10 mx-4 flex w-[80%] flex-col self-center rounded-t-3xl bg-[--message-background] px-4 pb-8 pt-4 text-[--message] md:mx-20 md:w-[60%]"
+          className="chat_input_container fixed bottom-0 z-10 mx-4 flex w-[80%] flex-col self-center rounded-t-3xl bg-(--message-background) px-4 pt-4 pb-8 text-(--message) md:mx-20 md:w-[60%]"
           style={{ pointerEvents: 'auto', backdropFilter: 'blur(4px)' }}
         >
           {/* Stop generating and regenerate buttons */}
           {messageIsStreaming && (
             <button
-              className={`absolute -top-14 left-0 right-0 mx-auto mb-12 flex w-fit items-center gap-3 rounded border border-[--primary] bg-[--primary] px-4 py-2 text-[--background] opacity-[.85] hover:opacity-100 md:mb-0 md:mt-2`}
+              className={`absolute -top-14 right-0 left-0 mx-auto mb-12 flex w-fit items-center gap-3 rounded border border-(--primary) bg-(--primary) px-4 py-2 text-(--background) opacity-[.85] hover:opacity-100 md:mt-2 md:mb-0`}
               onClick={handleStopConversation}
               style={{ pointerEvents: 'auto' }}
             >
@@ -1040,7 +1040,7 @@ export const ChatInput = ({
               selectedConversation.messages.length - 1
             ]?.role === 'user' && (
               <button
-                className={`absolute -top-14 left-0 right-0 mx-auto mb-12 flex w-fit items-center gap-3 rounded border border-[--primary] bg-[--primary] px-4 py-2 text-[--illinois-white] hover:brightness-110 md:mb-0 md:mt-2`}
+                className={`absolute -top-14 right-0 left-0 mx-auto mb-12 flex w-fit items-center gap-3 rounded border border-(--primary) bg-(--primary) px-4 py-2 text-(--illinois-white) hover:brightness-110 md:mt-2 md:mb-0`}
                 style={{
                   backgroundColor:
                     'color-mix(in srgb, var(--primary), black 15%)',
@@ -1056,7 +1056,7 @@ export const ChatInput = ({
           {/* Chat input and preview container */}
           <div
             ref={chatInputContainerRef}
-            className="chat-input-container rbg-[--message-background] m-0 w-full resize-none p-0"
+            className="chat-input-container m-0 w-full resize-none  p-0"
             onClick={() => textareaRef.current?.focus()}
             style={{
               ...chatInputContainerStyle,
@@ -1288,7 +1288,7 @@ export const ChatInput = ({
             <div className="relative flex w-full items-center">
               {/* File upload button */}
               <button
-                className="mr-2 flex items-center justify-center rounded-full p-2 text-neutral-100 opacity-60 hover:bg-neutral-200 hover:text-neutral-900 dark:bg-opacity-50 dark:text-neutral-100 dark:hover:text-neutral-200"
+                className="dark:bg-opacity-50 mr-2 flex items-center justify-center rounded-full p-2 text-neutral-100 opacity-60 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-100 dark:hover:text-neutral-200"
                 onClick={() => fileUploadRef.current?.click()}
                 type="button"
                 title="Upload files"
@@ -1321,7 +1321,7 @@ export const ChatInput = ({
                 ref={textareaRef}
                 aria-label="Message input"
                 autoFocus
-                className="chat-input m-0 h-[24px] max-h-[400px] w-full flex-1 resize-none bg-transparent py-2 pl-2 pr-12 text-white outline-none"
+                className="chat-input m-0 h-[24px] max-h-[400px] w-full flex-1 resize-none bg-transparent py-2 pr-12 pl-2 text-white outline-hidden"
                 style={{
                   resize: 'none',
                   minHeight: '24px',
@@ -1343,7 +1343,7 @@ export const ChatInput = ({
               <button
                 type="button"
                 aria-label="Send message"
-                className="absolute right-2 top-1/2 flex -translate-y-1/2 transform items-center justify-center rounded-full bg-[white/30] p-2 opacity-50 hover:opacity-100"
+                className="absolute top-1/2 right-2 flex -translate-y-1/2 transform items-center justify-center rounded-full bg-[white/30] p-2 opacity-50 hover:opacity-100"
                 onClick={handleSend}
                 style={{ pointerEvents: 'auto' }}
               >
@@ -1382,11 +1382,11 @@ export const ChatInput = ({
             )}
 
             {showScrollDownButton && (
-              <div className="absolute bottom-2 right-10 lg:-right-10 lg:bottom-0">
+              <div className="absolute right-10 bottom-2 lg:-right-10 lg:bottom-0">
                 <button
                   type="button"
                   aria-label="Scroll Down"
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-[--background-faded] text-[--foreground] hover:bg-[--background-dark] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--foreground]"
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-(--background-faded) text-(--foreground) hover:bg-(--background-dark) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--foreground)"
                   onClick={onScrollDownClick}
                   style={{ pointerEvents: 'auto' }}
                 >
@@ -1429,7 +1429,7 @@ export const ChatInput = ({
               tabIndex={0}
               aria-label="Chat Settings"
               size={isSmallScreen ? '10px' : 'xs'}
-              className={`font-montserratHeading ${montserrat_heading.variable} flex items-center gap-1 break-words rounded-full px-3 py-1 text-[--message-faded] opacity-60 hover:bg-white/20 hover:text-[--message] hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]`}
+              className={`font-montserratHeading ${montserrat_heading.variable} flex items-center gap-1 rounded-full px-3 py-1 wrap-break-word text-(--message-faded) opacity-60 hover:bg-white/20 hover:text-(--message) hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)`}
               onClick={handleTextClick}
               onKeyDown={(e: React.KeyboardEvent) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -1492,8 +1492,8 @@ export const ChatInput = ({
               <button
                 className={`rounded-full px-3 py-1 text-xs transition-colors md:text-sm ${
                   agentModeEnabled
-                    ? 'bg-[--primary] text-[--background]'
-                    : 'bg-[--background-faded] text-[--foreground]'
+                    ? 'bg-(--primary) text-(--background)'
+                    : 'bg-(--background-faded) text-(--foreground)'
                 }`}
                 disabled={messageIsStreaming}
                 onClick={() => {

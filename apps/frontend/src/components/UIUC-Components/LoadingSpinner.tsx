@@ -14,6 +14,6 @@ export const LoadingSpinner = ({
   size?: LoadingSpinnerSize
 }) => (
   <Spinner
-    className={`${size === 'xs' ? 'size-4' : 'size-6'} text-[--spinner]`}
+    className={`${size === 'xs' ? 'size-4' : 'size-6'} text-(--spinner)`}
   />
 )

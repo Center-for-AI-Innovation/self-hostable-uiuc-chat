@@ -43,7 +43,7 @@ lint:
       paths:
         - .github/**/*
         - .trunk/**/*
-        - .DS_Store
+        - "**/.DS_Store"
         - .vscode/**/*
         - README.md
     # Frontend-only for now: apps/backend and everything else outside

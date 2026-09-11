@@ -171,8 +171,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
       <Textarea
         label={
           <Group spacing={4}>
-            <Text className="text-[--modal-text]">Feedback Details</Text>
-            <Text size="sm" className="text-[--foreground-faded]">
+            <Text className="text-(--modal-text)">Feedback Details</Text>
+            <Text size="sm" className="text-(--foreground-faded)">
               (Optional)
             </Text>
           </Group>

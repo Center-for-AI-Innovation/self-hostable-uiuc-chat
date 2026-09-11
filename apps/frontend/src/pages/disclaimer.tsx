@@ -12,7 +12,7 @@ const DisclaimerPage: NextPage = () => {
         <title>Disclaimer — Illinois Chat</title>
       </Head>
       <MainPageBackground>
-        <p style={{ whiteSpace: 'pre-line' }} className="text-[--foreground]">
+        <p style={{ whiteSpace: 'pre-line' }} className="text-(--foreground)">
           {disclaimer_string}
         </p>
       </MainPageBackground>

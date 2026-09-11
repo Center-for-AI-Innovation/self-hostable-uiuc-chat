@@ -270,7 +270,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
       <main
         id="main-content"
         tabIndex={-1}
-        className="course-page-main min-w-screen flex min-h-screen flex-col items-center"
+        className="course-page-main flex min-h-screen min-w-screen flex-col items-center"
       >
         <h1 className="sr-only">{course_name} Tools</h1>
         <div className="items-left flex w-full flex-col justify-center py-0">
@@ -285,7 +285,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                 }}
               >
                 <Title
-                  className={`${montserrat_heading.variable} ml-4 font-montserratHeading`}
+                  className={`${montserrat_heading.variable} font-montserratHeading ml-4`}
                   order={2}
                 >
                   Coming soon!
@@ -313,7 +313,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                     border: 'None',
                     color: 'var(--foreground)',
                   }}
-                  className="min-h-full flex-[1_1_100%] bg-[--background] md:flex-[1_1_60%]"
+                  className="min-h-full flex-[1_1_100%] bg-(--background) md:flex-[1_1_60%]"
                 >
                   <Group
                     spacing="lg"
@@ -323,14 +323,14 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                   >
                     <Title
                       order={2}
-                      className={`${montserrat_heading.variable} ml-4 font-montserratHeading`}
+                      className={`${montserrat_heading.variable} font-montserratHeading ml-4`}
                     >
                       LLM Tool Use &amp; Function Calling
                     </Title>
                     <Stack align="start" justify="start">
                       <div className="flex flex-col lg:flex-row">
                         <Title
-                          className={`${montserrat_heading.variable} flex-[1_1_50%] font-montserratHeading`}
+                          className={`${montserrat_heading.variable} font-montserratHeading flex-[1_1_50%]`}
                           order={3}
                           w={'100%'}
                           ml={'md'}
@@ -346,7 +346,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                             href="https://n8n.io"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`text-[--dashboard-button] underline hover:text-[--dashboard-button-hover] ${montserrat_heading.variable} font-montserratHeading`}
+                            className={`text-(--dashboard-button) underline hover:text-(--dashboard-button-hover) ${montserrat_heading.variable} font-montserratHeading`}
                           >
                             n8n.io&apos;s{' '}
                             <IconExternalLink
@@ -365,7 +365,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                               '_blank',
                             )
                           }
-                          className="mx-[8%] mt-2 max-w-[50%] rounded-lg bg-[--dashboard-button] hover:bg-[--dashboard-button-hover] disabled:bg-[--button-disabled] disabled:text-[--button-disabled-text-color] lg:flex-[1_1_50%] lg:self-center"
+                          className="mx-[8%] mt-2 max-w-[50%] rounded-lg bg-(--dashboard-button) hover:bg-(--dashboard-button-hover) disabled:bg-(--button-disabled) disabled:text-(--button-disabled-text-color) lg:flex-[1_1_50%] lg:self-center"
                           type="submit"
                           disabled={!n8nApiKey}
                         >
@@ -390,7 +390,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                               style={{ margin: '0 auto', textAlign: 'left' }}
                               order={3}
                               size={'xl'}
-                              className={`pb-3 pt-3 ${montserrat_paragraph.variable} font-montserratParagraph`}
+                              className={`pt-3 pb-3 ${montserrat_paragraph.variable} font-montserratParagraph`}
                             >
                               Setup Instructions 🤠
                             </Title>
@@ -404,7 +404,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                             <List
                               type="ordered"
                               withPadding
-                              className={`${montserrat_paragraph.variable} font-montserratParagraph text-[--foreground]`}
+                              className={`${montserrat_paragraph.variable} font-montserratParagraph text-(--foreground)`}
                             >
                               <List.Item>
                                 Tool use via LLMs is invite-only to prevent
@@ -427,7 +427,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                                     href="https://tools.uiuc.chat/setup"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-[--dashboard-button] hover:text-[--dashboard-button-hover]"
+                                    className="text-(--dashboard-button) hover:text-(--dashboard-button-hover)"
                                     style={{
                                       textDecoration: 'underline',
                                     }}
@@ -461,7 +461,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                               style={{ margin: '0 auto', textAlign: 'left' }}
                               order={4}
                               size={'xl'}
-                              className={`pb-3 pt-3 ${montserrat_paragraph.variable} font-montserratParagraph`}
+                              className={`pt-3 pb-3 ${montserrat_paragraph.variable} font-montserratParagraph`}
                             >
                               Usage Instructions 🛠️
                             </Title>
@@ -483,7 +483,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                                 w={'80%'}
                                 type="ordered"
                                 withPadding
-                                className={`${montserrat_paragraph.variable} font-montserratParagraph text-[--foreground]`}
+                                className={`${montserrat_paragraph.variable} font-montserratParagraph text-(--foreground)`}
                               >
                                 <List.Item>
                                   Start by creating your first workflow on{' '}
@@ -491,7 +491,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                                     href="https://tools.uiuc.chat/workflows"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-[--dashboard-button] hover:text-[--dashboard-button-hover] hover:underline"
+                                    className="text-(--dashboard-button) hover:text-(--dashboard-button-hover) hover:underline"
                                   >
                                     N8N
                                   </a>
@@ -513,7 +513,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                                 </List.Item>
                                 <Title
                                   order={3}
-                                  className={`${montserrat_heading.variable} ps-5 text-center font-montserratHeading font-semibold`}
+                                  className={`${montserrat_heading.variable} font-montserratHeading ps-5 text-center font-semibold`}
                                 >
                                   If your workflow is working as expected,
                                   Congrats! 🚀
@@ -523,7 +523,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                                     href={`/${course_name}/chat`}
                                     // target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-[--dashboard-button] hover:text-[--dashboard-button-hover]"
+                                    className="text-(--dashboard-button) hover:text-(--dashboard-button-hover)"
                                     style={{
                                       textDecoration: 'underline',
                                     }}
@@ -557,7 +557,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                       <div className="pb-4">
                         <Title
                           // className={`label ${montserrat.className}`}
-                          className={`${montserrat_heading.variable} mb-2 p-0 font-montserratHeading`}
+                          className={`${montserrat_heading.variable} font-montserratHeading mb-2 p-0`}
                           order={3}
                         >
                           Your n8n API Key
@@ -587,7 +587,7 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                         <div className="pt-2" />
                         <Button
                           onClick={(event) => handleSaveApiKey()}
-                          className="rounded-lg bg-[--dashboard-button] text-[--dashboard-button-foreground] hover:bg-[--dashboard-button-hover]"
+                          className="rounded-lg bg-(--dashboard-button) text-(--dashboard-button-foreground) hover:bg-(--dashboard-button-hover)"
                           type="submit"
                           disabled
                         >
@@ -602,14 +602,14 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
 
             <div
               // Course files header/background
-              className={`mx-auto mt-[2%] items-start rounded-2xl bg-[--background] text-[--foreground] ${cardWidthClasses}`}
+              className={`mx-auto mt-[2%] items-start rounded-2xl bg-(--background) text-(--foreground) ${cardWidthClasses}`}
               style={{ zIndex: 1 }}
             >
               <Flex direction="row" justify="space-between">
                 <div className="flex flex-col items-start justify-start">
                   <Title
                     order={3}
-                    className={`pb-3 pt-3 ${montserrat_paragraph.variable} font-montserratParagraph`}
+                    className={`pt-3 pb-3 ${montserrat_paragraph.variable} font-montserratParagraph`}
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',

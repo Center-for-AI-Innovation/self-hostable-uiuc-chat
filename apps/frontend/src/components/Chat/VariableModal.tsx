@@ -82,12 +82,12 @@ export const VariableModal: FC<Props> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onKeyDown={handleKeyDown}
     >
       <div
         ref={modalRef}
-        className="inline-block max-h-[400px] transform overflow-y-auto rounded-lg border border-gray-300 bg-white px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all dark:border-neutral-400 dark:bg-[#202123] sm:my-8 sm:max-h-[600px] sm:w-full sm:max-w-lg sm:p-6 sm:align-middle"
+        className="inline-block max-h-[400px] transform overflow-y-auto rounded-lg border border-gray-300 bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:max-h-[600px] sm:w-full sm:max-w-lg sm:p-6 sm:align-middle dark:border-neutral-400 dark:bg-[#202123]"
         role="dialog"
       >
         {prompt && (
@@ -96,7 +96,7 @@ export const VariableModal: FC<Props> = ({
               {prompt.name}
             </div>
 
-            <div className="mb-4 text-sm italic text-black dark:text-neutral-200">
+            <div className="mb-4 text-sm text-black italic dark:text-neutral-200">
               {prompt.description}
             </div>
           </>
@@ -110,7 +110,7 @@ export const VariableModal: FC<Props> = ({
 
             <textarea
               ref={index === 0 ? nameInputRef : undefined}
-              className="mt-1 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow dark:border-neutral-800 dark:border-opacity-50 dark:bg-[#40414F] dark:text-neutral-100"
+              className="mt-1 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow-sm dark:border-neutral-800/50 dark:bg-[#40414F] dark:text-neutral-100"
               style={{ resize: 'none' }}
               placeholder={`Enter a value for ${variable.key}...`}
               aria-label={variable.key}
@@ -122,7 +122,7 @@ export const VariableModal: FC<Props> = ({
         ))}
 
         <button
-          className="mt-6 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow hover:bg-neutral-100 dark:border-neutral-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-neutral-300"
+          className="mt-6 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow-sm hover:bg-neutral-100 dark:border-neutral-800/50 dark:bg-white dark:text-black dark:hover:bg-neutral-300"
           onClick={handleSubmit}
         >
           Submit

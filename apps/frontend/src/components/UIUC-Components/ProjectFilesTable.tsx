@@ -481,8 +481,8 @@ export function ProjectFilesTable({
               onClick={() => onTabChange('success')}
               className={`rounded-t-lg px-4 py-3 font-medium transition-colors duration-200 ${
                 tabValue === 'success'
-                  ? 'border-b-2 border-[--table-header-background] bg-[--table-header-background] text-[--dashboard-foreground]'
-                  : 'bg-[--dashboard-background] text-[--foreground] hover:bg-[--dashboard-background-faded] hover:text-[--foreground]'
+                  ? 'border-b-2 border-(--table-header-background) bg-(--table-header-background) text-(--dashboard-foreground)'
+                  : 'bg-(--dashboard-background) text-(--foreground) hover:bg-(--dashboard-background-faded) hover:text-(--foreground)'
               } ${montserrat_heading.variable} font-montserratHeading`}
             >
               Success
@@ -500,8 +500,8 @@ export function ProjectFilesTable({
                 onClick={() => onTabChange('failed')}
                 className={`rounded-t-lg px-4 py-3 font-medium duration-200 ${
                   tabValue === 'failed'
-                    ? 'border-b-2 border-[--table-header-background] bg-[--table-header-background] text-[--dashboard-foreground]'
-                    : 'bg-[--dashboard-background] text-[--foreground] hover:bg-[--dashboard-background-faded] hover:text-[--foreground]'
+                    ? 'border-b-2 border-(--table-header-background) bg-(--table-header-background) text-(--dashboard-foreground)'
+                    : 'bg-(--dashboard-background) text-(--foreground) hover:bg-(--dashboard-background-faded) hover:text-(--foreground)'
                 } ${montserrat_heading.variable} font-montserratHeading`}
               >
                 Failed
@@ -527,7 +527,7 @@ export function ProjectFilesTable({
                 size="lg"
                 variant="subtle"
                 loading={isManualRefreshing}
-                className="text-[--foreground] transition-colors duration-300 hover:bg-[--dashboard-background-faded] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+                className="text-(--foreground) transition-colors duration-300 hover:bg-(--dashboard-background-faded) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)"
               >
                 <IconRefresh size={20} />
               </ActionIcon>
@@ -536,7 +536,7 @@ export function ProjectFilesTable({
               <Button
                 variant="dashboard"
                 onClick={() => setExportModalOpened(true)}
-                className={`w-full border-0 bg-[--dashboard-button] px-4 py-2 text-xs text-[--dashboard-button-foreground] transition-colors duration-300 hover:bg-[--dashboard-button-hover] sm:w-auto sm:px-6 sm:py-3 ${montserrat_paragraph.variable} font-montserratParagraph focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]`}
+                className={`w-full border-0 bg-(--dashboard-button) px-4 py-2 text-xs text-(--dashboard-button-foreground) transition-colors duration-300 hover:bg-(--dashboard-button-hover) sm:w-auto sm:px-6 sm:py-3 ${montserrat_paragraph.variable} font-montserratParagraph focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)`}
               >
                 Export
               </Button>
@@ -558,7 +558,7 @@ export function ProjectFilesTable({
                       onClick={() => {
                         setShowMultiSelect(true)
                       }}
-                      className={`mb-2 w-full bg-[--dashboard-button] px-4 py-2 text-xs text-[--dashboard-button-foreground] transition-colors duration-300 hover:bg-[--dashboard-button-hover] sm:mb-0 sm:w-auto sm:px-6 sm:py-3 ${montserrat_paragraph.variable} border-0 font-montserratParagraph focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]`}
+                      className={`mb-2 w-full bg-(--dashboard-button) px-4 py-2 text-xs text-(--dashboard-button-foreground) transition-colors duration-300 hover:bg-(--dashboard-button-hover) sm:mb-0 sm:w-auto sm:px-6 sm:py-3 ${montserrat_paragraph.variable} font-montserratParagraph border-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)`}
                     >
                       <span className="block sm:hidden">Add to Groups</span>
                       <span className="hidden sm:block">
@@ -570,7 +570,7 @@ export function ProjectFilesTable({
                   {showMultiSelect && (
                     <div
                       ref={multiSelectRef}
-                      className="absolute right-0 top-full z-10 mt-1"
+                      className="absolute top-full right-0 z-10 mt-1"
                     >
                       <MultiSelect
                         data={
@@ -811,7 +811,7 @@ export function ProjectFilesTable({
                           setModalOpened(true)
                         }
                       }}
-                      className={`mb-2 w-full border-0 px-4 py-2 text-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button] sm:mb-0 sm:w-auto sm:px-6 sm:py-3 ${
+                      className={`mb-2 w-full border-0 px-4 py-2 text-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button) sm:mb-0 sm:w-auto sm:px-6 sm:py-3 ${
                         selectedCount
                           ? 'bg-red-900 hover:bg-red-800'
                           : 'bg-transparent'
@@ -1306,7 +1306,7 @@ export function ProjectFilesTable({
             }}
           >
             <Button
-              className="min-w-[3rem] -translate-x-1 transform rounded-s-md bg-[--background-faded] text-[--foreground] hover:bg-[--dashboard-button-hover] hover:text-[--dashboard-button-foreground] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+              className="min-w-12 -translate-x-1 transform rounded-s-md bg-(--background-faded) text-(--foreground) hover:bg-(--dashboard-button-hover) hover:text-(--dashboard-button-foreground) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)"
               onClick={() => {
                 setModalOpened(false)
               }}
@@ -1317,7 +1317,7 @@ export function ProjectFilesTable({
               Cancel
             </Button>
             <Button
-              className="min-w-[3rem] -translate-x-1 transform rounded-s-md bg-[--dashboard-button] text-[--dashboard-button-foreground] hover:bg-[--dashboard-button-hover] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+              className="min-w-12 -translate-x-1 transform rounded-s-md bg-(--dashboard-button) text-(--dashboard-button-foreground) hover:bg-(--dashboard-button-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)"
               onClick={async () => {
                 setModalOpened(false)
                 setIsDeletingDocuments(true)
@@ -1379,7 +1379,7 @@ export function ProjectFilesTable({
             }}
           >
             <Code
-              className="bg-[--modal] p-0 text-[--modal-text]"
+              className="bg-(--modal) p-0 text-(--modal-text)"
               style={{ whiteSpace: 'pre-wrap', lineHeight: '165%' }}
             >
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -1397,12 +1397,12 @@ export function ProjectFilesTable({
                         {copied ? (
                           <IconCheck
                             size="1rem"
-                            className="text-[--foreground]"
+                            className="text-(--foreground)"
                           />
                         ) : (
                           <IconCopy
                             size="1rem"
-                            className="text-[--foreground-faded]"
+                            className="text-(--foreground-faded)"
                           />
                         )}
                       </ActionIcon>
@@ -1431,7 +1431,7 @@ export function ProjectFilesTable({
             }}
           >
             <Button
-              className="min-w-[3rem] -translate-x-1 transform rounded-s-md bg-[--dashboard-button] text-[--dashboard-button-foreground] hover:bg-[--dashboard-button-hover] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+              className="min-w-12 -translate-x-1 transform rounded-s-md bg-(--dashboard-button) text-(--dashboard-button-foreground) hover:bg-(--dashboard-button-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)"
               onClick={() => {
                 setExportModalOpened(false)
               }}
@@ -1443,7 +1443,7 @@ export function ProjectFilesTable({
               Cancel
             </Button>
             <Button
-              className="min-w-[3rem] -translate-x-1 transform rounded-s-md bg-[--dashboard-button] text-[--dashboard-button-foreground] hover:bg-[--dashboard-button-hover] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+              className="min-w-12 -translate-x-1 transform rounded-s-md bg-(--dashboard-button) text-(--dashboard-button-foreground) hover:bg-(--dashboard-button-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)"
               onClick={async () => {
                 setExportModalOpened(false)
                 const result = await handleExport(getCurrentPageName())

@@ -77,7 +77,7 @@ export default function SettingsLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[--background] pt-20">
+    <div className="min-h-screen bg-(--background) pt-20">
       {/* Main Navbar */}
       <Navbar course_name={course_name} bannerUrl={bannerUrl} isPlain={false} />
 

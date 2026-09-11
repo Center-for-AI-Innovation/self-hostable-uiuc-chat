@@ -365,7 +365,7 @@ export function LargeDropzone({
                 fw={700}
                 fz={isSmallScreen ? 'md' : 'lg'}
                 mt={isSmallScreen ? 'md' : 'xl'}
-                className="text-[--dashboard-foreground]"
+                className="text-(--dashboard-foreground)"
               >
                 <Dropzone.Accept>Drop files here</Dropzone.Accept>
                 <Dropzone.Reject>
@@ -383,7 +383,7 @@ export function LargeDropzone({
                   ta="center"
                   fz={isSmallScreen ? 'xs' : 'sm'}
                   mt="xs"
-                  className="text-[--foreground-faded]"
+                  className="text-(--foreground-faded)"
                 >
                   Drag&apos;n&apos;drop files or a whole folder here
                 </Text>

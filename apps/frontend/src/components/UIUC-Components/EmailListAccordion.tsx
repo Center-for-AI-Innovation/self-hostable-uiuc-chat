@@ -38,7 +38,7 @@ function EmailInput({
         type="text"
         placeholder="Add people by email"
         aria-label="Add people by email"
-        className={`${montserrat_paragraph.variable} w-full rounded-md border border-[--foreground-faded] bg-[--modal] px-10 py-2.5 font-montserratParagraph text-sm text-[--modal-text] placeholder-[--foreground-faded] transition-all duration-300 focus:border-[--illinois-orange]`}
+        className={`${montserrat_paragraph.variable} font-montserratParagraph w-full rounded-md border border-(--foreground-faded) bg-(--modal) px-10 py-2.5 text-sm text-(--modal-text) placeholder-(--foreground-faded) transition-all duration-300 focus:border-(--illinois-orange)`}
         value={value}
         onKeyDown={onKeyDown}
         onChange={onChange}
@@ -46,7 +46,7 @@ function EmailInput({
       />
       {error && (
         <p
-          className={`${montserrat_paragraph.variable} mt-1 font-montserratParagraph text-sm text-[-error]`}
+          className={`${montserrat_paragraph.variable} font-montserratParagraph mt-1 text-sm text-[-error]`}
         >
           {error}
         </p>
@@ -69,13 +69,13 @@ function EmailListItem({
   const isAdmin = email === course_owner || course_admins.includes(email)
 
   return (
-    <div className="group flex items-center justify-between rounded-lg bg-[--modal] px-4 py-3 transition-all duration-300">
+    <div className="group flex items-center justify-between rounded-lg bg-(--modal) px-4 py-3 transition-all duration-300">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[--background-faded]">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--background-faded)">
           {isAdmin ? (
-            <IconUsers className="h-5 w-5 text-[--modal-text]" />
+            <IconUsers className="h-5 w-5 text-(--modal-text)" />
           ) : (
-            <IconUser className="h-5 w-5 text-[--modal-text]" />
+            <IconUser className="h-5 w-5 text-(--modal-text)" />
           )}
         </div>
         <div className="flex flex-col">
@@ -95,9 +95,9 @@ function EmailListItem({
       <button
         onClick={onDelete}
         aria-label={`Remove ${email}`}
-        className="rounded-full p-1.5 opacity-0 transition-all duration-300 hover:bg-[--background-faded] focus-visible:opacity-100 group-hover:opacity-100"
+        className="rounded-full p-1.5 opacity-0 transition-all duration-300 group-hover:opacity-100 hover:bg-(--background-faded) focus-visible:opacity-100"
       >
-        <IconX className="h-4 w-4 text-[--foreground] transition-colors" />
+        <IconX className="h-4 w-4 text-(--foreground) transition-colors" />
       </button>
     </div>
   )
@@ -295,7 +295,7 @@ function EmailListAccordion({
 
   if (is_for_admins) {
     return (
-      <div className="w-full rounded-lg bg-[--background-faded]">
+      <div className="w-full rounded-lg bg-(--background-faded)">
         <Accordion
           className="w-full"
           defaultValue={!is_private ? ['admins'] : undefined}
@@ -303,8 +303,8 @@ function EmailListAccordion({
           <AccordionItem value="admins" className="border-none">
             <AccordionTrigger className="px-4 py-3 hover:no-underline">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[--modal]">
-                  <IconUsers className="h-5 w-5 text-[--foreground-faded]" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--modal)">
+                  <IconUsers className="h-5 w-5 text-(--foreground-faded)" />
                 </div>
                 <div className="flex flex-col items-start">
                   <span
@@ -356,16 +356,16 @@ function EmailListAccordion({
   if (!is_private && !is_for_admins) return null
 
   return (
-    <div className="w-full rounded-lg bg-[--background-faded]">
+    <div className="w-full rounded-lg bg-(--background-faded)">
       <Accordion
         className="w-full"
         defaultValue={is_private ? ['members'] : undefined}
       >
         <AccordionItem value="members" className="border-none">
-          <AccordionTrigger className="px-4 py-3 text-[--modal-text] hover:no-underline">
+          <AccordionTrigger className="px-4 py-3 text-(--modal-text) hover:no-underline">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[--modal]">
-                <IconUsers className="h-5 w-5 text-[--foreground-faded]" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--modal)">
+                <IconUsers className="h-5 w-5 text-(--foreground-faded)" />
               </div>
               <div className="flex flex-col items-start">
                 <span

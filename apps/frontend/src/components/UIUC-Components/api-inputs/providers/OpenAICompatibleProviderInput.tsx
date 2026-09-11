@@ -31,7 +31,7 @@ export default function OpenAICompatibleProviderInput({
           <div className="mb-4">
             <Label
               htmlFor="openai-compatible-base-url"
-              className="text-[--dashboard-foreground-faded]"
+              className="text-(--dashboard-foreground-faded)"
             >
               Base URL
             </Label>
@@ -57,7 +57,7 @@ export default function OpenAICompatibleProviderInput({
               onBlur={() => {
                 form.handleSubmit()
               }}
-              className="mt-1 bg-[--background] text-[--foreground]"
+              className="mt-1 bg-(--background) text-(--foreground)"
             />
             {baseUrlField.state.value &&
               !baseUrlField.state.value.includes('/v1') && (

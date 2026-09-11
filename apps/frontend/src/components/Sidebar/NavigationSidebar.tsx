@@ -317,7 +317,7 @@ export function CollapsedThemeToggle() {
         return (
           <IconDeviceLaptop
             size={16}
-            className="text-[--foreground]"
+            className="text-(--foreground)"
             aria-hidden="true"
           />
         )
@@ -325,7 +325,7 @@ export function CollapsedThemeToggle() {
         return (
           <IconSun
             size={16}
-            className="text-[--foreground]"
+            className="text-(--foreground)"
             aria-hidden="true"
           />
         )
@@ -333,7 +333,7 @@ export function CollapsedThemeToggle() {
         return (
           <IconMoon
             size={16}
-            className="text-[--foreground]"
+            className="text-(--foreground)"
             aria-hidden="true"
           />
         )
@@ -341,7 +341,7 @@ export function CollapsedThemeToggle() {
         return (
           <IconDeviceLaptop
             size={16}
-            className="text-[--foreground]"
+            className="text-(--foreground)"
             aria-hidden="true"
           />
         )
@@ -364,7 +364,7 @@ export function CollapsedThemeToggle() {
   return (
     <button
       onClick={cycleTheme}
-      className="rounded-full border border-[--dashboard-border] bg-[--background-faded] p-1.5 transition-all hover:scale-105 hover:border-[--dashboard-faded] hover:bg-[--dashboard-faded]"
+      className="rounded-full border border-(--dashboard-border) bg-(--background-faded) p-1.5 transition-all hover:scale-105 hover:border-(--dashboard-faded) hover:bg-(--dashboard-faded)"
       aria-label={getCurrentTitle()}
       title={getCurrentTitle()}
     >
@@ -516,7 +516,7 @@ export default function NavigationSidebar({
               >
                 <span>Chatbot</span>
                 <span>/</span>
-                <span className="line-clamp-3 break-all font-semibold text-[--foreground]">
+                <span className="line-clamp-3 font-semibold break-all text-(--foreground)">
                   {course_name}
                 </span>
               </div>

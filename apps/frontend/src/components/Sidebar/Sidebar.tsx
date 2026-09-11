@@ -102,14 +102,14 @@ const Sidebar = <T,>({
   return isOpen ? (
     <nav className="relative h-full" aria-label="Chat sidebar">
       <div
-        className={`relative ${side}-0 z-40 flex h-full w-[300px] flex-none flex-col space-y-2 border-r border-[--dashboard-border] bg-[--sidebar-background] p-2 text-[14px] shadow-xl transition-all sm:relative sm:top-0 md:w-[340px] md:p-3 lg:w-[360px] xl:w-[390px]`}
+        className={`relative ${side}-0 z-40 flex h-full w-[300px] flex-none flex-col space-y-2 border-r border-(--dashboard-border) bg-(--sidebar-background) p-2 text-[14px] shadow-xl transition-all sm:relative sm:top-0 md:w-[340px] md:p-3 lg:w-[360px] xl:w-[390px]`}
       >
         <div className="flex items-center gap-2">
           <div className="grow">
             <button
               tabIndex={0}
               aria-label="Close Sidebar"
-              className="flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-[--foreground] transition-colors duration-200 hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground] focus:text-[--dashboard-button] hover:focus:text-[--dashboard-button-foreground]"
+              className="flex shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-(--foreground) transition-colors duration-200 hover:bg-(--dashboard-button) hover:text-(--dashboard-button-foreground) focus:text-(--dashboard-button) hover:focus:text-(--dashboard-button-foreground)"
               onClick={toggleOpen}
             >
               <IconLayoutSidebarLeftCollapse
@@ -123,7 +123,7 @@ const Sidebar = <T,>({
           <button
             tabIndex={0}
             aria-label="Add Folder"
-            className="flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-[--foreground] transition-colors duration-200 hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground] focus:text-[--dashboard-button] hover:focus:text-[--dashboard-button-foreground]"
+            className="flex shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-(--foreground) transition-colors duration-200 hover:bg-(--dashboard-button) hover:text-(--dashboard-button-foreground) focus:text-(--dashboard-button) hover:focus:text-(--dashboard-button-foreground)"
             onClick={handleCreateFolder}
           >
             <IconFolderPlus size={20} stroke={1.5} aria-hidden="true" />
@@ -132,7 +132,7 @@ const Sidebar = <T,>({
           <button
             tabIndex={0}
             aria-label="Edit"
-            className="flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-[--foreground] transition-colors duration-200 hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground] focus:text-[--dashboard-button] hover:focus:text-[--dashboard-button-foreground]"
+            className="flex shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-(--foreground) transition-colors duration-200 hover:bg-(--dashboard-button) hover:text-(--dashboard-button-foreground) focus:text-(--dashboard-button) hover:focus:text-(--dashboard-button-foreground)"
             onClick={() => {
               handleCreateItem()
               handleSearchTerm('')
@@ -164,9 +164,9 @@ const Sidebar = <T,>({
             tabIndex={permission === 'edit' ? 0 : -1}
             aria-label="Open Admin Dashboard"
             aria-hidden={permission !== 'edit'}
-            className={`flex items-center justify-start gap-3 rounded-lg bg-[--sidebar-background] p-2 text-[--foreground] transition-colors md:gap-4 md:p-3 ${
+            className={`flex items-center justify-start gap-3 rounded-lg bg-(--sidebar-background) p-2 text-(--foreground) transition-colors md:gap-4 md:p-3 ${
               permission === 'edit'
-                ? 'cursor-pointer hover:bg-[--navbar-hover-background]'
+                ? 'cursor-pointer hover:bg-(--navbar-hover-background)'
                 : 'cursor-default'
             }`}
             onClick={
@@ -210,7 +210,7 @@ const Sidebar = <T,>({
             <div className="min-w-0 grow">
               {/* Name */}
               <div
-                className="line-clamp-3 max-w-full break-words text-[15px] font-bold leading-[125%] md:text-[16px]"
+                className="line-clamp-3 max-w-full text-[15px] leading-[125%] font-bold wrap-break-word md:text-[16px]"
                 title={
                   courseName === 'chat'
                     ? 'Illinois flagship chatbot'
@@ -235,7 +235,7 @@ const Sidebar = <T,>({
                     })()}
               </div>
               {/* Description */}
-              <div className="mt-1 line-clamp-2 max-w-full overflow-hidden text-[13.5px] leading-[145%] text-[--foreground-faded] md:text-[15px]">
+              <div className="mt-1 line-clamp-2 max-w-full overflow-hidden text-[13.5px] leading-[145%] text-(--foreground-faded) md:text-[15px]">
                 {courseMetadata?.project_description || ''}
               </div>
             </div>
@@ -243,7 +243,7 @@ const Sidebar = <T,>({
             {permission === 'edit' ? (
               <div className="h-5 w-5 shrink-0">
                 <Button
-                  className="h-auto w-auto bg-transparent p-0 text-[--foreground] hover:bg-transparent hover:text-[--dashboard-button]"
+                  className="h-auto w-auto bg-transparent p-0 text-(--foreground) hover:bg-transparent hover:text-(--dashboard-button)"
                   onClick={(e) => {
                     e.stopPropagation()
                     if (courseName) {
@@ -266,13 +266,13 @@ const Sidebar = <T,>({
           onSearch={handleSearchTerm}
         />
         <div
-          className="flex-grow overflow-auto p-1"
+          className="grow overflow-auto p-1"
           onScroll={onScroll}
           role="region"
           aria-label="Chat conversations"
         >
           {folders?.length > 0 && (
-            <div className="flex border-b border-[--dashboard-border] pb-2">
+            <div className="flex border-b border-(--dashboard-border) pb-2">
               {folderComponent}
             </div>
           )}
@@ -289,7 +289,7 @@ const Sidebar = <T,>({
               {itemComponent}
             </div>
           ) : (
-            <div className="mt-8 select-none text-center text-[--foreground] opacity-50">
+            <div className="mt-8 text-center text-(--foreground) opacity-50 select-none">
               <IconMistOff className="mx-auto mb-3" aria-hidden="true" />
               <span className="text-[14px] leading-normal">
                 {t('No data.')}
@@ -306,11 +306,11 @@ const Sidebar = <T,>({
     </nav>
   ) : (
     <div className="relative">
-      <div className="absolute left-2 top-2 z-[150]">
+      <div className="absolute top-2 left-2 z-150">
         <button
           tabIndex={0}
           aria-label="Open Sidebar"
-          className="flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-[--foreground] transition-colors duration-200 hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground] focus:text-[--dashboard-button] hover:focus:text-[--dashboard-button-foreground]"
+          className="flex shrink-0 cursor-pointer items-center gap-3 rounded-md p-1 text-sm text-(--foreground) transition-colors duration-200 hover:bg-(--dashboard-button) hover:text-(--dashboard-button-foreground) focus:text-(--dashboard-button) hover:focus:text-(--dashboard-button-foreground)"
           onClick={toggleOpen}
         >
           <IconLayoutSidebarLeftExpand

@@ -6,7 +6,7 @@ interface Props {}
 export const ChatLoader: FC<Props> = () => {
   return (
     <div
-      className="group border-b border-[--background-dark] bg-[--background-faded] text-[--foreground]"
+      className="group border-b border-(--background-dark) bg-(--background-faded) text-(--foreground)"
       style={{ overflowWrap: 'anywhere' }}
     >
       <div className="m-auto flex gap-4 p-4 text-base md:max-w-2xl md:gap-6 md:py-6 lg:max-w-2xl lg:px-0 xl:max-w-3xl">

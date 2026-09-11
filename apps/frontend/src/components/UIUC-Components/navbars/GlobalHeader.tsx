@@ -72,9 +72,9 @@ import { useEffect, useRef, useState } from 'react'
 // `link` / `menuIcon` entries). Colors kept as --illinois-orange /
 // --dashboard-button CSS vars. See docs/mantine-retirement-styles-notes.md.
 const orangeOutlineBtn =
-  'flex h-[2.2rem] min-w-[100px] cursor-pointer items-center justify-center rounded-md border border-[--illinois-orange] bg-white px-3 text-sm font-bold text-[--illinois-orange] transition-colors duration-100 hover:bg-[rgb(255_95_5_/_0.05)] focus:outline focus:outline-2 focus:outline-[--dashboard-button]'
+  'flex h-[2.2rem] min-w-[100px] cursor-pointer items-center justify-center rounded-md border border-(--illinois-orange) bg-white px-3 text-sm font-bold text-(--illinois-orange) transition-colors duration-100 hover:bg-[rgb(255_95_5/0.05)] focus:outline-solid focus:outline-2 focus:outline-(--dashboard-button)'
 const orangeIconBtn =
-  'flex h-[2.2rem] w-[2.2rem] cursor-pointer items-center justify-center rounded-md border border-[--illinois-orange] bg-white p-1 transition-colors duration-100 hover:bg-[rgb(255_95_5_/_0.05)]'
+  'flex h-[2.2rem] w-[2.2rem] cursor-pointer items-center justify-center rounded-md border border-(--illinois-orange) bg-white p-1 transition-colors duration-100 hover:bg-[rgb(255_95_5/0.05)]'
 
 export function LandingPageHeader({
   forGeneralPurposeNotLandingpage = false,
@@ -313,8 +313,8 @@ export function LandingPageHeader({
             ></img>
           </div>
 
-          <div className="text-2xl font-extrabold tracking-tight text-[--illinois-orange-branding] sm:ml-2 sm:text-[1.8rem]">
-            Illinois <span className="text-[--foreground]">Chat</span>
+          <div className="text-2xl font-extrabold tracking-tight text-(--illinois-orange-branding) sm:ml-2 sm:text-[1.8rem]">
+            Illinois <span className="text-(--foreground)">Chat</span>
           </div>
         </div>
 

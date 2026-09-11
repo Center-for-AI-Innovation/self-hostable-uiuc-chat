@@ -400,29 +400,29 @@ export default function WebsiteIngestForm({
         <DialogTrigger
           tabIndex={0}
           nativeButton={false}
-          className="focus:bg-[--dashboard-background-dark]"
+          className="focus:bg-(--dashboard-background-dark)"
           render={
             <Card
-              className="group relative cursor-pointer overflow-hidden rounded-2xl border border-[--dashboard-border] bg-transparent px-6 py-4 text-[--dashboard-foreground] transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+              className="group relative cursor-pointer overflow-hidden rounded-2xl border border-(--dashboard-border) bg-transparent px-6 py-4 text-(--dashboard-foreground) transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
               style={{ height: '100%' }}
             >
-              <div className="-ml-2 mb-2 flex items-center justify-between">
+              <div className="mb-2 -ml-2 flex items-center justify-between">
                 <div className="flex items-center space-x-1">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full">
                     <IconWorldDownload className="h-8 w-8" aria-hidden="true" />
                   </div>
-                  <Text className="text-xl font-semibold text-[--dashboard-foreground]">
+                  <Text className="text-xl font-semibold text-(--dashboard-foreground)">
                     Website
                   </Text>
                 </div>
               </div>
 
-              <Text className="mb-4 text-sm leading-relaxed text-[--dashboard-foreground-faded]">
+              <Text className="mb-4 text-sm leading-relaxed text-(--dashboard-foreground-faded)">
                 Import content from any website by providing the URL. Supports
                 recursive crawling with customizable depth.
               </Text>
 
-              <div className="mt-auto flex items-center text-sm font-bold text-[--dashboard-button]">
+              <div className="mt-auto flex items-center text-sm font-bold text-(--dashboard-button)">
                 <span>Configure import</span>
                 <IconArrowRight
                   size={16}
@@ -434,7 +434,7 @@ export default function WebsiteIngestForm({
           }
         />
 
-        <DialogContent className="mx-auto h-auto max-h-[85vh] w-[95%] max-w-2xl overflow-y-auto !rounded-2xl border-0 bg-[--modal] px-4 py-6 text-[--modal-text] sm:px-6">
+        <DialogContent className="mx-auto h-auto max-h-[85vh] w-[95%] max-w-2xl overflow-y-auto rounded-2xl! border-0 bg-(--modal) px-4 py-6 text-(--modal-text) sm:px-6">
           <DialogHeader>
             <DialogTitle className="mb-2 text-left text-xl font-bold">
               Ingest Website
@@ -478,7 +478,7 @@ export default function WebsiteIngestForm({
                       handleUrlChange(e)
                     }}
                   />
-                  <div className="pb-2 pt-2">
+                  <div className="pt-2 pb-2">
                     <Tooltip
                       multiline
                       w={400}
@@ -550,12 +550,12 @@ export default function WebsiteIngestForm({
 
                   <Text
                     style={{ fontSize: '16px' }}
-                    className={`${montserrat_heading.variable} mt-4 font-montserratHeading`}
+                    className={`${montserrat_heading.variable} font-montserratHeading mt-4`}
                   >
                     Limit web crawl
                   </Text>
                   <div className="mt-2 pl-3">
-                    <List className="text-[--modal-text]">
+                    <List className="text-(--modal-text)">
                       <List.Item>
                         <strong>Equal and Below:</strong> Only scrape content
                         that starts will the given URL. E.g. nasa.gov/blogs will
@@ -579,7 +579,7 @@ export default function WebsiteIngestForm({
                           <Text>
                             For more detail{' '}
                             <a
-                              className={'font-bold text-[--link]'}
+                              className={'font-bold text-(--link)'}
                               href="https://docs.uiuc.chat/features/web-crawling-details"
                               target="_blank"
                               rel="noopener noreferrer"
@@ -605,7 +605,7 @@ export default function WebsiteIngestForm({
                     radius="none"
                     value={scrapeStrategy}
                     onChange={(strat) => setScrapeStrategy(strat)}
-                    className="mt-4 bg-[--background-faded]"
+                    className="mt-4 bg-(--background-faded)"
                     styles={{
                       indicator: {
                         color: 'var(--dashboard-button-foreground)',
@@ -678,7 +678,7 @@ export default function WebsiteIngestForm({
             <Button
               onClick={handleIngest}
               disabled={!isUrlValid}
-              className="h-11 w-full rounded-xl bg-[--dashboard-button] text-[--dashboard-button-foreground] transition-colors hover:bg-[--dashboard-button-hover] disabled:bg-[--background-faded] disabled:text-[--background-dark]"
+              className="h-11 w-full rounded-xl bg-(--dashboard-button) text-(--dashboard-button-foreground) transition-colors hover:bg-(--dashboard-button-hover) disabled:bg-(--background-faded) disabled:text-(--background-dark)"
             >
               Ingest the Website
             </Button>

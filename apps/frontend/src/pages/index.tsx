@@ -236,7 +236,7 @@ const Home: NextPage = () => {
                 </h1>
               </div>
 
-              <div className="mb-8 mt-4 text-sm text-[--foreground-subtle]">
+              <div className="mt-4 mb-8 text-sm text-(--foreground-subtle)">
                 Deep search your documents, build an AI-teaching assistant,
                 accelerate your literature review,{' '}
                 <span className="whitespace-nowrap">and get creative.</span>
@@ -294,7 +294,7 @@ const Home: NextPage = () => {
               </div>
 
               <div
-                className="mr-8 mt-[2px] hidden text-right text-xs sm:mr-4 sm:mt-[-8px]"
+                className="mt-[2px] mr-8 hidden text-right text-xs sm:mt-[-8px] sm:mr-4"
                 style={{ color: 'var(--illinois-orange)' }}
               >
                 Upload almost anything
@@ -303,7 +303,7 @@ const Home: NextPage = () => {
           </div>
 
           {!useIllinoisChatConfig && (
-            <div className="mt-12 w-[100vw] rounded-lg bg-[--dashboard-background-faded] p-8 pb-14">
+            <div className="mt-12 w-screen rounded-lg bg-(--dashboard-background-faded) p-8 pb-14">
               <div className="mb-0 w-full text-center">
                 <h2
                   className={`text-2xl font-bold sm:pt-2 ${montserrat_heading.variable} font-montserratHeading`}
@@ -319,7 +319,7 @@ const Home: NextPage = () => {
               </div>
 
               <div className="w-full">
-                <div className="ml-auto mr-auto max-w-5xl">
+                <div className="mr-auto ml-auto max-w-5xl">
                   <FlagshipChatbots />
                 </div>
               </div>
@@ -337,11 +337,11 @@ const Home: NextPage = () => {
           >
             {/* Adjusted container with better spacing */}
             <div className="flex w-full flex-col items-center justify-center sm:flex-row">
-              <div className="pr-2 sm:flex-shrink-0 sm:text-right">
+              <div className="pr-2 sm:shrink-0 sm:text-right">
                 Your AI trained on your
               </div>
 
-              <div className="sm:max-w-[300px] sm:flex-grow">
+              <div className="sm:max-w-[300px] sm:grow">
                 <TypingAnimation />
               </div>
             </div>
@@ -600,7 +600,7 @@ const Home: NextPage = () => {
 
               <Button
                 tabIndex={0}
-                className="mt-8 bg-none focus:bg-[--dashboard-button]"
+                className="mt-8 bg-none focus:bg-(--dashboard-button)"
                 variant="light"
                 style={{
                   color: 'var(--illinois-white)',
@@ -730,7 +730,7 @@ const Home: NextPage = () => {
             About Us
           </h2>
           <div className="mt-4 grid grid-cols-1 gap-14 sm:grid-cols-3 md:gap-8">
-            <div className="flex max-w-xs flex-col gap-4 rounded-xl bg-[--dashboard-background-faded] p-6">
+            <div className="flex max-w-xs flex-col gap-4 rounded-xl bg-(--dashboard-background-faded) p-6">
               <h3
                 className={`text-xl font-bold ${montserrat_heading.variable} font-montserratHeading`}
               >
@@ -750,7 +750,7 @@ const Home: NextPage = () => {
               </div>
               {/* <div className="text-lg">Sponsored by the </div> */}
             </div>
-            <div className="flex max-w-xs flex-col gap-4 rounded-xl bg-[--dashboard-background-faded] p-6">
+            <div className="flex max-w-xs flex-col gap-4 rounded-xl bg-(--dashboard-background-faded) p-6">
               <h3
                 className={`text-xl font-bold ${montserrat_heading.variable} font-montserratHeading`}
               >
@@ -769,7 +769,7 @@ const Home: NextPage = () => {
                 .
               </div>
             </div>
-            <div className="flex max-w-xs flex-col gap-4 rounded-xl bg-[--dashboard-background-faded] p-6">
+            <div className="flex max-w-xs flex-col gap-4 rounded-xl bg-(--dashboard-background-faded) p-6">
               <h3
                 className={`text-xl font-bold ${montserrat_heading.variable} font-montserratHeading`}
               >
@@ -894,7 +894,7 @@ function FlagshipChatbots() {
   ]
 
   return (
-    <div className="ml-auto mr-auto grid grid-cols-1 gap-6 sm:grid-cols-3">
+    <div className="mr-auto ml-auto grid grid-cols-1 gap-6 sm:grid-cols-3">
       {cards.map((card) => (
         <Card
           key={card.course_slug}
@@ -944,7 +944,7 @@ function FlagshipChatbots() {
                 {card.tagline}
               </div>
 
-              <div className="mt-1 flex justify-end sm:ml-auto sm:mt-0">
+              <div className="mt-1 flex justify-end sm:mt-0 sm:ml-auto">
                 <IconArrowNarrowRight
                   size={28}
                   strokeWidth={1.25}

@@ -543,7 +543,7 @@ const Home = ({
       <>
         <MainPageBackground>
           <div
-            className={`flex items-center justify-center font-montserratHeading ${montserrat_heading.variable}`}
+            className={`font-montserratHeading flex items-center justify-center ${montserrat_heading.variable}`}
           >
             <span className="mr-2">Warming up the knowledge engines...</span>
             <LoadingSpinner size="sm" />

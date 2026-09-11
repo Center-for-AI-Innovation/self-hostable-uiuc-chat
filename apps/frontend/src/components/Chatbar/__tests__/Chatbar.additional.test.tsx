@@ -246,7 +246,7 @@ describe('Chatbar – additional coverage', () => {
     const { container } = renderChatbar()
 
     const scrollEl = container.querySelector(
-      '.flex-grow.overflow-auto',
+      '.grow.overflow-auto',
     ) as HTMLElement
     if (scrollEl) {
       Object.defineProperty(scrollEl, 'scrollHeight', {
@@ -279,7 +279,7 @@ describe('Chatbar – additional coverage', () => {
     const { container } = renderChatbar()
 
     const scrollEl = container.querySelector(
-      '.flex-grow.overflow-auto',
+      '.grow.overflow-auto',
     ) as HTMLElement
     if (scrollEl) {
       Object.defineProperty(scrollEl, 'scrollHeight', {

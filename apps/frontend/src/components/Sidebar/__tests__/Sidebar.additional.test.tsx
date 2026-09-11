@@ -272,7 +272,7 @@ describe('Sidebar – additional coverage', () => {
     const { container } = renderSidebar({ onScroll })
 
     const scrollArea = container.querySelector(
-      '.flex-grow.overflow-auto',
+      '.grow.overflow-auto',
     ) as HTMLElement
     fireEvent.scroll(scrollArea)
 

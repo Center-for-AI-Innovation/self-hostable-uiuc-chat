@@ -287,13 +287,13 @@ export const WebScrape = ({
     <>
       <Title
         order={3}
-        className={`w-full text-center ${montserrat_heading.variable} pt-4 font-montserratHeading`}
+        className={`w-full text-center ${montserrat_heading.variable} font-montserratHeading pt-4`}
       >
         OR
       </Title>
       <Title
         order={4}
-        className={`w-full text-center ${montserrat_heading.variable} mt-4 font-montserratHeading`}
+        className={`w-full text-center ${montserrat_heading.variable} font-montserratHeading mt-4`}
       >
         Web scrape any website that allows it
       </Title>
@@ -304,7 +304,7 @@ export const WebScrape = ({
             icon={icon}
             aria-label="Enter URL to scrape"
             // I can't figure out how to change the background colors.
-            className={`mt-4 w-[80%] min-w-[20rem] disabled:bg-[--background-faded] lg:w-[75%]`}
+            className={`mt-4 w-[80%] min-w-80 disabled:bg-(--background-faded) lg:w-[75%]`}
             // wrapperProps={{ borderRadius: 'xl' }}
             // styles={{ input: { backgroundColor: '#1A1B1E' } }}
             styles={{
@@ -378,13 +378,13 @@ export const WebScrape = ({
                 radius={'xl'}
                 className={`rounded-s-md ${
                   isUrlUpdated
-                    ? 'bg-[--dashboard-button]'
-                    : 'border-[--dashboard-button]'
-                } overflow-ellipsis text-ellipsis p-2 ${
+                    ? 'bg-(--dashboard-button)'
+                    : 'border-(--dashboard-button)'
+                } p-2 text-ellipsis ${
                   isUrlUpdated
-                    ? 'text-[--dashboard-button-foreground]'
-                    : 'text-[--dashboard-button-foreground]'
-                } min-w-[5rem] -translate-x-1 transform hover:bg-[--dashboard-button-hover] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]`}
+                    ? 'text-(--dashboard-button-foreground)'
+                    : 'text-(--dashboard-button-foreground)'
+                } min-w-20 -translate-x-1 transform hover:bg-(--dashboard-button-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)`}
                 w={`${isSmallScreen ? 'auto' : 'auto'}`}
                 disabled={isDisabled}
               >
@@ -419,7 +419,7 @@ export const WebScrape = ({
             icon={icon}
             aria-label="Enter URL to scrape"
             // I can't figure out how to change the background colors.
-            className={`mt-4 w-[80%] min-w-[20rem] disabled:bg-[--background-faded] lg:w-[75%]`}
+            className={`mt-4 w-[80%] min-w-80 disabled:bg-(--background-faded) lg:w-[75%]`}
             // wrapperProps={{ borderRadius: 'xl' }}
             // styles={{ input: { backgroundColor: '#1A1B1E' } }}
             styles={{
@@ -493,13 +493,13 @@ export const WebScrape = ({
                 radius={'xl'}
                 className={`rounded-s-md ${
                   isUrlUpdated
-                    ? 'bg-[--dashboard-button]'
-                    : 'border-[--dashboard-button]'
-                } overflow-ellipsis text-ellipsis p-2 ${
+                    ? 'bg-(--dashboard-button)'
+                    : 'border-(--dashboard-button)'
+                } p-2 text-ellipsis ${
                   isUrlUpdated
-                    ? 'text-[--dashboard-button-foreground]'
-                    : 'text-[--dashboard-button-foreground]'
-                } min-w-[5rem] -translate-x-1 transform hover:bg-[--dashboard-button-hover] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]`}
+                    ? 'text-(--dashboard-button-foreground)'
+                    : 'text-(--dashboard-button-foreground)'
+                } min-w-20 -translate-x-1 transform hover:bg-(--dashboard-button-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)`}
                 w={`${isSmallScreen ? 'auto' : 'auto'}`}
                 disabled={isDisabled}
               >
@@ -512,12 +512,12 @@ export const WebScrape = ({
           {/* Detailed web ingest form */}
 
           <form
-            className="w-[80%] min-w-[20rem] lg:w-[75%]"
+            className="w-[80%] min-w-80 lg:w-[75%]"
             onSubmit={(event) => {
               event.preventDefault()
             }}
           >
-            <div className="pb-2 pt-2">
+            <div className="pt-2 pb-2">
               <Tooltip
                 multiline
                 w={400}
@@ -586,7 +586,7 @@ export const WebScrape = ({
                       For more detail{' '}
                       <a
                         className={
-                          'text-[--dashboard-button] hover:text-[--dashboard-button-hover]'
+                          'text-(--dashboard-button) hover:text-(--dashboard-button-hover)'
                         }
                         href="https://docs.uiuc.chat/features/web-crawling-details"
                         target="_blank"

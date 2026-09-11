@@ -345,13 +345,13 @@ export default function GitHubIngestForm({
         <DialogTrigger
           tabIndex={0}
           nativeButton={false}
-          className="focus:bg-[--dashboard-background-dark]"
+          className="focus:bg-(--dashboard-background-dark)"
           render={
             <Card
-              className="group relative cursor-pointer overflow-hidden rounded-2xl border border-[--dashboard-border] bg-transparent px-6 py-4 text-[--dashboard-foreground] transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+              className="group relative cursor-pointer overflow-hidden rounded-2xl border border-(--dashboard-border) bg-transparent px-6 py-4 text-(--dashboard-foreground) transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
               style={{ height: '100%' }}
             >
-              <div className="-ml-2 mb-2 flex items-center justify-between">
+              <div className="mb-2 -ml-2 flex items-center justify-between">
                 <div className="flex items-center space-x-1">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full">
                     <IconBrandGithub className="h-8 w-8" aria-hidden="true" />
@@ -359,11 +359,11 @@ export default function GitHubIngestForm({
                   <Text className="text-xl font-semibold">GitHub</Text>
                 </div>
               </div>
-              <Text className="mb-4 text-sm leading-relaxed text-[--dashboard-foreground-faded]">
+              <Text className="mb-4 text-sm leading-relaxed text-(--dashboard-foreground-faded)">
                 Import content from GitHub repositories, including
                 documentation, code, and README files.
               </Text>
-              <div className="mt-auto flex items-center text-sm font-bold text-[--dashboard-button]">
+              <div className="mt-auto flex items-center text-sm font-bold text-(--dashboard-button)">
                 <span>Configure import</span>
                 <IconArrowRight
                   size={16}
@@ -375,7 +375,7 @@ export default function GitHubIngestForm({
           }
         />
 
-        <DialogContent className="mx-auto h-auto max-h-[85vh] w-[95%] max-w-2xl overflow-y-auto !rounded-2xl border-0 bg-[--modal] px-4 py-6 text-[--modal-text] sm:px-6">
+        <DialogContent className="mx-auto h-auto max-h-[85vh] w-[95%] max-w-2xl overflow-y-auto rounded-2xl! border-0 bg-(--modal) px-4 py-6 text-(--modal-text) sm:px-6">
           <DialogHeader>
             <DialogTitle className="mb-4 text-left text-xl font-bold">
               Ingest GitHub Website
@@ -384,7 +384,7 @@ export default function GitHubIngestForm({
           <div className="">
             <div className="">
               <div>
-                <div className="break-words text-sm sm:text-base">
+                <div className="text-sm wrap-break-word sm:text-base">
                   <strong>For GitHub</strong>, just enter a URL like{' '}
                   <code className={classes.codeStyledText}>
                     github.com/USER/REPO
@@ -396,7 +396,7 @@ export default function GitHubIngestForm({
                       rel="noreferrer"
                       href={'https://github.com/langchain-ai/langchain'}
                       onClick={(e) => e.stopPropagation()}
-                      className="text-[--dashboard-button]"
+                      className="text-(--dashboard-button)"
                     >
                       https://github.com/langchain-ai/langchain
                     </Link>
@@ -441,7 +441,7 @@ export default function GitHubIngestForm({
             <Button
               onClick={handleIngest}
               disabled={!isUrlValid}
-              className="h-11 w-full rounded-xl bg-[--dashboard-button] text-[--dashboard-button-foreground] transition-colors hover:bg-[--dashboard-button-hover] disabled:bg-[--background-faded] disabled:text-[--background-dark]"
+              className="h-11 w-full rounded-xl bg-(--dashboard-button) text-(--dashboard-button-foreground) transition-colors hover:bg-(--dashboard-button-hover) disabled:bg-(--background-faded) disabled:text-(--background-dark)"
             >
               Ingest the Website
             </Button>

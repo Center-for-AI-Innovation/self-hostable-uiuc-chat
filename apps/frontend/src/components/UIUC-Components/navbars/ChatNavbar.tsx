@@ -229,7 +229,7 @@ const ChatNavbar = ({ bannerUrl = '', isgpt4 = true }: ChatNavbarProps) => {
 
   return (
     <div
-      className={`-mr-0 bg-[--navbar-background] px-12 pb-16 pl-5`}
+      className={`mr-0 bg-(--navbar-background) px-12 pb-16 pl-5`}
       style={{ display: show ? 'block' : 'none' }}
     >
       <div
@@ -240,7 +240,7 @@ const ChatNavbar = ({ bannerUrl = '', isgpt4 = true }: ChatNavbarProps) => {
           paddingLeft: '17px',
         }}
       >
-        {/* can remove in future. navbar had rounded-badge bg-[--navbar-background] shadow-lg shadow-[--navbar-shadow] */}
+        {/* can remove in future. navbar had rounded-badge bg-(--navbar-background) shadow-lg shadow-(--navbar-shadow) */}
         <Flex
           justify="flex-start"
           direction="row"
@@ -252,8 +252,8 @@ const ChatNavbar = ({ bannerUrl = '', isgpt4 = true }: ChatNavbarProps) => {
             className="flex items-center"
             style={{ flex: 'none', flexWrap: 'nowrap' }}
           >
-            <h2 className="cursor-pointer font-extrabold tracking-tight text-[--primary] sm:ms-3 sm:text-[2rem] md:text-3xl">
-              Illinois <span className="text-[--navbar-text]">Chat</span>
+            <h2 className="cursor-pointer font-extrabold tracking-tight text-(--primary) sm:ms-3 sm:text-[2rem] md:text-3xl">
+              Illinois <span className="text-(--navbar-text)">Chat</span>
             </h2>
           </Link>
 
@@ -639,7 +639,7 @@ const ChatNavbar = ({ bannerUrl = '', isgpt4 = true }: ChatNavbarProps) => {
 
             {/* Sign in buttons */}
             <div
-              className="pl-1 pr-2"
+              className="pr-2 pl-1"
               style={{
                 // marginLeft: '-5px',
                 position: 'relative',

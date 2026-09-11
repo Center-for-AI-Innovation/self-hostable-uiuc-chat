@@ -181,7 +181,7 @@ export const LinkGeneratorModal = ({
           >
             <Text
               size="sm"
-              className={`text-[--modal-text]`}
+              className={`text-(--modal-text)`}
               style={{
                 lineHeight: 1.5,
               }}

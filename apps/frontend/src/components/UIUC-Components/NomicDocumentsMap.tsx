@@ -83,7 +83,7 @@ function NomicDocumentMap({ course_name }: { course_name: string }) {
             {accordionOpened && (
               <>
                 <div className="pt-4"></div>
-                <div className="bg-[--dashboard-background-dark] px-4 py-4 sm:px-6 sm:py-6 md:px-8">
+                <div className="bg-(--dashboard-background-dark) px-4 py-4 sm:px-6 sm:py-6 md:px-8">
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
@@ -91,32 +91,32 @@ function NomicDocumentMap({ course_name }: { course_name: string }) {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="overflow-hidden"
                   >
-                    <div className="flex bg-[--background] backdrop-blur-sm">
-                      <div className="w-1 bg-[--illinois-orange]" />
+                    <div className="flex bg-(--background) backdrop-blur-xs">
+                      <div className="w-1 bg-(--illinois-orange)" />
                       <div
-                        className={`${montserrat_paragraph.variable} flex-1 p-4 font-montserratParagraph`}
+                        className={`${montserrat_paragraph.variable} font-montserratParagraph flex-1 p-4`}
                       >
                         <Text
-                          className={`${montserrat_paragraph.variable} mb-4 font-montserratParagraph text-[--foreground]`}
+                          className={`${montserrat_paragraph.variable} font-montserratParagraph mb-4 text-(--foreground)`}
                         >
                           The Concept Map visualizes all queries made in this
                           project:
                         </Text>
-                        <ul className="list-inside list-disc space-y-2 text-[--foreground]">
+                        <ul className="list-inside list-disc space-y-2 text-(--foreground)">
                           <li className="text-sm">
-                            <span className="font-bold text-[--accent]">
+                            <span className="font-bold text-(--accent)">
                               Similar topics
                             </span>{' '}
                             cluster together
                           </li>
                           <li className="text-sm">
-                            <span className="font-bold text-[--accent]">
+                            <span className="font-bold text-(--accent)">
                               Different topics
                             </span>{' '}
                             are positioned further apart
                           </li>
                           <li className="text-sm">
-                            <span className="font-bold text-[--accent]">
+                            <span className="font-bold text-(--accent)">
                               Common themes
                             </span>{' '}
                             and knowledge gaps become visible
@@ -125,7 +125,7 @@ function NomicDocumentMap({ course_name }: { course_name: string }) {
                         <Text className="mt-3" size="sm">
                           Learn more about{' '}
                           <a
-                            className="text-[--dashboard-button] underline hover:text-[--dashboard-button-hover]"
+                            className="text-(--dashboard-button) underline hover:text-(--dashboard-button-hover)"
                             href="https://atlas.nomic.ai/"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -161,7 +161,7 @@ function NomicDocumentMap({ course_name }: { course_name: string }) {
                   your visualization only. Please{' '}
                   <a
                     href="mailto:rohan13@illinois.edu"
-                    className="text-[--dashboard-button] underline hover:text-[--dashboard-button-hover]"
+                    className="text-(--dashboard-button) underline hover:text-(--dashboard-button-hover)"
                   >
                     contact us
                   </a>{' '}
@@ -186,7 +186,7 @@ function NomicDocumentMap({ course_name }: { course_name: string }) {
                 <Text className="mt-3" size="sm">
                   Learn more about{' '}
                   <a
-                    className="text-[--dashboard-button] underline hover:text-[--dashboard-button-hover]"
+                    className="text-(--dashboard-button) underline hover:text-(--dashboard-button-hover)"
                     href="https://atlas.nomic.ai/"
                     target="_blank"
                     rel="noopener noreferrer"

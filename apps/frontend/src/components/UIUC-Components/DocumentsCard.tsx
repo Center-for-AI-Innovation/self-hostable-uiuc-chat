@@ -59,26 +59,26 @@ function DocumentsCard({
 
   return (
     <Card
-      className={`mt-[2%] ${cardWidthClasses} gap-0 rounded-[2rem] border py-0 text-base shadow-none ring-0`}
+      className={`mt-[2%] ${cardWidthClasses} gap-0 rounded-4xl border py-0 text-base shadow-none ring-0`}
       style={{
         backgroundColor: 'var(--background)',
         borderColor: 'var(--dashboard-border)',
       }}
     >
-      <div className="min-h-full bg-[--background]">
+      <div className="min-h-full bg-(--background)">
         <Dialog open={exportModalOpened} onOpenChange={setExportModalOpened}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Please confirm your action</DialogTitle>
             </DialogHeader>
-            <p className="text-sm text-popover-foreground">
+            <p className="text-popover-foreground text-sm">
               {`Are you sure you want to export all the documents and embeddings?`}
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <Button
                 type="button"
                 variant="ghost"
-                className="rounded-md bg-transparent text-popover-foreground hover:bg-[--dashboard-button-hover]"
+                className="text-popover-foreground rounded-md bg-transparent hover:bg-(--dashboard-button-hover)"
                 onClick={() => setExportModalOpened(false)}
               >
                 Cancel
@@ -107,10 +107,10 @@ function DocumentsCard({
           </DialogContent>
         </Dialog>
 
-        <div className="w-full border-b border-[--dashboard-border] px-4 py-3 sm:px-6 sm:py-4 md:px-8">
+        <div className="w-full border-b border-(--dashboard-border) px-4 py-3 sm:px-6 sm:py-4 md:px-8">
           <div className="flex items-center justify-between gap-2">
             <h3
-              className={`${montserrat_heading.variable} font-montserratHeading text-lg font-bold text-[--foreground] sm:text-2xl`}
+              className={`${montserrat_heading.variable} font-montserratHeading text-lg font-bold text-(--foreground) sm:text-2xl`}
             >
               Project Files
             </h3>
@@ -121,9 +121,9 @@ function DocumentsCard({
             {/*  onClick={() => setExportModalOpened(true)}*/}
             {/*  className={`*/}
             {/*    ${montserrat_paragraph.variable} */}
-            {/*    rounded-md bg-[--dashboard-button] px-4*/}
+            {/*    rounded-md bg-(--dashboard-button) px-4*/}
             {/*    font-montserratParagraph text-sm*/}
-            {/*    text-[--dashboard-button-foreground] hover:bg-[--dashboard-button-hover] sm:text-base*/}
+            {/*    text-(--dashboard-button-foreground) hover:bg-(--dashboard-button-hover) sm:text-base*/}
             {/*  `}*/}
             {/*>*/}
             {/*  <span className="hidden sm:inline">*/}
@@ -134,7 +134,7 @@ function DocumentsCard({
           </div>
         </div>
 
-        <div className="bg-[--background] text-[--foreground]">
+        <div className="bg-(--background) text-(--foreground)">
           {metadata && (
             <TableContainer>
               <ProjectFilesTable
