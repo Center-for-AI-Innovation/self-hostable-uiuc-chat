@@ -1,0 +1,133 @@
+site_name: Illinois Chat
+site_description: >-
+  Illinois Chat is a self-hostable AI chat platform for building course,
+  research, and organization-specific assistants over curated documents and
+  web content.
+site_url: https://center-for-ai-innovation.github.io/Illinois-Chat/
+repo_url: https://github.com/Center-for-AI-Innovation/Illinois-Chat
+repo_name: Center-for-AI-Innovation/Illinois-Chat
+edit_uri: edit/main/docs/
+copyright: >-
+  Copyright &copy; University of Illinois Urbana-Champaign —
+  Center for AI Innovation (CAII), NCSA. Apache License 2.0.
+
+theme:
+  name: material
+  logo: assets/logo.png
+  favicon: assets/favicon.ico
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+    - content.action.edit
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+  - blog:
+      blog_dir: blog
+      blog_toc: true
+      post_url_format: "{slug}"
+      categories_allowed:
+        - Releases
+        - Announcements
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Center-for-AI-Innovation/Illinois-Chat
+    - icon: material/web
+      link: https://chat.illinois.edu
+    - icon: material/email
+      link: mailto:genaisupport@mx.uillinois.edu
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Quickstart: getting-started/quickstart.md
+      - FAQs: getting-started/faqs.md
+      - Video Walkthroughs: getting-started/video-walkthroughs.md
+      - Migrating from uiuc.chat: migration.md
+  - Concepts:
+      - Projects: concepts/projects.md
+      - Documents: concepts/documents.md
+      - Retrieval: concepts/retrieval.md
+      - LLM Providers: concepts/llm-providers.md
+  - Guides:
+      - Uploading Materials: guides/uploading-materials.md
+      - Web Crawling: guides/web-crawling.md
+      - Sharing & Access Control: guides/sharing-access.md
+      - Tools & Workflows: guides/tools-workflows.md
+      - Canvas Integration: guides/canvas-integration.md
+      - Analytics: guides/analytics.md
+      - Bulk Export: guides/bulk-export.md
+  - API Reference:
+      - api/index.md
+      - Authentication: api/authentication.md
+      - Chat: api/chat.md
+      - Retrieval: api/retrieval.md
+      - Ingest: api/ingest.md
+      - Export: api/export.md
+  - Self-Hosting:
+      - self-hosting/index.md
+      - Environment Variables: self-hosting/environment-variables.md
+      - Configuration: self-hosting/configuration.md
+      - External Connections Setup: external-connections-setup.md
+      - System Architecture: self-hosting/architecture.md
+  - CropWizard:
+      - cropwizard/index.md
+      - CropWizard Documents: cropwizard/documents.md
+      - Pest Detection Tool: cropwizard/pest-detection.md
+      - Document Licenses: cropwizard/licenses.md
+  - Developers:
+      - Development Setup: developers/dev-setup.md
+      - Cloud Deployment: developers/deployment.md
+      - Monorepo Migration: developers/monorepo-migration.md
+  - Blog: blog/index.md

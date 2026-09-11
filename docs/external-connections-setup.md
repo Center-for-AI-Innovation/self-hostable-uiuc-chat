@@ -17,11 +17,11 @@ This guide covers operator setup:
 
 Deeper reference material lives with the apps:
 
-- Feature overview: [`apps/backend/docs/features/external-connections.md`](../apps/backend/docs/features/external-connections.md)
+- Feature overview: [`apps/backend/docs/features/external-connections.md`](https://github.com/Center-for-AI-Innovation/Illinois-Chat/blob/main/apps/backend/docs/features/external-connections.md)
 - Full config reference (all fields, multi-collection search, post-processors):
-  [`apps/backend/docs/developers/external-connections-config.md`](../apps/backend/docs/developers/external-connections-config.md)
+  [`apps/backend/docs/developers/external-connections-config.md`](https://github.com/Center-for-AI-Innovation/Illinois-Chat/blob/main/apps/backend/docs/developers/external-connections-config.md)
 - Frontend architecture (ConnectionManager, caching, SSRF-guarded probes):
-  [`apps/frontend/docs/EXTERNAL_CONNECTIONS.md`](../apps/frontend/docs/EXTERNAL_CONNECTIONS.md)
+  [`apps/frontend/docs/EXTERNAL_CONNECTIONS.md`](https://github.com/Center-for-AI-Innovation/Illinois-Chat/blob/main/apps/frontend/docs/EXTERNAL_CONNECTIONS.md)
 
 ## Prerequisites
 

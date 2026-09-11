@@ -1,0 +1,26 @@
+/* University of Illinois brand colors.
+   Blue #13294B (Illini Blue), Orange #FF5F05 (Illini Orange). */
+
+:root {
+  --md-primary-fg-color: #13294b;
+  --md-primary-fg-color--light: #1f3a66;
+  --md-primary-fg-color--dark: #0c1b33;
+  --md-accent-fg-color: #ff5f05;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #13294b;
+  --md-primary-fg-color--light: #1f3a66;
+  --md-primary-fg-color--dark: #0c1b33;
+  --md-accent-fg-color: #ff5f05;
+  --md-typeset-a-color: #7fa8e0;
+}
+
+[data-md-color-scheme="default"] {
+  --md-typeset-a-color: #13294b;
+}
+
+.md-typeset img {
+  border-radius: 0.2rem;
+  box-shadow: 0 0.1rem 0.5rem rgba(0, 0, 0, 0.15);
+}
