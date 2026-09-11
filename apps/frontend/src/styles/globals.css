@@ -50,6 +50,11 @@
 } */
 
 :root {
+  /* Replaces DaisyUI's `:root { color-scheme: light }`. Keyed to the class-based
+     theme rather than the OS, so native scrollbars, autofill and the file input
+     follow the app theme. */
+  color-scheme: light;
+
   /* Primary Colors */
   --illinois-orange: #ff5f05; /* will override below to be accessible orange, left here for reference */
   --illinois-orange-branding: #ff5f05; /* official logo color for branding ONLY - used for illinois chat logo / branding to match I logo */
@@ -411,6 +416,8 @@ html[data-input-modality='keyboard']
 
 /* use existing formulas dark/light as described above as much as possible and only change the primary colors as needed */
 .dark {
+  color-scheme: dark;
+
   --foreground: var(--illinois-white);
   --background: var(--illinois-blue);
 
@@ -520,6 +527,8 @@ html[data-input-modality='keyboard']
 
 html {
   background: var(--illinois-white);
+  /* Replaces DaisyUI's global mobile tap-highlight suppression. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 html.dark {
@@ -1064,6 +1073,25 @@ a[data-footnote-backref] {
 
 .dark .codeBlock pre:has(> code) {
   background-color: var(--dashboard-background-dark) !important;
+}
+
+/* Chat inline code — replaces DaisyUI's `.prose :where(code)`, which is gone with
+   the plugin. `:where()` holds DaisyUI's original 0,1,0 specificity. Block code
+   (`<pre><code>`) is excluded by the child combinator, exactly as DaisyUI's own
+   `.prose pre code { padding: 0; border-radius: 0 }` reset achieved. */
+.prose :where(:not(pre) > code) {
+  padding: 2px 8px;
+  border-radius: 0.375rem; /* was var(--rounded-badge) = 1.9rem, which pills a one-line span */
+}
+
+/* Footer link hover — replaces DaisyUI's `.link-hover`. Hand-written rather than
+   `hover:underline` because DaisyUI gated the underline behind `@media (hover: hover)`
+   while Tailwind 3's `hover:` is ungated, so a bare `hover:underline` would stick
+   after a tap on touch devices. */
+@media (hover: hover) {
+  .link-underline-hover:hover {
+    text-decoration-line: underline;
+  }
 }
 
 /* Style for individual list items */

@@ -46,9 +46,10 @@ const ConversationsHeatmapByHourChart: React.FC<ChartProps> = ({
 
   if (isLoading) {
     return (
-      <Text>
-        Loading heatmap <LoadingSpinner size="xs" />
-      </Text>
+      <div className="flex items-center gap-2">
+        <LoadingSpinner size="xs" />
+        <Text>Loading heatmap...</Text>
+      </div>
     )
   }
 

@@ -245,20 +245,27 @@ const ChatNavbar = ({ bannerUrl = '', isgpt4 = true }: ChatNavbarProps) => {
           justify="flex-start"
           direction="row"
           styles={{ height: '10px', flexWrap: 'nowrap', gap: '0rem' }}
-          className="navbar"
+          className="min-h-16 w-full items-center p-2"
         >
-          <Link href="/" style={{ flex: 'none', flexWrap: 'nowrap' }}>
+          <Link
+            href="/"
+            className="flex items-center"
+            style={{ flex: 'none', flexWrap: 'nowrap' }}
+          >
             <h2 className="cursor-pointer font-extrabold tracking-tight text-[--primary] sm:ms-3 sm:text-[2rem] md:text-3xl">
               Illinois <span className="text-[--navbar-text]">Chat</span>
             </h2>
           </Link>
 
-          <div className="pl-4">
+          <div className="flex items-center pl-4">
             <ThemeToggle />
           </div>
 
           {bannerUrl ? (
-            <div style={{ ...styles.logoContainerBox, flex: '1' }}>
+            <div
+              className="flex"
+              style={{ ...styles.logoContainerBox, flex: '1' }}
+            >
               <Image
                 src={bannerUrl}
                 style={{ ...styles.thumbnailImage }}
@@ -272,6 +279,7 @@ const ChatNavbar = ({ bannerUrl = '', isgpt4 = true }: ChatNavbarProps) => {
           ) : (
             // Placeholder div
             <div
+              className="flex"
               style={{
                 ...styles.logoContainerBox,
                 flex: '1',

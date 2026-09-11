@@ -1,5 +1,6 @@
 import { type DocumentProps, Head, Html, Main, NextScript } from 'next/document'
 import { useEffect, useState } from 'react'
+import { DEFAULT_THEME } from '~/contexts/ThemeContext'
 import i18nextConfig from '../../next-i18next.config.mjs'
 
 type Props = DocumentProps & {
@@ -53,7 +54,11 @@ export default function Document(props: Props) {
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                // Falls back to ThemeContext's DEFAULT_THEME (interpolated at build
+                // time), or a mismatched default here flashes the wrong theme on
+                // first paint before React mounts. Explicit 'system' follows the OS.
+                const t = localStorage.theme || '${DEFAULT_THEME}'
+                if (t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                   document.documentElement.classList.add('dark')
                 } else {
                   document.documentElement.classList.remove('dark')

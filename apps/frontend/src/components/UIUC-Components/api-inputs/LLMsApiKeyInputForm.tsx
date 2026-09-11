@@ -245,7 +245,7 @@ const NewModelDropdown: React.FC<{
         Select default model
       </label>
       <Select
-        className="menu z-[30] w-full"
+        className="z-[30] flex w-full flex-col flex-wrap p-2 text-sm"
         size="md"
         aria-label="Select default model"
         aria-labelledby="default-model-label"
@@ -1081,11 +1081,11 @@ export default function APIKeyInputForm({
                       : '1px solid var(--dashboard-border)',
                   }}
                 >
-                  <div className="card flex h-full flex-col justify-center">
-                    <div className="card-body" style={{ padding: '.5rem' }}>
+                  <div className="flex h-full flex-col justify-center">
+                    <div className="flex flex-auto flex-col gap-2 p-2">
                       <div className="pb-4">
                         <Title
-                          className={`label ${montserrat_heading.variable} font-montserratHeading`}
+                          className={`px-1 py-2 ${montserrat_heading.variable} font-montserratHeading`}
                           order={3}
                         >
                           Default Model

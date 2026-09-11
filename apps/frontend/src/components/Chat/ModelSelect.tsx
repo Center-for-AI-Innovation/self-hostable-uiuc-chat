@@ -300,7 +300,7 @@ export const ModelItem = forwardRef<
                       alignItems: 'center',
                     }}
                   >
-                    <LoadingSpinner size="0.5rem" />
+                    <LoadingSpinner size="xs" />
                     <Text
                       size="s"
                       style={{ marginLeft: '7px' }}
@@ -526,7 +526,7 @@ const ModelDropdown: React.FC<
       >
         <Select
           ref={selectInputRef}
-          className="menu w-full"
+          className="flex w-full flex-col flex-wrap p-2 text-sm"
           size="md"
           placeholder="Select a model"
           aria-label="Select a model"

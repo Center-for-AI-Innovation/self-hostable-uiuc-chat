@@ -552,12 +552,12 @@ const MakeToolsPage = ({ course_name }: { course_name: string }) => {
                       : '1px solid var(--dashboard-border)',
                   }}
                 >
-                  <div className="card flex h-full flex-col justify-center">
-                    <div className="card-body" style={{ padding: '.5rem' }}>
+                  <div className="flex h-full flex-col justify-center">
+                    <div className="flex flex-auto flex-col gap-2 p-2">
                       <div className="pb-4">
                         <Title
                           // className={`label ${montserrat.className}`}
-                          className={`label ${montserrat_heading.variable} mb-2 p-0 font-montserratHeading`}
+                          className={`${montserrat_heading.variable} mb-2 p-0 font-montserratHeading`}
                           order={3}
                         >
                           Your n8n API Key

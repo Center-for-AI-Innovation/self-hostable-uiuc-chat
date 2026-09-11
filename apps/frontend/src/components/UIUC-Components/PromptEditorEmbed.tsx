@@ -920,7 +920,7 @@ CRITICAL: The optimized prompt must:
                     }}
                   />
                   <Title
-                    className={`label pl-1 pr-0 text-[--dashboard-foreground] md:pl-0 md:pr-2`}
+                    className={`py-2 pl-1 pr-0 text-[--dashboard-foreground] md:pl-0 md:pr-2`}
                     order={4}
                   >
                     Prompt Engineering Guide
@@ -1001,7 +1001,7 @@ CRITICAL: The optimized prompt must:
                       </List.Item>
                     </List>
                     <Text
-                      className={`label inline-block select-text`}
+                      className={`inline-block select-text px-1 py-2`}
                       size="md"
                       style={{ marginTop: '1.5rem' }}
                     >
@@ -1057,7 +1057,7 @@ CRITICAL: The optimized prompt must:
                 <Flex justify="space-between" align="center" mb="md">
                   <Flex align="center" className="-mt-2 gap-4">
                     <Title
-                      className={`label pl-1 pr-0 text-[--dashboard-foreground] md:pl-0 md:pr-2`}
+                      className={`py-2 pl-1 pr-0 text-[--dashboard-foreground] md:pl-0 md:pr-2`}
                       order={4}
                     >
                       System Prompt
@@ -1889,7 +1889,7 @@ CRITICAL: The optimized prompt must:
               <Divider />
 
               <Flex align="center" style={{ paddingTop: '15px' }}>
-                <Title className={`label mr-[8px]`} order={3}>
+                <Title className={`mr-[8px] px-1 py-2`} order={3}>
                   AI Behavior Settings
                 </Title>
                 <Indicator

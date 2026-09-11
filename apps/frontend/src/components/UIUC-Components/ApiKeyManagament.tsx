@@ -329,7 +329,7 @@ axios.post('${baseUrl}/api/chat-api/chat', data, {
             }}
             className="min-h-full justify-center"
           >
-            <div className="card flex h-full flex-col">
+            <div className="flex h-full flex-col">
               <Group
                 m="1rem"
                 align="start"
@@ -462,7 +462,7 @@ axios.post('${baseUrl}/api/chat-api/chat', data, {
                           </List.Item>
                         </List>
                         <Title
-                          className={`label ${montserrat_paragraph.variable} inline-block select-text font-montserratParagraph`}
+                          className={`px-1 py-2 ${montserrat_paragraph.variable} inline-block select-text font-montserratParagraph`}
                           size="md"
                           order={4}
                           style={{ marginTop: '1.5rem' }}
@@ -530,10 +530,10 @@ axios.post('${baseUrl}/api/chat-api/chat', data, {
               : '1px solid var(--dashboard-border)',
           }}
         >
-          <div className="card flex h-full flex-col">
+          <div className="flex h-full flex-col">
             <div className="flex w-full flex-col items-center px-3 pt-12">
               <Title
-                className={`label ${montserrat_heading.variable} font-montserratHeading`}
+                className={`px-1 py-2 ${montserrat_heading.variable} font-montserratHeading`}
                 order={2}
                 style={{ marginBottom: '1rem' }}
               >

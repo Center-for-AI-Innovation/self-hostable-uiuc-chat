@@ -64,7 +64,7 @@ const styles = {
 
 function Logo() {
   return (
-    <div className="flex-1">
+    <div className="flex flex-1 items-center">
       <Link href="/" tabIndex={0} aria-label="Home Page">
         <div
           className={`ms-4 flex items-center gap-0 font-bold ${montserrat_heading.variable} font-montserratHeading`}
@@ -264,7 +264,7 @@ export default function Navbar({
       {/***************** top navigation for all pages *****************/}
 
       <div className="flex flex-row items-center justify-center">
-        <header className="navbar h-20 w-full border-b border-[--navbar-border] bg-[--navbar-background]">
+        <header className="flex h-20 w-full items-center border-b border-[--navbar-border] bg-[--navbar-background] p-2">
           <Logo />
 
           {!isPlain && (

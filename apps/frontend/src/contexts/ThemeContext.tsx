@@ -2,6 +2,10 @@ import { createContext, useContext, useEffect, useState } from 'react'
 
 type Theme = 'light' | 'dark' | 'system'
 
+// Also embedded into the inline script in _document.tsx, which must reach
+// the same fallback before React (and this constant) load — change both.
+export const DEFAULT_THEME: Theme = 'light'
+
 interface ThemeContextType {
   theme: Theme
   setTheme: (theme: Theme) => void
@@ -10,7 +14,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('light')
+  const [theme, setThemeState] = useState<Theme>(DEFAULT_THEME)
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme)
@@ -29,7 +33,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check for saved theme preference or use system
-    const savedTheme = (localStorage.getItem('theme') as Theme) || 'light'
+    const savedTheme = (localStorage.getItem('theme') as Theme) || DEFAULT_THEME
     if (savedTheme) {
       setTheme(savedTheme)
     }

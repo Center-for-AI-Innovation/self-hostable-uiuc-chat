@@ -22,7 +22,7 @@ describe('ResumeToChat', () => {
     fireEvent.click(button)
 
     expect(push).toHaveBeenCalledWith('/CS101/chat')
-    expect(document.querySelector('.loading-spinner')).toBeTruthy()
+    expect(screen.getByRole('status', { name: /loading/i })).toBeTruthy()
   })
 
   it('changes background color on hover', () => {

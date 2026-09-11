@@ -89,7 +89,7 @@ export const PermissionGate = ({
             {errorType === 403 && (
               <Link href="/chatbots">
                 <Button
-                  className="login-btn btn h-auto bg-[--button] text-white hover:bg-[--button-hover]"
+                  className="login-btn h-auto min-h-12 bg-[--button] text-white hover:bg-[--button-hover]"
                   style={{ fontSize: '24px' }}
                 >
                   My Chatbots →
@@ -105,7 +105,7 @@ export const PermissionGate = ({
                 }
               >
                 <Button
-                  className="login-btn btn h-auto bg-[--button] text-white hover:bg-[--button-hover]"
+                  className="login-btn h-auto min-h-12 bg-[--button] text-white hover:bg-[--button-hover]"
                   style={{ fontSize: '24px' }}
                 >
                   Create New →
@@ -115,7 +115,7 @@ export const PermissionGate = ({
             {errorType !== 404 && errorType !== 403 && (
               <Link href="/sign-in">
                 <Button
-                  className="login-btn btn h-auto bg-[--button] text-white hover:bg-[--button-hover]"
+                  className="login-btn h-auto min-h-12 bg-[--button] text-white hover:bg-[--button-hover]"
                   style={{ fontSize: '24px' }}
                   onClick={handleSignIn}
                 >

@@ -2,6 +2,7 @@ import { useRouter } from 'next/router'
 import { createStyles, rem, Title, useMantineTheme, Text } from '@mantine/core'
 import React, { useState } from 'react'
 import { Montserrat } from 'next/font/google'
+import { Spinner } from '@/components/shadcn/ui/spinner'
 
 const montserrat = Montserrat({ weight: '700', subsets: ['latin'] })
 
@@ -24,7 +25,6 @@ const useStyles = createStyles((theme) => ({
     borderRadius: theme.radius.md,
     cursor: 'pointer',
     transition: 'background-color 0.2s ease-in-out',
-    '--btn-text-case': 'none',
     height: '48px',
   },
 }))
@@ -51,7 +51,7 @@ export default function ResumeToChat({
     <div className={classes.wrapper}>
       <button
         onClick={handleClick}
-        className={`btn rounded-full ${classes.button}`}
+        className={`rounded-full ${classes.button}`}
         style={{
           backgroundColor: 'transparent',
           outline: `solid 1.5px var(--button)`,
@@ -67,7 +67,7 @@ export default function ResumeToChat({
       >
         {isLoading ? (
           <>
-            <span className="loading loading-spinner loading-xs"></span>
+            <Spinner className="size-4 shrink-0 text-[--spinner]" />
           </>
         ) : (
           <>

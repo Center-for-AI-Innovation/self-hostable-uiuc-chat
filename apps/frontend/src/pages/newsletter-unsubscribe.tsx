@@ -78,20 +78,20 @@ export default function Unsubscribe() {
         <div className="space-y-2 text-center">
           <Title
             size="h3"
-            className={`label ${montserrat_heading.className} inline-block select-text p-0 text-neutral-200`}
+            className={`${montserrat_heading.className} inline-block select-text p-0 text-neutral-200`}
           >
             Unsubscribe <span style={{ fontSize: '22px' }}>🎉</span>
           </Title>
         </div>
         <Text
           size="md"
-          className={`label ${montserrat_paragraph.className} inline-block select-text p-0 text-neutral-200`}
+          className={`${montserrat_paragraph.className} inline-block select-text p-0 text-neutral-200`}
         >
           Unsubscribe from the UIUC.chat email newsletter.
         </Text>
         <Text
           size="sm"
-          className={`label ${montserrat_paragraph.className}select-text p-0 text-neutral-200`}
+          className={`${montserrat_paragraph.className} select-text p-0 text-neutral-200`}
         >
           I guess your inbox just got a little bit cleaner, but less exciting
           😒{' '}
@@ -99,7 +99,7 @@ export default function Unsubscribe() {
         <Group>
           <Text
             size="md"
-            className={`label ${montserrat_paragraph.className}select-text p-0 text-neutral-200`}
+            className={`${montserrat_paragraph.className} select-text p-0 text-neutral-200`}
           >
             Email:
           </Text>

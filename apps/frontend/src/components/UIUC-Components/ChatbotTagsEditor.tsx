@@ -257,13 +257,16 @@ export default function ChatbotTagsEditor({
   const isSaving = status === 'saving'
 
   return (
-    <div className="chatbot_tags form-control">
+    <div className="chatbot_tags flex flex-col">
       <label
-        className={`label ${montserrat_heading.variable} font-montserratHeading`}
+        className={`flex items-center px-1 py-2 ${montserrat_heading.variable} font-montserratHeading`}
       >
         <span className="label-text-unused text-lg">Tags</span>
       </label>
-      <Text size={'sm'} className={`label !mt-0 ${montserrat_light.className}`}>
+      <Text
+        size={'sm'}
+        className={`!mt-0 px-1 py-2 ${montserrat_light.className}`}
+      >
         Add up to {MAX_CHATBOT_TAGS} tags to help people discover your bot in
         the chatbot hub. Project Type and Organization are set when you create
         the chatbot.

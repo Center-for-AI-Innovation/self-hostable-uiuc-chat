@@ -109,6 +109,5 @@ export default {
     // regenerated shadcn components can keep using `@container/<name>` and
     // `@<size>/<name>:` variants (see field.tsx) instead of viewport breakpoints.
     require('@tailwindcss/container-queries'),
-    require('daisyui'),
   ],
 } satisfies Config

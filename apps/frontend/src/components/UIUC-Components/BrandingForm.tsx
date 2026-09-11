@@ -109,7 +109,7 @@ const BrandingForm = ({
   return (
     <>
       <div className="branding_form">
-        <div className="set_greeting form-control relative">
+        <div className="set_greeting relative flex flex-col">
           <div className="mb-3 font-semibold">Greeting</div>
 
           <div className="flex flex-col gap-2">
@@ -195,7 +195,7 @@ const BrandingForm = ({
           />
         )}
 
-        <div className="upload_logo form-control">
+        <div className="upload_logo flex flex-col">
           <div className="mt-6 font-semibold">Add a logo</div>
           <div className="mb-3 text-sm text-[--foreground-faded]">
             This logo will appear in the header of the chat window.

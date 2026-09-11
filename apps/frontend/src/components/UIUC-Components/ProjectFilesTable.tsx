@@ -1317,7 +1317,7 @@ export function ProjectFilesTable({
               Cancel
             </Button>
             <Button
-              className="text-[--dashboard-button-foreground] min-w-[3rem] -translate-x-1 transform rounded-s-md bg-[--dashboard-button] hover:bg-[--dashboard-button-hover] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+              className="min-w-[3rem] -translate-x-1 transform rounded-s-md bg-[--dashboard-button] text-[--dashboard-button-foreground] hover:bg-[--dashboard-button-hover] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
               onClick={async () => {
                 setModalOpened(false)
                 setIsDeletingDocuments(true)

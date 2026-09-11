@@ -224,8 +224,8 @@ export const UploadCard = memo(function UploadCard({
           }}
           className="flex-[1_1_100%] p-4 sm:p-6 min-[960px]:flex-[1_1_40%] min-[960px]:border-l min-[960px]:border-[--dashboard-border]"
         >
-          <div className="card flex h-full flex-col justify-start space-y-6">
-            <div className="form-control">
+          <div className="flex h-full flex-col justify-start space-y-6">
+            <div className="flex flex-col">
               <h3
                 className={`${montserrat_heading.variable} mb-4 font-montserratHeading text-[1.375rem] font-bold text-[--dashboard-foreground]`}
               >
@@ -237,7 +237,7 @@ export const UploadCard = memo(function UploadCard({
                 aria-label="Project Description"
                 value={projectDescription}
                 onChange={(e) => setProjectDescription(e.target.value)}
-                className={`${montserrat_paragraph.variable} min-h-[7rem] max-h-[14rem] overflow-y-auto bg-[--background] font-montserratParagraph text-base text-[--foreground] dark:bg-[--background]`}
+                className={`${montserrat_paragraph.variable} max-h-[14rem] min-h-[7rem] overflow-y-auto bg-[--background] font-montserratParagraph text-base text-[--foreground] dark:bg-[--background]`}
               />
               <Button
                 type="button"
@@ -271,17 +271,17 @@ export const UploadCard = memo(function UploadCard({
                 Branding
               </h3>
 
-              <div className="form-control relative">
+              <div className="relative flex flex-col">
                 <label
                   htmlFor="greeting-textarea"
-                  className={`label ${montserrat_heading.variable} font-montserratHeading`}
+                  className={`flex items-center px-1 py-2 ${montserrat_heading.variable} font-montserratHeading`}
                 >
                   <span className="label-text-unused text-lg">
                     Set a greeting
                   </span>
                 </label>
                 <p
-                  className={`label ${montserrat_light.className} pt-0 text-sm`}
+                  className={`px-1 py-2 ${montserrat_light.className} pt-0 text-sm`}
                 >
                   Shown before users send their first chat.
                 </p>
@@ -328,14 +328,14 @@ export const UploadCard = memo(function UploadCard({
                 )}
               </div>
               <p
-                className={`label !mt-8 ${montserrat_heading.variable} pt-0 font-montserratHeading`}
+                className={`!mt-8 px-1 py-2 ${montserrat_heading.variable} pt-0 font-montserratHeading`}
               >
                 <span className="label-text-unused text-lg">
                   Set example questions
                 </span>
               </p>
               <p
-                className={`label !mt-0 ${montserrat_light.className} pb-0 text-sm`}
+                className={`!mt-0 px-1 py-2 ${montserrat_light.className} pb-0 text-sm`}
                 style={{ marginBottom: '-3px' }}
               >
                 Users will likely try these first to get a feel for your bot.
@@ -344,17 +344,17 @@ export const UploadCard = memo(function UploadCard({
                 course_name={projectName}
                 course_metadata={metadata as CourseMetadataOptionalForUpsert}
               />
-              <div className="form-control">
+              <div className="flex flex-col">
                 <label
                   htmlFor="upload-logo-input"
-                  className={`label ${montserrat_heading.variable} font-montserratHeading`}
+                  className={`flex items-center px-1 py-2 ${montserrat_heading.variable} font-montserratHeading`}
                 >
                   <span className="label-text-unused text-lg">
                     Upload your logo
                   </span>
                 </label>
                 <p
-                  className={`label !mt-0 ${montserrat_light.className} text-sm`}
+                  className={`!mt-0 px-1 py-2 ${montserrat_light.className} text-sm`}
                 >
                   This logo will appear in the header of the chat page.
                 </p>
@@ -362,7 +362,7 @@ export const UploadCard = memo(function UploadCard({
                   id="upload-logo-input"
                   tabIndex={0}
                   type="file"
-                  className={`file-input file-input-bordered w-full cursor-pointer border-2 border-[--foreground] bg-[--background] text-sm text-[--foreground] shadow-inner hover:border-[--dashboard-button] hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground] focus:border-[--dashboard-button] ${montserrat_paragraph.variable} font-montserratParagraph`}
+                  className={`h-12 w-full cursor-pointer overflow-hidden rounded-lg border-2 border-[--foreground] bg-[--background] pr-4 text-sm text-[--foreground] shadow-inner file:mr-4 file:inline-flex file:h-full file:items-center file:border-0 file:bg-transparent file:px-4 file:text-sm file:font-medium file:text-[--foreground] hover:border-[--dashboard-button] hover:bg-[--dashboard-button] hover:text-[--dashboard-button-foreground] focus:border-[--dashboard-button] ${montserrat_paragraph.variable} font-montserratParagraph`}
                   onChange={async (e) => {
                     // Assuming the file is converted to a URL somewhere else
                     if (e.target.files?.length) {
