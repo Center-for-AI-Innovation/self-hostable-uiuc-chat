@@ -171,11 +171,12 @@ export const UploadCard = memo(function UploadCard({
             <LargeDropzone
               courseName={projectName}
               current_user_email={current_user_email as string}
-              redirect_to_gpt_4={false}
               isDisabled={false}
               courseMetadata={metadata as CourseMetadata}
               is_new_course={false}
+              uploadFiles={uploadFiles}
               setUploadFiles={handleSetUploadFiles}
+              queryClient={queryClient}
               auth={auth}
             />
           </div>
@@ -189,12 +190,14 @@ export const UploadCard = memo(function UploadCard({
 
             <WebsiteIngestForm
               project_name={projectName}
+              uploadFiles={uploadFiles}
               setUploadFiles={handleSetUploadFiles}
               queryClient={queryClient}
             />
 
             <GitHubIngestForm
               project_name={projectName}
+              uploadFiles={uploadFiles}
               setUploadFiles={handleSetUploadFiles}
               queryClient={queryClient}
             />

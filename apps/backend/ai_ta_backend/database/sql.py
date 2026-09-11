@@ -486,9 +486,9 @@ class SQLDatabase:
     @_host_only
     def updateProjects(self, course_name: str, data: dict):
         query = (
-            select(models.Project)
+            update(models.Project)
             .where(models.Project.course_name == course_name)
-            .update(data)
+            .values(**data)
         )
         with self.get_session() as session:
             result = session.execute(query)

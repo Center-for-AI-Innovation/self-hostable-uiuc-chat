@@ -752,6 +752,115 @@ describe('PromptEditor', () => {
       )
     })
 
+    it('swaps the citation blocks in the prompt as Hide citations is toggled', async () => {
+      const user = userEvent.setup()
+      const { CITATION_DISABLED_PROMPT, CITATION_GUIDELINES_PROMPT } =
+        await import('~/utils/app/const')
+
+      await renderPromptEditor({
+        isEmbedded: true,
+        metadata: makeCourseMetadata({
+          system_prompt: 'You are a helpful assistant.',
+          disableCitations: false,
+        }),
+      })
+
+      const label = 'Hide citations in chat responses'
+      await waitFor(() => {
+        expect(screen.getByLabelText(label)).toBeInTheDocument()
+      })
+      const promptValue = () =>
+        (screen.getByLabelText('System Prompt') as HTMLTextAreaElement).value
+
+      // Toggle on: the no-citation block is present, the guidelines are not.
+      await user.click(screen.getByLabelText(label))
+      await waitFor(() => {
+        expect(screen.getByLabelText(label)).toBeChecked()
+      })
+      expect(promptValue()).toContain(CITATION_DISABLED_PROMPT)
+      expect(promptValue()).not.toContain(CITATION_GUIDELINES_PROMPT)
+
+      // Toggle off: the no-citation block is gone, replaced by the guidelines.
+      await user.click(screen.getByLabelText(label))
+      await waitFor(() => {
+        expect(screen.getByLabelText(label)).not.toBeChecked()
+      })
+      expect(promptValue()).not.toContain(CITATION_DISABLED_PROMPT)
+      expect(promptValue()).toContain(CITATION_GUIDELINES_PROMPT)
+
+      // The admin's own text survives both flips.
+      expect(promptValue()).toContain('You are a helpful assistant.')
+    })
+
+    it('does not accumulate citation blocks over repeated toggling', async () => {
+      const user = userEvent.setup()
+      const { CITATION_DISABLED_PROMPT, CITATION_GUIDELINES_PROMPT } =
+        await import('~/utils/app/const')
+
+      await renderPromptEditor({
+        isEmbedded: true,
+        metadata: makeCourseMetadata({
+          system_prompt: 'You are a helpful assistant.',
+          disableCitations: false,
+        }),
+      })
+
+      const label = 'Hide citations in chat responses'
+      await waitFor(() => {
+        expect(screen.getByLabelText(label)).toBeInTheDocument()
+      })
+
+      for (let i = 0; i < 3; i++) {
+        await user.click(screen.getByLabelText(label))
+        await waitFor(() => {
+          expect(screen.getByLabelText(label)).toBeChecked()
+        })
+        await user.click(screen.getByLabelText(label))
+        await waitFor(() => {
+          expect(screen.getByLabelText(label)).not.toBeChecked()
+        })
+      }
+
+      const value = (
+        screen.getByLabelText('System Prompt') as HTMLTextAreaElement
+      ).value
+      expect(value.split(CITATION_GUIDELINES_PROMPT).length - 1).toBe(1)
+      expect(value).not.toContain(CITATION_DISABLED_PROMPT)
+    })
+
+    it('saves the prompt with the citation block matching the toggle', async () => {
+      const user = userEvent.setup()
+      const { CITATION_DISABLED_PROMPT } = await import('~/utils/app/const')
+
+      await renderPromptEditor({
+        isEmbedded: true,
+        metadata: makeCourseMetadata({
+          system_prompt: 'You are a helpful assistant.',
+          disableCitations: false,
+        }),
+      })
+
+      const label = 'Hide citations in chat responses'
+      await waitFor(() => {
+        expect(screen.getByLabelText(label)).toBeInTheDocument()
+      })
+
+      await user.click(screen.getByLabelText(label))
+
+      await waitFor(
+        () => {
+          expect(mockCallSetCourseMetadata).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.objectContaining({
+              disableCitations: true,
+              system_prompt: `You are a helpful assistant.${CITATION_DISABLED_PROMPT}`,
+            }),
+          )
+        },
+        { timeout: 2000 },
+      )
+    })
+
     it('shows error toast when settings save fails', async () => {
       const user = userEvent.setup()
       mockCallSetCourseMetadata.mockResolvedValueOnce(false)

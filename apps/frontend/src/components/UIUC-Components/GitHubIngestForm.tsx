@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Text, Card, Button, Input, createStyles } from '@mantine/core'
 import {
   IconBrandGithub,
@@ -21,12 +21,16 @@ import axios from 'axios'
 import { type FileUpload } from './UploadNotification'
 import Link from 'next/link'
 import { type QueryClient } from '@tanstack/react-query'
+import { useGatedIngestPoller } from '~/hooks/useGatedIngestPoller'
+const POLL_INTERVAL_MS = 3000
 export default function GitHubIngestForm({
   project_name,
+  uploadFiles,
   setUploadFiles,
   queryClient,
 }: {
   project_name: string
+  uploadFiles: FileUpload[]
   setUploadFiles: React.Dispatch<React.SetStateAction<FileUpload[]>>
   queryClient: QueryClient
 }): JSX.Element {
@@ -109,7 +113,6 @@ export default function GitHubIngestForm({
       },
     },
   }))
-  const [isUrlUpdated, setIsUrlUpdated] = useState(false)
   const [isUrlValid, setIsUrlValid] = useState(false)
   const [url, setUrl] = useState('')
   const [maxUrls, setMaxUrls] = useState('50')
@@ -153,7 +156,7 @@ export default function GitHubIngestForm({
       }
       setUploadFiles((prevFiles) => [...prevFiles, newFile])
       try {
-        const response = await scrapeWeb(
+        await scrapeWeb(
           url,
           project_name,
           maxUrls.trim() !== '' ? parseInt(maxUrls) : 50,
@@ -176,25 +179,27 @@ export default function GitHubIngestForm({
     await new Promise((resolve) => setTimeout(resolve, 8000))
   }
 
-  useEffect(() => {
-    if (url && url.length > 0 && validateUrl(url)) {
-      setIsUrlUpdated(true)
-    } else {
-      setIsUrlUpdated(false)
-    }
-  }, [url])
-
-  useEffect(() => {
-    const checkIngestStatus = async () => {
-      const response = await fetch(
-        `/api/materialsTable/docsInProgress?course_name=${project_name}`,
-      )
-      const data = await response.json()
-      const docsResponse = await fetch(
-        `/api/materialsTable/successDocs?course_name=${project_name}`,
-      )
-      const docsData = await docsResponse.json()
-
+  // Poll ingest status only while GitHub ingests are in flight, sending the
+  // tracked repo URLs as a server-side filter so the endpoints never return
+  // the whole documents table.
+  useGatedIngestPoller({
+    courseName: project_name,
+    uploadFiles,
+    setUploadFiles,
+    queryClient,
+    type: 'github',
+    intervalMs: POLL_INTERVAL_MS,
+    // Filter on the repo URLs of ALL tracked base entries regardless of their
+    // status (base entries are the ones without a `url` field): child rows
+    // carry the base's base_url, so this returns every row the matching below
+    // needs — including children still resolving after the base went terminal.
+    buildFilter: (files) => ({
+      base_urls: files
+        .filter((file) => file.type === 'github' && !file.url)
+        .map((file) => file.name)
+        .filter((baseUrl) => baseUrl.length > 0),
+    }),
+    applyStatus: (status, currentFiles) => {
       // Helper function to organize docs by base URL
       const organizeDocsByBaseUrl = (
         docs: Array<{ base_url: string; url: string }>,
@@ -227,8 +232,8 @@ export default function GitHubIngestForm({
             return { ...file, status: 'ingesting' as const }
           } else if (file.status === 'ingesting') {
             if (!isStillIngesting) {
-              const isInCompletedDocs = docsData?.documents?.some(
-                (doc: { url: string }) => doc.url === file.url,
+              const isInCompletedDocs = status.completed.some(
+                (doc) => doc.url === file.url,
               )
 
               if (isInCompletedDocs) {
@@ -243,31 +248,23 @@ export default function GitHubIngestForm({
         })
       }
 
-      // Helper function to create new file entries for additional URLs
+      // Helper function to create new file entries for additional URLs.
+      // Every key of baseUrlMap comes from an in-progress doc, so anything it
+      // yields is by definition still ingesting.
       const createAdditionalFileEntries = (
         baseUrlMap: Map<string, Set<string>>,
         currentFiles: FileUpload[],
-        docsInProgress: Array<{ base_url: string; readable_filename: string }>,
       ) => {
         const newFiles: FileUpload[] = []
 
         baseUrlMap.forEach((urls, baseUrl) => {
           // Only process if we have this base URL in our current files
           if (currentFiles.some((file) => file.name === baseUrl)) {
-            const matchingDoc = docsInProgress.find(
-              (doc) => doc.base_url === baseUrl,
-            )
-
-            const isStillIngesting = matchingDoc !== undefined
-
             urls.forEach((url) => {
-              if (
-                !currentFiles.some((file) => file.url === url) &&
-                matchingDoc
-              ) {
+              if (!currentFiles.some((file) => file.url === url)) {
                 newFiles.push({
                   name: url,
-                  status: isStillIngesting ? 'ingesting' : 'complete',
+                  status: 'ingesting',
                   type: 'github',
                   url: url,
                 })
@@ -279,35 +276,23 @@ export default function GitHubIngestForm({
         return newFiles
       }
 
-      setUploadFiles((prev) => {
-        const matchingDocsInProgress =
-          data?.documents?.filter((doc: { base_url: string }) =>
-            prev.some((file) => file.name === doc.base_url),
-          ) || []
+      const matchingDocsInProgress = status.inProgress.filter((doc) =>
+        currentFiles.some((file) => file.name === doc.base_url),
+      )
 
-        const baseUrlMap = organizeDocsByBaseUrl(matchingDocsInProgress)
+      const additionalFiles = createAdditionalFileEntries(
+        organizeDocsByBaseUrl(matchingDocsInProgress),
+        currentFiles,
+      )
 
-        const additionalFiles = createAdditionalFileEntries(
-          baseUrlMap,
-          prev,
-          matchingDocsInProgress,
-        )
+      const updatedFiles = updateExistingFiles(
+        currentFiles,
+        matchingDocsInProgress,
+      )
 
-        const updatedFiles = updateExistingFiles(prev, matchingDocsInProgress)
-
-        return [...updatedFiles, ...additionalFiles]
-      })
-
-      await queryClient.invalidateQueries({
-        queryKey: ['documents', project_name],
-      })
-    }
-
-    const interval = setInterval(checkIngestStatus, 3000)
-    return () => {
-      clearInterval(interval)
-    }
-  }, [project_name])
+      return [...updatedFiles, ...additionalFiles]
+    },
+  })
 
   // if (isLoading) {
   //   return <Skeleton height={200} width={330} radius={'lg'} />
@@ -353,7 +338,6 @@ export default function GitHubIngestForm({
           if (!isOpen) {
             setUrl('')
             setIsUrlValid(false)
-            setIsUrlUpdated(false)
             setMaxUrls('50')
           }
         }}

@@ -424,6 +424,11 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
     }
   }
 
+  // Remove every occurrence of a snippet from the prompt (String.replace only
+  // removes the first one).
+  const removeAllOccurrences = (text: string, snippet: string) =>
+    text.split(snippet).join('')
+
   // Update system prompt with toggle changes
   const updateSystemPrompt = (updatedFields: Partial<CourseMetadata>) => {
     let newPrompt = baseSystemPrompt
@@ -450,22 +455,17 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
       }
     }
 
-    // Handle Disable citations prompt
+    // Handle Disable citations prompt. The prompt always reflects the current
+    // state of the toggle: exactly one of the two citation blocks is present,
+    // and flipping the switch swaps them.
     if (updatedFields.disableCitations !== undefined) {
-      if (updatedFields.disableCitations) {
-        if (!newPrompt.includes(CITATION_GUIDELINES_PROMPT)) {
-          newPrompt = newPrompt.replace(CITATION_GUIDELINES_PROMPT, '')
-        }
-        if (!newPrompt.includes(CITATION_DISABLED_PROMPT)) {
-          newPrompt += CITATION_DISABLED_PROMPT
-        }
-      } else {
-        if (!newPrompt.includes(CITATION_DISABLED_PROMPT)) {
-          newPrompt = newPrompt.replace(CITATION_DISABLED_PROMPT, '')
-        }
-        if (!newPrompt.includes(CITATION_GUIDELINES_PROMPT)) {
-          newPrompt += CITATION_GUIDELINES_PROMPT
-        }
+      const [remove, add] = updatedFields.disableCitations
+        ? [CITATION_GUIDELINES_PROMPT, CITATION_DISABLED_PROMPT]
+        : [CITATION_DISABLED_PROMPT, CITATION_GUIDELINES_PROMPT]
+
+      newPrompt = removeAllOccurrences(newPrompt, remove)
+      if (!newPrompt.includes(add)) {
+        newPrompt += add
       }
     }
 

@@ -11,6 +11,7 @@ import Image from 'next/image'
 import router from 'next/router'
 
 import { Button } from '@/components/shadcn/ui/button'
+import { buildProjectChatPath } from '~/utils/projectName'
 
 const StepSuccess = ({
   project_name,
@@ -19,10 +20,7 @@ const StepSuccess = ({
   project_name: string
   onContinueDesigning: () => void
 }) => {
-  const raw = String(project_name || '').trim()
-  let safeSegment = raw.replace(/[^a-zA-Z0-9_-]+/g, '-')
-  safeSegment = safeSegment.replace(/^[./\\]+/, '')
-  const chatPath = safeSegment ? `/${safeSegment}/chat` : '/chat'
+  const chatPath = buildProjectChatPath(project_name)
 
   return (
     <div className="step">

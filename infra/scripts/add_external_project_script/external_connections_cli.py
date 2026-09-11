@@ -142,6 +142,10 @@ def _build_config_from_env(kind: str) -> dict:
             config["port"] = int(_env("EXT_QDRANT_PORT"))  # type: ignore[arg-type]
         if _env("EXT_QDRANT_DEFAULT_COLLECTION") is not None:
             config["default_collection"] = _env("EXT_QDRANT_DEFAULT_COLLECTION")
+        if _env("EXT_QDRANT_APPLY_COURSE_FILTER") is not None:
+            config["apply_course_filter"] = _env(
+                "EXT_QDRANT_APPLY_COURSE_FILTER"
+            ).lower() in ("1", "true", "yes", "on")
         return config
 
     if kind == "embedding":

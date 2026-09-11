@@ -251,6 +251,7 @@ services:
       # project external connections (per-project S3/Postgres/Qdrant/embeddings)
       ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:-}
       ALLOWED_EMBEDDING_PROVIDERS: ${ALLOWED_EMBEDDING_PROVIDERS:-openai,ollama}
+      SUPER_ADMIN_EMAILS: ${SUPER_ADMIN_EMAILS:-}
       # llms
       OLLAMA_SERVER_URL: ${OLLAMA_SERVER_URL:-}
       NCSA_HOSTED_VLM_BASE_URL: ${NCSA_HOSTED_VLM_BASE_URL:-}
@@ -284,8 +285,8 @@ services:
         condition: service_completed_successfully
     environment:
       REDIS_URL: "redis://default:${INGEST_REDIS_PASSWORD}@redis:6379"
-      KV_REST_API_TOKEN: ${INGEST_REDIS_PASSWORD}
       RABBITMQ_URL: "amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672"
+      DEFAULT_COURSE_ADMINS: ${DEFAULT_COURSE_ADMINS:-}
       POSTGRES_ENDPOINT: postgres-illinois-chat
       POSTGRES_PORT: 5432
       POSTGRES_DATABASE: ${POSTGRES_DATABASE:-postgres}

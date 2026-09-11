@@ -121,6 +121,9 @@ export default function CanvasIngestForm({
             file.name === url ? { ...file, status: 'error' } : file,
           ),
         )
+        void queryClient.invalidateQueries({
+          queryKey: ['failedDocuments', project_name],
+        })
         console.error('Error ingesting Canvas content:', error)
         alert('Error ingesting Canvas content. Please try again.')
       }

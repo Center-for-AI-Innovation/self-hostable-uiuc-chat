@@ -1,107 +1,54 @@
 // LargeDropzone.tsx
-import React, { useRef, useState, useEffect } from 'react'
-import {
-  createStyles,
-  Group,
-  rem,
-  Text,
-  Title,
-  Paper,
-  Progress,
-  // useMantineTheme,
-} from '@mantine/core'
+import React, { useRef, useState } from 'react'
+import { Group, rem, Text } from '@mantine/core'
 
-import {
-  IconAlertCircle,
-  IconCheck,
-  IconCloudUpload,
-  IconDownload,
-  IconFileUpload,
-  IconX,
-} from '@tabler/icons-react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { IconCloudUpload, IconDownload, IconX } from '@tabler/icons-react'
+import { type QueryClient } from '@tanstack/react-query'
 import { Dropzone } from '@mantine/dropzone'
 import { useRouter } from 'next/router'
 import { type CourseMetadata } from '~/types/courseMetadata'
 import SupportedFileUploadTypes from './SupportedFileUploadTypes'
 import { useMediaQuery } from '@mantine/hooks'
 import { callSetCourseMetadata } from '~/utils/apiUtils'
+import {
+  isActiveUpload,
+  useGatedIngestPoller,
+} from '~/hooks/useGatedIngestPoller'
 import { v4 as uuidv4 } from 'uuid'
 import { type FileUpload } from './UploadNotification'
 import { type AuthContextProps } from 'react-oidc-context'
 
-const useStyles = createStyles((theme) => ({
-  wrapper: {
-    position: 'relative',
-    // marginBottom: rem(10),
-  },
+const POLL_INTERVAL_MS = 5000
 
-  icon: {
-    color:
-      theme.colorScheme === 'dark'
-        ? theme.colors.dark[3]
-        : theme.colors.gray[4],
-  },
-
-  control: {
-    position: 'absolute',
-    width: rem(250),
-    left: `calc(50% - ${rem(125)})`,
-    bottom: rem(-20),
-  },
-  dropzone: {
-    backgroundPosition: '0% 0%',
-    '&:hover': {
-      backgroundPosition: '100% 100%',
-      background: 'linear-gradient(135deg, #2a2a40 0%, #1c1c2e 100%)',
-    },
-  },
-}))
+const isActiveDocument = (file: FileUpload) => isActiveUpload(file, 'document')
 
 export function LargeDropzone({
   courseName,
   current_user_email,
-  redirect_to_gpt_4 = true,
   isDisabled = false,
   courseMetadata,
   is_new_course,
+  uploadFiles,
   setUploadFiles,
+  queryClient,
   auth,
 }: {
   courseName: string
   current_user_email: string
-  redirect_to_gpt_4?: boolean
   isDisabled?: boolean
   courseMetadata: CourseMetadata
   is_new_course: boolean
+  uploadFiles: FileUpload[]
   setUploadFiles: React.Dispatch<React.SetStateAction<FileUpload[]>>
+  queryClient: QueryClient
   auth: AuthContextProps
 }) {
   // upload-in-progress spinner control
   const [uploadInProgress, setUploadInProgress] = useState(false)
-  const [uploadComplete, setUploadComplete] = useState(false)
-  const [successfulUploads, setSuccessfulUploads] = useState(0)
   const router = useRouter()
   const isSmallScreen = useMediaQuery('(max-width: 960px)')
-  const { classes, theme } = useStyles()
   const openRef = useRef<() => void>(null)
-  const [files, setFiles] = useState<File[]>([])
 
-  const refreshOrRedirect = async (redirect_to_gpt_4: boolean) => {
-    if (is_new_course) {
-      // refresh current page
-      await new Promise((resolve) => setTimeout(resolve, 200))
-      await router.push(`/${courseName}/dashboard`)
-      return
-    }
-
-    if (redirect_to_gpt_4) {
-      await router.push(`/${courseName}/chat`)
-    }
-    // refresh current page
-    await new Promise((resolve) => setTimeout(resolve, 200))
-    await router.reload()
-  }
   const uploadToS3 = async (file: File | null, uniqueFileName: string) => {
     if (!file) return
 
@@ -159,10 +106,7 @@ export function LargeDropzone({
     if (!files) return
     files = files.filter((file) => file !== null)
 
-    setFiles(files)
-    setSuccessfulUploads(0)
     setUploadInProgress(true)
-    setUploadComplete(false)
 
     // Initialize file upload status
     const initialFileUploads = files.map((file) => {
@@ -195,7 +139,7 @@ export function LargeDropzone({
     }
 
     // Process files in parallel
-    const allSuccessOrFail = await Promise.all(
+    await Promise.all(
       files.map(async (file) => {
         const extension = file.name.slice(file.name.lastIndexOf('.'))
         const nameWithoutExtension = file.name
@@ -206,7 +150,6 @@ export function LargeDropzone({
 
         try {
           await uploadToS3(file, uniqueFileName)
-          setSuccessfulUploads((prev) => prev + 1)
 
           const response = await fetch(`/api/UIUC-api/ingest`, {
             method: 'POST',
@@ -221,7 +164,6 @@ export function LargeDropzone({
           })
           const res = await response.json()
           console.debug('Ingest submitted...', res)
-          return { ok: true, s3_path: file.name }
         } catch (error) {
           console.error('Error during file upload or ingest:', error)
           // Update file status to error so it doesn't block navigation
@@ -230,109 +172,67 @@ export function LargeDropzone({
               f.name === uniqueReadableFileName ? { ...f, status: 'error' } : f,
             ),
           )
-          return { ok: false, s3_path: file.name }
         }
       }),
-    )
-
-    setSuccessfulUploads(files.length)
-    setUploadComplete(true)
-
-    // Process results
-    const resultSummary = allSuccessOrFail.reduce(
-      (acc: { success_ingest: any[]; failure_ingest: any[] }, curr) => {
-        if (curr.ok) acc.success_ingest.push(curr)
-        else acc.failure_ingest.push(curr)
-        return acc
-      },
-      { success_ingest: [], failure_ingest: [] },
     )
 
     setUploadInProgress(false)
 
     if (is_new_course) {
-      await refreshOrRedirect(redirect_to_gpt_4)
+      // refresh current page
+      await new Promise((resolve) => setTimeout(resolve, 200))
+      await router.push(`/${courseName}/dashboard`)
     }
   }
-  useEffect(() => {
-    let pollInterval = 9000 // Start with a slower interval
-    const MIN_INTERVAL = 1000 // Fast polling when active
-    const MAX_INTERVAL = 20000 // Slow polling when inactive
-    let consecutiveEmptyPolls = 0
 
-    const checkIngestStatus = async () => {
-      const response = await fetch(
-        `/api/materialsTable/docsInProgress?course_name=${courseName}`,
+  // Poll ingest status only while document uploads are in flight, sending the
+  // tracked filenames as a server-side filter so the endpoints never return
+  // the whole documents table.
+  useGatedIngestPoller({
+    courseName,
+    uploadFiles,
+    setUploadFiles,
+    queryClient,
+    type: 'document',
+    intervalMs: POLL_INTERVAL_MS,
+    buildFilter: (files) => ({
+      filenames: files
+        .filter((file) => isActiveDocument(file))
+        .map((file) => file.name),
+    }),
+    applyStatus: (status, files) => {
+      const inProgressNames = new Set(
+        status.inProgress.map((doc) => doc.readable_filename),
       )
-      const data = await response.json()
-
-      const docsResponse = await fetch(
-        `/api/materialsTable/successDocs?course_name=${courseName}`,
+      const completedNames = new Set(
+        status.completed.map((doc) => doc.readable_filename),
       )
-      const docsData = await docsResponse.json()
-      // Adjust polling interval based on activity
-      if (data.documents.length > 0) {
-        pollInterval = MIN_INTERVAL
-        consecutiveEmptyPolls = 0
-      } else {
-        consecutiveEmptyPolls++
-        if (consecutiveEmptyPolls >= 3) {
-          // After 3 empty polls, slow down
-          pollInterval = Math.min(pollInterval * 1.5, MAX_INTERVAL)
-        }
-      }
 
-      setUploadFiles((prev) => {
-        return prev.map((file) => {
-          if (file.type !== 'document') return file
+      return files.map((file) => {
+        // Only files the tick actually asked about may be re-classified;
+        // anything else is absent from the results for a benign reason.
+        if (!isActiveDocument(file)) return file
 
-          if (file.status === 'uploading') {
-            const isIngesting = data?.documents?.some(
-              (doc: { readable_filename: string }) =>
-                doc.readable_filename === file.name,
-            )
-            if (isIngesting) {
-              return { ...file, status: 'ingesting' }
-            } else {
-              // Ingest can happen very quickly, check if completed also
-              const isInCompletedDocs = docsData?.documents?.some(
-                (doc: { readable_filename: string }) =>
-                  doc.readable_filename === file.name,
-              )
-              if (isInCompletedDocs) {
-                return { ...file, status: 'complete' }
-              }
-            }
-          } else if (file.status === 'ingesting') {
-            const isStillIngesting = data?.documents?.some(
-              (doc: { readable_filename: string }) =>
-                doc.readable_filename === file.name,
-            )
-
-            if (!isStillIngesting) {
-              const isInCompletedDocs = docsData?.documents?.some(
-                (doc: { readable_filename: string }) =>
-                  doc.readable_filename === file.name,
-              )
-              return {
-                ...file,
-                status: isInCompletedDocs
-                  ? ('complete' as const)
-                  : ('error' as const),
-              }
-            }
+        if (file.status === 'uploading') {
+          if (inProgressNames.has(file.name)) {
+            return { ...file, status: 'ingesting' }
           }
-          return file
-        })
+          // Ingest can happen very quickly, check if completed also
+          if (completedNames.has(file.name)) {
+            return { ...file, status: 'complete' }
+          }
+        } else if (!inProgressNames.has(file.name)) {
+          return {
+            ...file,
+            status: completedNames.has(file.name)
+              ? ('complete' as const)
+              : ('error' as const),
+          }
+        }
+        return file
       })
-    }
-
-    const intervalId = setInterval(checkIngestStatus, pollInterval)
-
-    return () => {
-      clearInterval(intervalId)
-    }
-  }, [courseName])
+    },
+  })
 
   return (
     <>
@@ -344,7 +244,7 @@ export function LargeDropzone({
       >
         {/* TODO: fix large dropzone display across all screens */}
         <div
-          className={classes.wrapper}
+          className="relative"
           style={{
             flex: 1,
             display: 'flex',
@@ -494,23 +394,6 @@ export function LargeDropzone({
               </div>
             </div>
           </Dropzone>
-          {/* {uploadInProgress && (
-            <div className="flex flex-col items-center justify-center px-4 text-center">
-              <Title
-                order={4}
-                style={{
-                  marginTop: 10,
-                  color: '#B22222',
-                  fontSize: isSmallScreen ? '0.9rem' : '1rem',
-                  lineHeight: '1.4',
-                }}
-              >
-                Remain on this page until upload is complete
-                <br />
-                or ingest will fail.
-              </Title>
-            </div>
-          )} */}
         </div>
       </div>
     </>

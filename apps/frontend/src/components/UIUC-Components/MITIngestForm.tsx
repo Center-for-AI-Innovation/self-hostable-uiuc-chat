@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Text, Card, Button, Input, Image } from '@mantine/core'
 import { IconArrowRight } from '@tabler/icons-react'
 import { motion } from 'framer-motion'
@@ -16,13 +16,16 @@ import { type QueryClient } from '@tanstack/react-query'
 export default function MITIngestForm({
   project_name,
   setUploadFiles,
+  queryClient,
 }: {
   project_name: string
   setUploadFiles: React.Dispatch<React.SetStateAction<FileUpload[]>>
   queryClient: QueryClient
 }): JSX.Element {
-  const [isUrlUpdated, setIsUrlUpdated] = useState(false)
   const [isUrlValid, setIsUrlValid] = useState(false)
+  const delayedInvalidateRef = useRef<
+    ReturnType<typeof setTimeout> | undefined
+  >(undefined)
   const [url, setUrl] = useState('')
   const [maxUrls, setMaxUrls] = useState('50')
   const [open, setOpen] = useState(false)
@@ -79,6 +82,19 @@ export default function MITIngestForm({
               file.name === url ? { ...file, status: 'complete' } : file,
             ),
           )
+          // Refresh the documents table now, and once more shortly after:
+          // the download API can resolve before all rows land in the DB.
+          void queryClient.invalidateQueries({
+            queryKey: ['documents', project_name],
+          })
+          if (delayedInvalidateRef.current) {
+            clearTimeout(delayedInvalidateRef.current)
+          }
+          delayedInvalidateRef.current = setTimeout(() => {
+            void queryClient.invalidateQueries({
+              queryKey: ['documents', project_name],
+            })
+          }, 10_000)
         } else {
           // downloadMITCourse returned null, treat as error
           setUploadFiles((prevFiles) =>
@@ -86,6 +102,9 @@ export default function MITIngestForm({
               file.name === url ? { ...file, status: 'error' } : file,
             ),
           )
+          void queryClient.invalidateQueries({
+            queryKey: ['failedDocuments', project_name],
+          })
         }
       } catch (error) {
         console.error('Error during MIT course import:', error)
@@ -94,6 +113,9 @@ export default function MITIngestForm({
             file.name === url ? { ...file, status: 'error' } : file,
           ),
         )
+        void queryClient.invalidateQueries({
+          queryKey: ['failedDocuments', project_name],
+        })
       }
     } else {
       alert('Invalid URL (please include https://)')
@@ -105,12 +127,12 @@ export default function MITIngestForm({
   })
 
   useEffect(() => {
-    if (url && url.length > 0 && validateUrl(url)) {
-      setIsUrlUpdated(true)
-    } else {
-      setIsUrlUpdated(false)
+    return () => {
+      if (delayedInvalidateRef.current) {
+        clearTimeout(delayedInvalidateRef.current)
+      }
     }
-  }, [url])
+  }, [])
 
   return (
     <motion.div layout>
@@ -121,7 +143,6 @@ export default function MITIngestForm({
           if (!isOpen) {
             setUrl('')
             setIsUrlValid(false)
-            setIsUrlUpdated(false)
             setMaxUrls('50')
           }
         }}

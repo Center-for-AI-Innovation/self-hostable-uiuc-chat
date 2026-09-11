@@ -16,12 +16,14 @@ import { type CourseMetadata } from '~/types/courseMetadata'
 
 interface StepUploadProps {
   project_name: string
+  uploadFiles: FileUpload[]
   setUploadFiles: React.Dispatch<React.SetStateAction<FileUpload[]>>
   courseMetadata?: CourseMetadata
 }
 
 const StepUpload = ({
   project_name,
+  uploadFiles,
   setUploadFiles,
   courseMetadata,
 }: StepUploadProps) => {
@@ -81,12 +83,14 @@ const StepUpload = ({
 
             <WebsiteIngestForm
               project_name={project_name}
+              uploadFiles={uploadFiles}
               setUploadFiles={setUploadFiles}
               queryClient={queryClient}
             />
 
             <GitHubIngestForm
               project_name={project_name}
+              uploadFiles={uploadFiles}
               setUploadFiles={setUploadFiles}
               queryClient={queryClient}
             />
@@ -107,10 +111,11 @@ const StepUpload = ({
           <LargeDropzone
             courseName={project_name}
             current_user_email={auth.user?.profile.email || ''}
-            redirect_to_gpt_4={false}
             isDisabled={false}
             is_new_course={false}
+            uploadFiles={uploadFiles}
             setUploadFiles={setUploadFiles}
+            queryClient={queryClient}
             courseMetadata={courseMetadata || defaultMetadata}
             auth={auth}
           />

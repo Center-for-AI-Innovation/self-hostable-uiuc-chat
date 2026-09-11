@@ -91,7 +91,7 @@ export default function Unsubscribe() {
         </Text>
         <Text
           size="sm"
-          className={`${montserrat_paragraph.className}select-text p-0 text-neutral-200`}
+          className={`${montserrat_paragraph.className} select-text p-0 text-neutral-200`}
         >
           I guess your inbox just got a little bit cleaner, but less exciting
           😒{' '}
@@ -99,7 +99,7 @@ export default function Unsubscribe() {
         <Group>
           <Text
             size="md"
-            className={`${montserrat_paragraph.className}select-text p-0 text-neutral-200`}
+            className={`${montserrat_paragraph.className} select-text p-0 text-neutral-200`}
           >
             Email:
           </Text>

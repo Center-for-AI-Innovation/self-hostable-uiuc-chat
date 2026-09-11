@@ -2,13 +2,14 @@ import { type NextApiResponse } from 'next'
 import { type AuthenticatedRequest } from '~/utils/authMiddleware'
 import { documents } from '~/db/dbClient'
 import { connectionManager } from '~/utils/connectionManager'
-import { eq } from 'drizzle-orm'
+import { and, eq, inArray, or, sql } from 'drizzle-orm'
 import { withCourseOwnerOrAdminAccess } from '~/server/authorization'
-// This is for "Documents" table, completed docs.
+import { parseIngestStatusFilters } from '~/utils/ingestStatusFilters'
+// This is for "Documents" table, completed docs. POST-only: callers must send
+// the filenames/base_urls they are tracking so we never return the whole table.
 
 type SuccessDocsResponse = {
-  documents?: { readable_filename: string }[]
-  apiKey?: null
+  documents?: { readable_filename: string; base_url: string; url: string }[]
   error?: string
 }
 
@@ -16,11 +17,18 @@ async function successDocs(
   req: AuthenticatedRequest,
   res: NextApiResponse<SuccessDocsResponse>,
 ) {
-  if (req.method !== 'GET') {
+  if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const course_name = req.query.course_name as string
+  const parsed = parseIngestStatusFilters(req.body)
+  if ('error' in parsed) {
+    return res.status(400).json({ error: parsed.error })
+  }
+  const { filenames, base_urls } = parsed
+  // Query the course the middleware actually authorized, which is not
+  // necessarily the one in the body (it also accepts query params/headers).
+  const course_name = req.courseName ?? parsed.course_name
 
   try {
     const db = await connectionManager.getDocumentsDb(course_name)
@@ -31,21 +39,27 @@ async function successDocs(
         url: documents.url,
       })
       .from(documents)
-      .where(eq(documents.course_name, course_name))
+      .where(
+        and(
+          eq(documents.course_name, course_name),
+          or(
+            filenames.length
+              ? inArray(documents.readable_filename, filenames)
+              : undefined,
+            base_urls.length
+              ? inArray(sql`rtrim(${documents.base_url}, '/')`, base_urls)
+              : undefined,
+          ),
+        ),
+      )
 
-    if (!data || data.length === 0) {
-      return res.status(200).json({ documents: [] })
-    }
-
-    if (data && data.length > 0) {
-      return res.status(200).json({
-        documents: data.map((doc) => ({
-          readable_filename: doc.readable_filename || '',
-          base_url: doc.base_url || '',
-          url: doc.url || '',
-        })),
-      })
-    }
+    return res.status(200).json({
+      documents: data.map((doc) => ({
+        readable_filename: doc.readable_filename || '',
+        base_url: doc.base_url || '',
+        url: doc.url || '',
+      })),
+    })
   } catch (error) {
     console.error('Failed to fetch documents:', error)
     return res.status(500).json({

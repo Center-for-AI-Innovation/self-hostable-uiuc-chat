@@ -54,6 +54,7 @@ interface FormInputProps {
   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement | HTMLTextAreaElement>
   name?: string
   autoComplete?: string
+  maxLength?: number
   minRows?: number
   maxRows?: number
   className?: string
@@ -87,6 +88,7 @@ const FormInput = React.forwardRef<
       onKeyDown,
       name,
       autoComplete,
+      maxLength,
       minRows = 2,
       maxRows,
       className,
@@ -179,6 +181,7 @@ const FormInput = React.forwardRef<
               }
               name={name}
               autoComplete={autoComplete}
+              maxLength={maxLength}
             />
           ) : (
             <input
@@ -198,6 +201,7 @@ const FormInput = React.forwardRef<
               }
               name={name}
               autoComplete={autoComplete}
+              maxLength={maxLength}
             />
           )}
 
