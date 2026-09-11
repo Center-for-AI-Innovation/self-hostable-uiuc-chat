@@ -26,10 +26,10 @@ import {
 import { persistMessageServer } from '~/pages/api/conversation'
 import { buildPrompt } from '~/app/utils/buildPromptUtils'
 import {
-  routeModelRequest,
   processChunkWithStateMachine,
   State,
 } from '~/utils/streamProcessing'
+import { routeModelRequest } from '~/utils/routeModelRequest'
 import { type ChatBody } from '~/types/chat'
 import { type CourseMetadata } from '~/types/courseMetadata'
 import { type AllLLMProviders } from '~/utils/modelProviders/LLMProvider'

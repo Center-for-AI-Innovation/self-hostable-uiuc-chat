@@ -49,6 +49,21 @@ export default function Document(props: Props) {
       <Head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="UIUC.chat"></meta>
+        {/*
+          mathjax-full reads its own version via eval('require') unless the
+          PACKAGE_VERSION global is set, which throws "require is not defined"
+          in the browser as soon as rehype-mathjax is imported. The webpack
+          build defines it via DefinePlugin (see next.config.mjs); Turbopack has
+          no DefinePlugin equivalent and mathjax requires the module by relative
+          path, so resolveAlias cannot intercept it. Setting the global in an
+          inline head script runs before the deferred bundles and works for both
+          bundlers. Keep in sync with the installed mathjax-full version.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.PACKAGE_VERSION = window.PACKAGE_VERSION || '3.2.1'`,
+          }}
+        />
         {/* TODO: review if this is actually necessary, given toggle ThemeToggle.tsx */}
         <script
           dangerouslySetInnerHTML={{

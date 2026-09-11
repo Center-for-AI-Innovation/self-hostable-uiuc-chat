@@ -10,7 +10,7 @@ vi.mock('~/app/api/authorization', () => ({
   withCourseAccessFromRequest: () => (h: any) => h,
 }))
 
-vi.mock('~/utils/streamProcessing', () => ({
+vi.mock('~/utils/routeModelRequest', () => ({
   routeModelRequest: hoisted.routeModelRequest,
 }))
 

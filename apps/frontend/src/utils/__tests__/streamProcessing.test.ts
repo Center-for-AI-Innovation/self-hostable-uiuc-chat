@@ -59,10 +59,10 @@ import {
   handleNonStreamingResponse,
   handleStreamingResponse,
   processChunkWithStateMachine,
-  routeModelRequest,
   updateConversationInDatabase,
   validateRequestBody,
 } from '../streamProcessing'
+import { routeModelRequest } from '../routeModelRequest'
 
 describe('processChunkWithStateMachine', () => {
   it('returns empty string for an empty chunk when no buffer is present', async () => {

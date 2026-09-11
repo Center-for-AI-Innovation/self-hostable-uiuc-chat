@@ -21,9 +21,9 @@ import {
   handleImageContent,
   handleNonStreamingResponse,
   handleStreamingResponse,
-  routeModelRequest,
   validateRequestBody,
 } from '~/utils/streamProcessing'
+import { routeModelRequest } from '~/utils/routeModelRequest'
 import { DEFAULT_SYSTEM_PROMPT } from '~/utils/app/const'
 import { v4 as uuidv4 } from 'uuid'
 import { getBaseUrl } from '~/utils/apiUtils'

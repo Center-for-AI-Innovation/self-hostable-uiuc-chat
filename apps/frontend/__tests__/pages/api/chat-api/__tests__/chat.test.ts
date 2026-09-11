@@ -77,11 +77,13 @@ vi.mock('~/utils/streamProcessing', async (importOriginal) => {
     handleImageContent: hoisted.handleImageContent,
     handleContextSearch: hoisted.handleContextSearch,
     attachContextsToLastMessage: hoisted.attachContextsToLastMessage,
-    routeModelRequest: hoisted.routeModelRequest,
     handleStreamingResponse: hoisted.handleStreamingResponse,
     handleNonStreamingResponse: hoisted.handleNonStreamingResponse,
   }
 })
+vi.mock('~/utils/routeModelRequest', () => ({
+  routeModelRequest: hoisted.routeModelRequest,
+}))
 
 describe('chat-api/chat', () => {
   it('returns 405 for non-POST methods', async () => {
