@@ -179,6 +179,15 @@ describe('projectConnections/validation — Qdrant', () => {
     ).toBe(true)
   })
 
+  it('accepts optional sort_combined knob', () => {
+    const parsed = qdrantConfigSchema.safeParse({
+      ...base,
+      sort_combined: false,
+    })
+    expect(parsed.success).toBe(true)
+    if (parsed.success) expect(parsed.data.sort_combined).toBe(false)
+  })
+
   it('preserves apply_course_filter so upserts do not strip it', () => {
     const parsed = qdrantConfigSchema.safeParse({
       ...base,

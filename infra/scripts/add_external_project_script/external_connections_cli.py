@@ -98,6 +98,139 @@ def _env(name: str) -> str | None:
     return value or None
 
 
+_TRUE_WORDS = ("1", "true", "yes", "on")
+_FALSE_WORDS = ("0", "false", "no", "off")
+
+
+def _parse_bool(value: str, label: str) -> bool:
+    """Strict boolean parse. Anything outside the two word lists is an error.
+
+    A loose `value in TRUE_WORDS` check silently turns typos (`ture`, `flase`,
+    `None`) into False, which for knobs like `parallel` / `use_filter` is
+    the less-restrictive direction — fail closed instead.
+    """
+    lowered = value.strip().lower()
+    if lowered in _TRUE_WORDS:
+        return True
+    if lowered in _FALSE_WORDS:
+        return False
+    raise SystemExit(
+        f"[error] {label} must be one of {'/'.join(_TRUE_WORDS)} or "
+        f"{'/'.join(_FALSE_WORDS)}, got {value!r}."
+    )
+
+
+def _env_bool(var: str) -> bool | None:
+    value = _env(var)
+    return None if value is None else _parse_bool(value, var)
+
+
+def _env_int(var: str, *, positive: bool = True) -> int | None:
+    value = _env(var)
+    if value is None:
+        return None
+    try:
+        parsed = int(value)
+    except ValueError:
+        raise SystemExit(f"[error] {var} must be an integer, got {value!r}.")
+    if positive and parsed <= 0:
+        raise SystemExit(f"[error] {var} must be a positive integer, got {parsed}.")
+    return parsed
+
+
+# Mirrors RESULT_PROCESSORS in apps/backend/ai_ta_backend/database/vector.py.
+# The backend silently ignores an unknown processor key and the server-side
+# schema accepts any string, so this is the only place a typo gets caught.
+KNOWN_PROCESSORS = ("pubmed", "patents", "ncbi_books", "clinical_trials")
+# Mirrors qdrantCollectionEntrySchema in validation.ts. `z.object()` strips
+# unknown keys on upsert, so a misspelled key would vanish without a trace.
+COLLECTION_ENTRY_KEYS = ("name", "top_n", "use_filter", "processor")
+
+
+def _validate_collection_entry(entry: dict, index: int) -> dict:
+    """Type-check one EXT_QDRANT_COLLECTIONS JSON entry against the schema."""
+    where = f"EXT_QDRANT_COLLECTIONS[{index}]"
+
+    unknown = sorted(set(entry) - set(COLLECTION_ENTRY_KEYS))
+    if unknown:
+        raise SystemExit(
+            f"[error] {where} has unknown key(s) {unknown}; allowed: "
+            f"{list(COLLECTION_ENTRY_KEYS)}. The server drops unknown keys silently."
+        )
+
+    name = entry.get("name")
+    if not isinstance(name, str) or not name.strip():
+        raise SystemExit(f'[error] {where} needs a non-empty string "name".')
+    entry["name"] = name.strip()
+
+    if "top_n" in entry:
+        top_n = entry["top_n"]
+        # bool is an int subclass — `true` must not pass as 1.
+        if isinstance(top_n, bool) or not isinstance(top_n, int) or top_n <= 0:
+            raise SystemExit(
+                f"[error] {where}.top_n must be a positive integer, got {top_n!r}."
+            )
+
+    if "use_filter" in entry and not isinstance(entry["use_filter"], bool):
+        raise SystemExit(
+            f"[error] {where}.use_filter must be JSON true/false, "
+            f"got {entry['use_filter']!r}."
+        )
+
+    if "processor" in entry:
+        processor = entry["processor"]
+        if not isinstance(processor, str) or processor not in KNOWN_PROCESSORS:
+            raise SystemExit(
+                f"[error] {where}.processor must be one of "
+                f"{'|'.join(KNOWN_PROCESSORS)}, got {processor!r}."
+            )
+
+    return entry
+
+
+def _reject_duplicate_names(entries: list[dict]) -> None:
+    seen: set[str] = set()
+    for entry in entries:
+        if entry["name"] in seen:
+            raise SystemExit(
+                f"[error] EXT_QDRANT_COLLECTIONS lists {entry['name']!r} more than once."
+            )
+        seen.add(entry["name"])
+
+
+def _parse_qdrant_collections(raw: str) -> list[dict]:
+    """Parse EXT_QDRANT_COLLECTIONS into `qdrant_config.collections` entries.
+
+    Accepts either:
+      - a comma-separated list of names: `pubmed-articles,us-patents`
+      - a JSON array of entry objects for per-collection configs:
+        `[{"name": "pubmed-articles", "top_n": 50, "use_filter": false,
+           "processor": "pubmed"}]`
+
+    The server-side schema requires each entry to be an object with a `name`
+    (bare strings are rejected), so the comma form is expanded here.
+    """
+    raw = raw.strip()
+    if raw.startswith("["):
+        try:
+            entries = json.loads(raw)
+        except json.JSONDecodeError as e:
+            raise SystemExit(f"[error] EXT_QDRANT_COLLECTIONS is not valid JSON: {e}")
+        if not isinstance(entries, list) or not all(
+            isinstance(entry, dict) for entry in entries
+        ):
+            raise SystemExit(
+                "[error] EXT_QDRANT_COLLECTIONS JSON must be an array of objects, "
+                'e.g. [{"name": "pubmed-articles", "top_n": 50}]'
+            )
+        entries = [_validate_collection_entry(e, i) for i, e in enumerate(entries)]
+        _reject_duplicate_names(entries)
+        return entries
+    entries = [{"name": name.strip()} for name in raw.split(",") if name.strip()]
+    _reject_duplicate_names(entries)
+    return entries
+
+
 def _build_config_from_env(kind: str) -> dict:
     def require(field: str, var: str) -> str:
         value = _env(var)
@@ -138,14 +271,28 @@ def _build_config_from_env(kind: str) -> dict:
             "url": require("url", "EXT_QDRANT_URL"),
             "api_key": require("api_key", "EXT_QDRANT_API_KEY"),
         }
-        if _env("EXT_QDRANT_PORT") is not None:
-            config["port"] = int(_env("EXT_QDRANT_PORT"))  # type: ignore[arg-type]
+        port = _env_int("EXT_QDRANT_PORT")
+        if port is not None:
+            config["port"] = port
         if _env("EXT_QDRANT_DEFAULT_COLLECTION") is not None:
             config["default_collection"] = _env("EXT_QDRANT_DEFAULT_COLLECTION")
-        if _env("EXT_QDRANT_APPLY_COURSE_FILTER") is not None:
-            config["apply_course_filter"] = _env(
-                "EXT_QDRANT_APPLY_COURSE_FILTER"
-            ).lower() in ("1", "true", "yes", "on")
+        # Optional read-side fan-out across additional collections. Ingest
+        # writes still go only to default_collection.
+        if _env("EXT_QDRANT_COLLECTIONS") is not None:
+            collections = _parse_qdrant_collections(_env("EXT_QDRANT_COLLECTIONS"))
+            if collections:
+                config["collections"] = collections
+        # apply_course_filter: when false, search omits the course_name
+        # payload constraint (shared corpora like pubmed). Backend defaults
+        # to true when omitted.
+        for field, var in (
+            ("parallel", "EXT_QDRANT_PARALLEL"),
+            ("sort_combined", "EXT_QDRANT_SORT_COMBINED"),
+            ("apply_course_filter", "EXT_QDRANT_APPLY_COURSE_FILTER"),
+        ):
+            flag = _env_bool(var)
+            if flag is not None:
+                config[field] = flag
         return config
 
     if kind == "embedding":
@@ -282,7 +429,7 @@ def cmd_delete(args) -> int:
 
 def cmd_set_active(args) -> int:
     project = _require_project(args.project_name)
-    is_active = args.active.lower() in ("1", "true", "yes", "on")
+    is_active = _parse_bool(args.active, "--active")
     status, body = _request(
         "PATCH",
         ENDPOINT_ACTIVE,
@@ -362,7 +509,7 @@ def main() -> int:
     a.add_argument(
         "--active",
         required=True,
-        help="true|false|1|0|yes|no — sets project_external_connections.is_active.",
+        help="true|false|1|0|yes|no|on|off — sets project_external_connections.is_active.",
     )
 
     t = sub.add_parser("test", help="POST /test — probe without persisting")
