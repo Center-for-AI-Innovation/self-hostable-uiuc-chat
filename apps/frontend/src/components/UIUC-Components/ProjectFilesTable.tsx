@@ -527,7 +527,7 @@ export function ProjectFilesTable({
                 size="lg"
                 variant="subtle"
                 loading={isManualRefreshing}
-                className="text-[--foreground] transition-colors duration-300 hover:bg-[--dashboard-background-faded] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[--dashboard-button]"
+                className="text-(--foreground) transition-colors duration-300 hover:bg-(--dashboard-background-faded) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)"
               >
                 <IconRefresh size={20} />
               </ActionIcon>
