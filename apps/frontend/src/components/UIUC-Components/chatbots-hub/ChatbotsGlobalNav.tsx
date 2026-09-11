@@ -23,16 +23,14 @@ export function ChatbotsGlobalNav({
 
   return (
     <header
-      className={`fixed left-0 right-0 top-0 z-50 bg-white/95 backdrop-blur-xs dark:bg-[#13294b] ${
-        hideBorder
-          ? ''
-          : 'border-b border-border dark:border-[#32517a]'
+      className={`fixed top-0 right-0 left-0 z-50 bg-white/95 backdrop-blur-xs dark:bg-[#13294b] ${
+        hideBorder ? '' : 'border-border border-b dark:border-[#32517a]'
       }`}
     >
       <div className="mx-auto flex h-[72px] w-full max-w-[1680px] items-center justify-between px-4 sm:px-8">
         <Link
           href="/"
-          className={`text-xl font-bold text-(--illinois-blue) dark:text-white sm:text-2xl ${montserrat_heading.variable} font-montserratHeading`}
+          className={`text-xl font-bold text-(--illinois-blue) sm:text-2xl dark:text-white ${montserrat_heading.variable} font-montserratHeading`}
         >
           <span className="text-(--illinois-orange-branding) dark:text-white">
             Illinois{' '}
@@ -50,7 +48,7 @@ export function ChatbotsGlobalNav({
                 data-active={isActive}
                 className={`${
                   montserrat_heading.variable
-                } flex items-center gap-2 rounded-md px-3 py-2 font-montserratHeading text-xs font-bold text-(--illinois-blue) transition-colors dark:text-white sm:px-4 sm:text-sm ${
+                } font-montserratHeading flex items-center gap-2 rounded-md px-3 py-2 text-xs font-bold text-(--illinois-blue) transition-colors sm:px-4 sm:text-sm dark:text-white ${
                   isActive
                     ? 'bg-(--illinois-orange)/10 dark:bg-white/10'
                     : 'hover:bg-(--illinois-orange)/10 dark:hover:bg-white/10'

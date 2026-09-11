@@ -127,7 +127,7 @@ export const UserSettings = () => {
         </Modal.Header>
         <Modal.Body
           data-settings-modal-body
-          className="mt-4 min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
+          className="mt-4 min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
           p={isSmallScreen ? 'xs' : 'md'}
         >
           <Tabs

@@ -513,7 +513,7 @@ const ModelDropdown: React.FC<
   return (
     <>
       <Title
-        className={`px-4 pt-4 ${montserrat_heading.variable} rounded-lg bg-(--modal-dark) p-4 font-montserratHeading text-(--modal-text) md:rounded-lg`}
+        className={`px-4 pt-4 ${montserrat_heading.variable} font-montserratHeading rounded-lg bg-(--modal-dark) p-4 text-(--modal-text) md:rounded-lg`}
         color="white"
         order={isSmallScreen ? 5 : 4}
       >
@@ -785,14 +785,14 @@ export const ModelSelect = React.forwardRef<HTMLDivElement, any>(
                     <div className="flex">
                       <div className="w-1" />
                       <div
-                        className={`${montserrat_paragraph.variable} flex-1 p-4 font-montserratParagraph`}
+                        className={`${montserrat_paragraph.variable} font-montserratParagraph flex-1 p-4`}
                       >
                         <div className="space-y-6">
                           {/* Countries of Concern Section */}
                           <div>
                             <Text
                               size={'sm'}
-                              className={`${montserrat_heading.variable} mb-2 font-montserratHeading font-semibold`}
+                              className={`${montserrat_heading.variable} font-montserratHeading mb-2 font-semibold`}
                             >
                               <span
                                 style={{
@@ -827,7 +827,7 @@ export const ModelSelect = React.forwardRef<HTMLDivElement, any>(
                           <div>
                             <Text
                               size={'sm'}
-                              className={`${montserrat_heading.variable} mb-2 font-montserratHeading font-semibold`}
+                              className={`${montserrat_heading.variable} font-montserratHeading mb-2 font-semibold`}
                             >
                               NCSA Hosted Models (100% free)
                             </Text>
@@ -844,7 +844,7 @@ export const ModelSelect = React.forwardRef<HTMLDivElement, any>(
                           <div>
                             <Text
                               size={'sm'}
-                              className={`${montserrat_heading.variable} mb-2 font-montserratHeading font-semibold`}
+                              className={`${montserrat_heading.variable} font-montserratHeading mb-2 font-semibold`}
                             >
                               OpenAI
                             </Text>
@@ -877,7 +877,7 @@ export const ModelSelect = React.forwardRef<HTMLDivElement, any>(
                           <div>
                             <Text
                               size={'sm'}
-                              className={`${montserrat_heading.variable} mb-2 font-montserratHeading font-semibold`}
+                              className={`${montserrat_heading.variable} font-montserratHeading mb-2 font-semibold`}
                             >
                               Azure OpenAI
                             </Text>
@@ -909,7 +909,7 @@ export const ModelSelect = React.forwardRef<HTMLDivElement, any>(
                           <div>
                             <Text
                               size={'sm'}
-                              className={`${montserrat_heading.variable} mb-2 font-montserratHeading font-semibold`}
+                              className={`${montserrat_heading.variable} font-montserratHeading mb-2 font-semibold`}
                             >
                               Anthropic
                             </Text>
@@ -941,7 +941,7 @@ export const ModelSelect = React.forwardRef<HTMLDivElement, any>(
                           <div>
                             <Text
                               size={'sm'}
-                              className={`${montserrat_heading.variable} mb-2 font-montserratHeading font-semibold`}
+                              className={`${montserrat_heading.variable} font-montserratHeading mb-2 font-semibold`}
                             >
                               OpenAI Compatible via Ollama
                             </Text>
@@ -973,7 +973,7 @@ export const ModelSelect = React.forwardRef<HTMLDivElement, any>(
                           <div>
                             <Text
                               size={'sm'}
-                              className={`${montserrat_heading.variable} mb-2 font-montserratHeading font-semibold`}
+                              className={`${montserrat_heading.variable} font-montserratHeading mb-2 font-semibold`}
                             >
                               On-device AI with WebLLM
                             </Text>
@@ -1009,7 +1009,7 @@ export const ModelSelect = React.forwardRef<HTMLDivElement, any>(
                           <div>
                             <Text
                               size={'sm'}
-                              className={`${montserrat_heading.variable} mb-2 font-montserratHeading font-semibold`}
+                              className={`${montserrat_heading.variable} font-montserratHeading mb-2 font-semibold`}
                             >
                               Google Gemini
                             </Text>
@@ -1038,7 +1038,7 @@ export const ModelSelect = React.forwardRef<HTMLDivElement, any>(
                           <div>
                             <Text
                               size={'sm'}
-                              className={`${montserrat_heading.variable} mb-2 font-montserratHeading font-semibold`}
+                              className={`${montserrat_heading.variable} font-montserratHeading mb-2 font-semibold`}
                             >
                               AWS Bedrock
                             </Text>

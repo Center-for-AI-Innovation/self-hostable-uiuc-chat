@@ -38,7 +38,7 @@ function EmailInput({
         type="text"
         placeholder="Add people by email"
         aria-label="Add people by email"
-        className={`${montserrat_paragraph.variable} w-full rounded-md border border-(--foreground-faded) bg-(--modal) px-10 py-2.5 font-montserratParagraph text-sm text-(--modal-text) placeholder-(--foreground-faded) transition-all duration-300 focus:border-(--illinois-orange)`}
+        className={`${montserrat_paragraph.variable} font-montserratParagraph w-full rounded-md border border-(--foreground-faded) bg-(--modal) px-10 py-2.5 text-sm text-(--modal-text) placeholder-(--foreground-faded) transition-all duration-300 focus:border-(--illinois-orange)`}
         value={value}
         onKeyDown={onKeyDown}
         onChange={onChange}
@@ -46,7 +46,7 @@ function EmailInput({
       />
       {error && (
         <p
-          className={`${montserrat_paragraph.variable} mt-1 font-montserratParagraph text-sm text-[-error]`}
+          className={`${montserrat_paragraph.variable} font-montserratParagraph mt-1 text-sm text-[-error]`}
         >
           {error}
         </p>
@@ -95,7 +95,7 @@ function EmailListItem({
       <button
         onClick={onDelete}
         aria-label={`Remove ${email}`}
-        className="rounded-full p-1.5 opacity-0 transition-all duration-300 hover:bg-(--background-faded) focus-visible:opacity-100 group-hover:opacity-100"
+        className="rounded-full p-1.5 opacity-0 transition-all duration-300 group-hover:opacity-100 hover:bg-(--background-faded) focus-visible:opacity-100"
       >
         <IconX className="h-4 w-4 text-(--foreground) transition-colors" />
       </button>

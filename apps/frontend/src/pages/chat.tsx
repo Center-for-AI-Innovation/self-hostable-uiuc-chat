@@ -200,7 +200,7 @@ const ChatPage: NextPage = () => {
       (currentEmail === '' && metadata?.is_private) ? (
         <MainPageBackground>
           <div
-            className={`flex items-center justify-center font-montserratHeading text-white ${montserrat_heading.variable}`}
+            className={`font-montserratHeading flex items-center justify-center text-white ${montserrat_heading.variable}`}
           >
             <span className="mr-2">Warming up the knowledge engines...</span>
             <LoadingSpinner size="sm" />

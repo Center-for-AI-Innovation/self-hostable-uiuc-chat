@@ -639,7 +639,7 @@ const ChatNavbar = ({ bannerUrl = '', isgpt4 = true }: ChatNavbarProps) => {
 
             {/* Sign in buttons */}
             <div
-              className="pl-1 pr-2"
+              className="pr-2 pl-1"
               style={{
                 // marginLeft: '-5px',
                 position: 'relative',

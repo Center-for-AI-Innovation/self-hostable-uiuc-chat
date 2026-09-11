@@ -50,7 +50,7 @@ export const ToolsItem = ({}) => {
         <div>
           <div className="flex flex-col"></div>
           <Title
-            className={`px-4 pt-4 ${montserrat_heading.variable} rounded-lg bg-(--modal-dark) p-4 font-montserratHeading text-(--modal-text)`}
+            className={`px-4 pt-4 ${montserrat_heading.variable} font-montserratHeading rounded-lg bg-(--modal-dark) p-4 text-(--modal-text)`}
             order={isSmallScreen ? 5 : 3}
           >
             Tools

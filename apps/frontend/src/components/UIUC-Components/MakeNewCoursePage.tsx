@@ -376,7 +376,7 @@ const MakeNewCoursePage = ({
       <main
         id="main-content"
         tabIndex={-1}
-        className="course-page-main flex min-h-screen w-full flex-col items-center px-4 pb-28 pt-20 sm:px-6"
+        className="course-page-main flex min-h-screen w-full flex-col items-center px-4 pt-20 pb-28 sm:px-6"
       >
         <h1 className="sr-only">Create New Project</h1>
         <div className="flex w-full flex-1 flex-col items-center py-6">
@@ -409,13 +409,13 @@ const MakeNewCoursePage = ({
         {/* Sticky Footer Navigation */}
         <nav
           aria-label="Wizard navigation"
-          className="fixed bottom-0 left-0 right-0 z-40 border-t border-(--dashboard-border) bg-(--background)"
+          className="fixed right-0 bottom-0 left-0 z-40 border-t border-(--dashboard-border) bg-(--background)"
         >
           <div className="mx-auto flex max-w-[720px] items-center justify-between px-4 py-3 sm:px-6">
             <Button
               variant="outline"
               size="sm"
-              className="hover:bg-(--foreground)/10 border-(--foreground) text-(--foreground) hover:text-(--foreground)"
+              className="border-(--foreground) text-(--foreground) hover:bg-(--foreground)/10 hover:text-(--foreground)"
               onClick={goToPreviousStep}
               disabled={isFirstStep || shouldBlockNavigation}
               aria-label="Go to previous step"
@@ -445,7 +445,7 @@ const MakeNewCoursePage = ({
             <Button
               variant="outline"
               size="sm"
-              className="hover:bg-(--foreground)/10 border-(--foreground) text-(--foreground) hover:text-(--foreground)"
+              className="border-(--foreground) text-(--foreground) hover:bg-(--foreground)/10 hover:text-(--foreground)"
               aria-label={
                 isLastStep
                   ? 'Start chatting with your new chatbot'

@@ -14,7 +14,7 @@ function InputGroup({ className, ...props }: React.ComponentProps<'div'>) {
       data-slot="input-group"
       role="group"
       className={cn(
-        'group/input-group relative flex h-9 w-full min-w-0 items-center rounded-md border border-input shadow-xs outline-hidden transition-[color,box-shadow] has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-start]]:h-auto has-[>textarea]:h-auto has-[>[data-align=block-end]]:flex-col has-[>[data-align=block-start]]:flex-col has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot=input-group-control]:focus-visible]:ring-[3px] has-[[data-slot][aria-invalid=true]]:ring-[3px] has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 dark:bg-input/30 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40 [&>input]:has-[>[data-align=block-end]]:pt-3 [&>input]:has-[>[data-align=block-start]]:pb-3 [&>input]:has-[>[data-align=inline-end]]:pr-1.5 [&>input]:has-[>[data-align=inline-start]]:pl-1.5 focus-within:in-data-[slot=combobox-content]:border-inherit focus-within:in-data-[slot=combobox-content]:ring-0',
+        'group/input-group border-input has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 dark:bg-input/30 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40 relative flex h-9 w-full min-w-0 items-center rounded-md border shadow-xs outline-hidden transition-[color,box-shadow] focus-within:in-data-[slot=combobox-content]:border-inherit focus-within:in-data-[slot=combobox-content]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:ring-[3px] has-[[data-slot][aria-invalid=true]]:ring-[3px] has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col has-[>textarea]:h-auto [&>input]:has-[>[data-align=block-end]]:pt-3 [&>input]:has-[>[data-align=block-start]]:pb-3 [&>input]:has-[>[data-align=inline-end]]:pr-1.5 [&>input]:has-[>[data-align=inline-start]]:pl-1.5',
         className,
       )}
       {...props}
@@ -108,7 +108,7 @@ function InputGroupText({ className, ...props }: React.ComponentProps<'span'>) {
   return (
     <span
       className={cn(
-        "flex items-center gap-2 text-sm text-muted-foreground [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none",
+        "text-muted-foreground flex items-center gap-2 text-sm [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       {...props}

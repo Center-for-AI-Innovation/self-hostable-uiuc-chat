@@ -120,7 +120,7 @@ const CustomSwitch: React.FC<CustomSwitchProps> = ({
       <span
         className={`${
           montserrat_paragraph.variable
-        } text-md ml-3 flex items-center font-montserratParagraph transition-colors duration-200 ease-in-out ${
+        } text-md font-montserratParagraph ml-3 flex items-center transition-colors duration-200 ease-in-out ${
           !disabled && isContainerHovered
             ? 'text-(--dashboard-foreground)'
             : 'text-(--dashboard-foreground)'

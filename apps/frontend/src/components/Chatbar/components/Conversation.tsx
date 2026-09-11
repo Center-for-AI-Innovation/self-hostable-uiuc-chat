@@ -123,7 +123,7 @@ export const ConversationComponent = ({
           />
           <input
             aria-label="Rename Chat Input"
-            className="mr-12 flex-1 overflow-hidden text-ellipsis border-0 bg-transparent text-left text-[.75rem] leading-3 text-(--sidebar)"
+            className="mr-12 flex-1 overflow-hidden border-0 bg-transparent text-left text-[.75rem] leading-3 text-ellipsis text-(--sidebar)"
             type="text"
             value={renameValue}
             onChange={(e) => setRenameValue(e.target.value)}
@@ -162,7 +162,7 @@ export const ConversationComponent = ({
               }`}
           > */}
           <div
-            className={`relative flex-1 overflow-hidden text-ellipsis whitespace-nowrap break-all text-left leading-3 ${
+            className={`relative flex-1 overflow-hidden text-left leading-3 break-all text-ellipsis whitespace-nowrap ${
               selectedConversation?.id === conversation.id ? 'pr-12' : 'pr-1'
             }`}
           >
@@ -179,7 +179,7 @@ export const ConversationComponent = ({
 
       {(isDeleting || isRenaming) &&
         selectedConversation?.id === conversation.id && (
-          <div className="absolute right-1 top-[.5rem] z-10 flex">
+          <div className="absolute top-[.5rem] right-1 z-10 flex">
             <SidebarActionButton
               ariaLabel={isDeleting ? 'Confirm Delete' : 'Confirm Rename'}
               handleClick={handleConfirm}
@@ -203,7 +203,7 @@ export const ConversationComponent = ({
       {selectedConversation?.id === conversation.id &&
         !isDeleting &&
         !isRenaming && (
-          <div className="absolute right-1 top-[.5rem] z-10 flex">
+          <div className="absolute top-[.5rem] right-1 z-10 flex">
             <SidebarActionButton
               ariaLabel="Edit Chat"
               handleClick={handleOpenRenameModal}

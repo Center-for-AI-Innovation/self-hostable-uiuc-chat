@@ -406,7 +406,7 @@ export default function WebsiteIngestForm({
               className="group relative cursor-pointer overflow-hidden rounded-2xl border border-(--dashboard-border) bg-transparent px-6 py-4 text-(--dashboard-foreground) transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
               style={{ height: '100%' }}
             >
-              <div className="-ml-2 mb-2 flex items-center justify-between">
+              <div className="mb-2 -ml-2 flex items-center justify-between">
                 <div className="flex items-center space-x-1">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full">
                     <IconWorldDownload className="h-8 w-8" aria-hidden="true" />
@@ -478,7 +478,7 @@ export default function WebsiteIngestForm({
                       handleUrlChange(e)
                     }}
                   />
-                  <div className="pb-2 pt-2">
+                  <div className="pt-2 pb-2">
                     <Tooltip
                       multiline
                       w={400}
@@ -550,7 +550,7 @@ export default function WebsiteIngestForm({
 
                   <Text
                     style={{ fontSize: '16px' }}
-                    className={`${montserrat_heading.variable} mt-4 font-montserratHeading`}
+                    className={`${montserrat_heading.variable} font-montserratHeading mt-4`}
                   >
                     Limit web crawl
                   </Text>

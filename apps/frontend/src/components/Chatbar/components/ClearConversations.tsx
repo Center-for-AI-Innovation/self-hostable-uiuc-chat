@@ -29,7 +29,7 @@ export const ClearConversations: FC<Props> = ({ onClearConversations }) => {
 
       <div className="flex w-[40px]">
         <button
-          className="ml-auto mr-1 border-none bg-transparent p-0 text-neutral-400 hover:text-neutral-100"
+          className="mr-1 ml-auto border-none bg-transparent p-0 text-neutral-400 hover:text-neutral-100"
           aria-label="Confirm clear conversations"
           onClick={(e) => {
             e.stopPropagation()

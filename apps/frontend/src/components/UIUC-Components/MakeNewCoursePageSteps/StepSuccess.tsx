@@ -25,7 +25,7 @@ const StepSuccess = ({
   return (
     <div className="step">
       <div className="step_content">
-        <div className="flex flex-col items-center px-4 pb-4 pt-2">
+        <div className="flex flex-col items-center px-4 pt-2 pb-4">
           <h2 className="text-center text-2xl font-semibold text-(--foreground)">
             Success! Your chatbot is live!
           </h2>
@@ -37,7 +37,7 @@ const StepSuccess = ({
               className="flex flex-1 flex-col rounded-lg border border-(--dashboard-border) bg-(--background)"
             >
               <div className="flex flex-1 flex-col">
-                <div className="flex items-center gap-3 px-5 pb-3 pt-4">
+                <div className="flex items-center gap-3 px-5 pt-4 pb-3">
                   <MessageSquare
                     size={24}
                     aria-hidden="true"
@@ -98,7 +98,7 @@ const StepSuccess = ({
               aria-label="Customize your chatbot"
               className="flex flex-1 flex-col rounded-lg border border-(--dashboard-border) bg-(--background)"
             >
-              <div className="flex items-center gap-3 px-5 pb-3 pt-4">
+              <div className="flex items-center gap-3 px-5 pt-4 pb-3">
                 <Settings
                   size={24}
                   aria-hidden="true"
@@ -143,7 +143,7 @@ const StepSuccess = ({
               <Button
                 variant="outline"
                 size="lg"
-                className="hover:bg-(--background-faded)/80 w-full rounded-none rounded-b-lg border-0 bg-(--background-faded)"
+                className="w-full rounded-none rounded-b-lg border-0 bg-(--background-faded) hover:bg-(--background-faded)/80"
                 onClick={onContinueDesigning}
               >
                 Continue Designing

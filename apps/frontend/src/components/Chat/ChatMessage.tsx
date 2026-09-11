@@ -1383,7 +1383,7 @@ export const ChatMessage = memo(
                 p({ node, children }) {
                   return (
                     <p
-                      className={`self-start text-base font-normal ${montserrat_paragraph.variable} pb-2 font-montserratParagraph`}
+                      className={`self-start text-base font-normal ${montserrat_paragraph.variable} font-montserratParagraph pb-2`}
                     >
                       {children}
                     </p>
@@ -1401,7 +1401,7 @@ export const ChatMessage = memo(
                 ol({ children }) {
                   return (
                     <ol
-                      className={`text-base font-normal ${montserrat_paragraph.variable} ml-4 font-montserratParagraph lg:ml-6`}
+                      className={`text-base font-normal ${montserrat_paragraph.variable} font-montserratParagraph ml-4 lg:ml-6`}
                     >
                       {children}
                     </ol>
@@ -1410,7 +1410,7 @@ export const ChatMessage = memo(
                 li({ children }) {
                   return (
                     <li
-                      className={`text-base font-normal ${montserrat_paragraph.variable} wrap-break-word font-montserratParagraph`}
+                      className={`text-base font-normal ${montserrat_paragraph.variable} font-montserratParagraph wrap-break-word`}
                     >
                       {children}
                     </li>
@@ -1428,14 +1428,14 @@ export const ChatMessage = memo(
                 },
                 th({ children }) {
                   return (
-                    <th className="wrap-break-word border border-black bg-gray-500 px-3 py-1 text-white dark:border-white">
+                    <th className="border border-black bg-gray-500 px-3 py-1 wrap-break-word text-white dark:border-white">
                       {children}
                     </th>
                   )
                 },
                 td({ children }) {
                   return (
-                    <td className="wrap-break-word border border-black px-3 py-1 dark:border-white">
+                    <td className="border border-black px-3 py-1 wrap-break-word dark:border-white">
                       {children}
                     </td>
                   )
@@ -1844,7 +1844,7 @@ export const ChatMessage = memo(
                     <div className="flex w-full flex-col">
                       <textarea
                         ref={textareaRef}
-                        className="w-full resize-none whitespace-pre-wrap rounded-md border border-(--foreground-faded) bg-(--background-faded) p-3 focus:border-(--primary)"
+                        className="w-full resize-none rounded-md border border-(--foreground-faded) bg-(--background-faded) p-3 whitespace-pre-wrap focus:border-(--primary)"
                         value={messageContent}
                         onChange={handleInputChange}
                         onKeyDown={handlePressEnter}
@@ -2427,7 +2427,7 @@ export const ChatMessage = memo(
 
                           {sourceThumbnails.length > 0 && (
                             <div className="flex items-center">
-                              <div className="ml-1 mr-1 h-4 border-l border-gray-300"></div>
+                              <div className="mr-1 ml-1 h-4 border-l border-gray-300"></div>
                               <div className="relative flex">
                                 {sourceThumbnails.map((thumbnail, index) => (
                                   <div

@@ -57,7 +57,7 @@ export const FancyRetrieval = () => {
         >
           <div>
             <Title
-              className={`${montserrat_heading.variable} rounded-lg bg-(--modal-dark) p-4 font-montserratHeading text-(--modal-text)`}
+              className={`${montserrat_heading.variable} font-montserratHeading rounded-lg bg-(--modal-dark) p-4 text-(--modal-text)`}
               color="white"
               order={isSmallScreen ? 5 : 4}
             >
@@ -69,7 +69,7 @@ export const FancyRetrieval = () => {
               // checked={useMQRetrieval}
               checked={false}
               color="orange"
-              className="mx-4 pl-2 pt-2"
+              className="mx-4 pt-2 pl-2"
               classNames={{
                 label: `${
                   montserrat_paragraph.variable

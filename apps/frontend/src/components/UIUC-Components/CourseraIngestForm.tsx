@@ -79,7 +79,7 @@ export default function CourseraIngestForm(): JSX.Element {
               className="group relative cursor-pointer overflow-hidden rounded-2xl border border-(--dashboard-border) bg-transparent px-6 py-4 text-(--dashboard-foreground) transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
               style={{ height: '100%' }}
             >
-              <div className="-ml-2 mb-2 flex items-center justify-between">
+              <div className="mb-2 -ml-2 flex items-center justify-between">
                 <div className="flex items-center space-x-1">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full">
                     <Image
@@ -118,7 +118,7 @@ export default function CourseraIngestForm(): JSX.Element {
           <div className="">
             <div className="">
               <div>
-                <div className="wrap-break-word text-sm sm:text-base">
+                <div className="text-sm wrap-break-word sm:text-base">
                   <Text className="mb-2 text-sm font-semibold text-(--illinois-orange)">
                     Coming soon: Coursera ingest is temporarily unavailable.
                   </Text>

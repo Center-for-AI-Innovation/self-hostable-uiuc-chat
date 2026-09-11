@@ -71,14 +71,14 @@ function DocumentsCard({
             <DialogHeader>
               <DialogTitle>Please confirm your action</DialogTitle>
             </DialogHeader>
-            <p className="text-sm text-popover-foreground">
+            <p className="text-popover-foreground text-sm">
               {`Are you sure you want to export all the documents and embeddings?`}
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <Button
                 type="button"
                 variant="ghost"
-                className="rounded-md bg-transparent text-popover-foreground hover:bg-(--dashboard-button-hover)"
+                className="text-popover-foreground rounded-md bg-transparent hover:bg-(--dashboard-button-hover)"
                 onClick={() => setExportModalOpened(false)}
               >
                 Cancel

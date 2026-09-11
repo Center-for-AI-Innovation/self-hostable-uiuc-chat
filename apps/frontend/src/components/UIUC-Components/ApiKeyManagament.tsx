@@ -310,7 +310,7 @@ axios.post('${baseUrl}/api/chat-api/chat', data, {
                   order={3}
                   className={`${
                     montserrat_heading.variable
-                  } min-w-0 font-montserratHeading text-base text-(--illinois-orange) sm:text-xl ${
+                  } font-montserratHeading min-w-0 text-base text-(--illinois-orange) sm:text-xl ${
                     course_name.length > 40
                       ? 'max-w-[120px] truncate sm:max-w-[300px] lg:max-w-[400px]'
                       : ''
@@ -379,7 +379,7 @@ axios.post('${baseUrl}/api/chat-api/chat', data, {
                       <Text
                         size="md"
                         weight={600}
-                        className={`${montserrat_paragraph.variable} select-text font-montserratParagraph text-(--dashboard-foreground)`}
+                        className={`${montserrat_paragraph.variable} font-montserratParagraph text-(--dashboard-foreground) select-text`}
                       >
                         API Documentation
                       </Text>
@@ -404,7 +404,7 @@ axios.post('${baseUrl}/api/chat-api/chat', data, {
                     <div className="mt-4 px-2 text-(--dashboard-foreground)">
                       <Text
                         size="md"
-                        className={`${montserrat_paragraph.variable} select-text font-montserratParagraph`}
+                        className={`${montserrat_paragraph.variable} font-montserratParagraph select-text`}
                       >
                         This API is <i>stateless</i>, meaning each request is
                         independent of others. For multi-turn conversations,
@@ -462,7 +462,7 @@ axios.post('${baseUrl}/api/chat-api/chat', data, {
                           </List.Item>
                         </List>
                         <Title
-                          className={`px-1 py-2 ${montserrat_paragraph.variable} inline-block select-text font-montserratParagraph`}
+                          className={`px-1 py-2 ${montserrat_paragraph.variable} font-montserratParagraph inline-block select-text`}
                           size="md"
                           order={4}
                           style={{ marginTop: '1.5rem' }}
@@ -543,7 +543,7 @@ axios.post('${baseUrl}/api/chat-api/chat', data, {
                 <Input
                   value={apiKey}
                   aria-label="Your API Key"
-                  className={`${montserrat_paragraph.variable} mt-4 w-full font-montserratParagraph`}
+                  className={`${montserrat_paragraph.variable} font-montserratParagraph mt-4 w-full`}
                   radius={'md'}
                   size={'md'}
                   readOnly

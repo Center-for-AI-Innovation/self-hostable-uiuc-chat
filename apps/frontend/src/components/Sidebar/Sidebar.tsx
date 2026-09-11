@@ -210,7 +210,7 @@ const Sidebar = <T,>({
             <div className="min-w-0 grow">
               {/* Name */}
               <div
-                className="line-clamp-3 max-w-full wrap-break-word text-[15px] font-bold leading-[125%] md:text-[16px]"
+                className="line-clamp-3 max-w-full text-[15px] leading-[125%] font-bold wrap-break-word md:text-[16px]"
                 title={
                   courseName === 'chat'
                     ? 'Illinois flagship chatbot'
@@ -289,7 +289,7 @@ const Sidebar = <T,>({
               {itemComponent}
             </div>
           ) : (
-            <div className="mt-8 select-none text-center text-(--foreground) opacity-50">
+            <div className="mt-8 text-center text-(--foreground) opacity-50 select-none">
               <IconMistOff className="mx-auto mb-3" aria-hidden="true" />
               <span className="text-[14px] leading-normal">
                 {t('No data.')}
@@ -306,7 +306,7 @@ const Sidebar = <T,>({
     </nav>
   ) : (
     <div className="relative">
-      <div className="absolute left-2 top-2 z-150">
+      <div className="absolute top-2 left-2 z-150">
         <button
           tabIndex={0}
           aria-label="Open Sidebar"

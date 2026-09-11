@@ -12,7 +12,7 @@ const CropwizardLicenses: NextPage = () => {
             h2 to fontSize 2.2rem + headings.fontFamily 'Montserrat' (weight 700, lh 1.35),
             NOT Mantine's 1.625rem default. Matches chat.illinois.edu exactly. */}
         <h2
-          className={`${montserrat_heading.variable} font-montserratHeading text-[2.2rem] font-bold leading-[1.35]`}
+          className={`${montserrat_heading.variable} font-montserratHeading text-[2.2rem] leading-[1.35] font-bold`}
         >
           CropWizard Document Licenses
         </h2>

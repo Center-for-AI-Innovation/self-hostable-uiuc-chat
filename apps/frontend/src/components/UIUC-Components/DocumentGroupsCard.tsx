@@ -71,10 +71,10 @@ function DocumentGroupsCard({
                 <div className="flex bg-(--background-faded)">
                   <div className="w-1 bg-(--illinois-orange)" />
                   <div
-                    className={`${montserrat_paragraph.variable} mb-4 flex-1 p-4 font-montserratParagraph`}
+                    className={`${montserrat_paragraph.variable} font-montserratParagraph mb-4 flex-1 p-4`}
                   >
                     <p
-                      className={`${montserrat_paragraph.variable} mb-4 font-montserratParagraph text-(--foreground)`}
+                      className={`${montserrat_paragraph.variable} font-montserratParagraph mb-4 text-(--foreground)`}
                     >
                       Document Groups help you organize and control your
                       content:

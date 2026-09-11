@@ -287,13 +287,13 @@ export const WebScrape = ({
     <>
       <Title
         order={3}
-        className={`w-full text-center ${montserrat_heading.variable} pt-4 font-montserratHeading`}
+        className={`w-full text-center ${montserrat_heading.variable} font-montserratHeading pt-4`}
       >
         OR
       </Title>
       <Title
         order={4}
-        className={`w-full text-center ${montserrat_heading.variable} mt-4 font-montserratHeading`}
+        className={`w-full text-center ${montserrat_heading.variable} font-montserratHeading mt-4`}
       >
         Web scrape any website that allows it
       </Title>
@@ -380,7 +380,7 @@ export const WebScrape = ({
                   isUrlUpdated
                     ? 'bg-(--dashboard-button)'
                     : 'border-(--dashboard-button)'
-                } text-ellipsis text-ellipsis p-2 ${
+                } p-2 text-ellipsis ${
                   isUrlUpdated
                     ? 'text-(--dashboard-button-foreground)'
                     : 'text-(--dashboard-button-foreground)'
@@ -495,7 +495,7 @@ export const WebScrape = ({
                   isUrlUpdated
                     ? 'bg-(--dashboard-button)'
                     : 'border-(--dashboard-button)'
-                } text-ellipsis text-ellipsis p-2 ${
+                } p-2 text-ellipsis ${
                   isUrlUpdated
                     ? 'text-(--dashboard-button-foreground)'
                     : 'text-(--dashboard-button-foreground)'
@@ -517,7 +517,7 @@ export const WebScrape = ({
               event.preventDefault()
             }}
           >
-            <div className="pb-2 pt-2">
+            <div className="pt-2 pb-2">
               <Tooltip
                 multiline
                 w={400}

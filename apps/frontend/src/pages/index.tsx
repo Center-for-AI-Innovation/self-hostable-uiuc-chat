@@ -236,7 +236,7 @@ const Home: NextPage = () => {
                 </h1>
               </div>
 
-              <div className="mb-8 mt-4 text-sm text-(--foreground-subtle)">
+              <div className="mt-4 mb-8 text-sm text-(--foreground-subtle)">
                 Deep search your documents, build an AI-teaching assistant,
                 accelerate your literature review,{' '}
                 <span className="whitespace-nowrap">and get creative.</span>
@@ -294,7 +294,7 @@ const Home: NextPage = () => {
               </div>
 
               <div
-                className="mr-8 mt-[2px] hidden text-right text-xs sm:mr-4 sm:mt-[-8px]"
+                className="mt-[2px] mr-8 hidden text-right text-xs sm:mt-[-8px] sm:mr-4"
                 style={{ color: 'var(--illinois-orange)' }}
               >
                 Upload almost anything
@@ -319,7 +319,7 @@ const Home: NextPage = () => {
               </div>
 
               <div className="w-full">
-                <div className="ml-auto mr-auto max-w-5xl">
+                <div className="mr-auto ml-auto max-w-5xl">
                   <FlagshipChatbots />
                 </div>
               </div>
@@ -894,7 +894,7 @@ function FlagshipChatbots() {
   ]
 
   return (
-    <div className="ml-auto mr-auto grid grid-cols-1 gap-6 sm:grid-cols-3">
+    <div className="mr-auto ml-auto grid grid-cols-1 gap-6 sm:grid-cols-3">
       {cards.map((card) => (
         <Card
           key={card.course_slug}
@@ -944,7 +944,7 @@ function FlagshipChatbots() {
                 {card.tagline}
               </div>
 
-              <div className="mt-1 flex justify-end sm:ml-auto sm:mt-0">
+              <div className="mt-1 flex justify-end sm:mt-0 sm:ml-auto">
                 <IconArrowNarrowRight
                   size={28}
                   strokeWidth={1.25}

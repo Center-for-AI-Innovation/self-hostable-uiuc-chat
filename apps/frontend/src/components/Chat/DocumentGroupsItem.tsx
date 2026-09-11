@@ -58,7 +58,7 @@ export const DocumentGroupsItem = ({}) => {
         <div>
           <div className="flex flex-col"></div>
           <Title
-            className={`px-4 pt-4 ${montserrat_heading.variable} rounded-lg bg-(--modal-dark) p-4 font-montserratHeading md:rounded-lg`}
+            className={`px-4 pt-4 ${montserrat_heading.variable} font-montserratHeading rounded-lg bg-(--modal-dark) p-4 md:rounded-lg`}
             order={isSmallScreen ? 5 : 3}
           >
             Document Groups

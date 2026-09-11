@@ -1782,7 +1782,7 @@ export const Chat = memo(
     const renderIntroductoryStatements = () => {
       return (
         <div className="chat_welcome xs:mx-2 mt-4 max-w-3xl gap-3 px-4 last:mb-2 sm:mx-4 md:mx-auto lg:mx-auto">
-          <div className="backdrop-filter-[blur(10px)] rounded-lg bg-(--welcome-background) p-6">
+          <div className="rounded-lg bg-(--welcome-background) p-6 backdrop-filter-[blur(10px)]">
             <Text
               className={`mb-2 text-lg ${montserrat_heading.variable} font-montserratHeading`}
               style={{ whiteSpace: 'pre-wrap' }}
@@ -1841,7 +1841,7 @@ export const Chat = memo(
                     <Button
                       variant="link"
                       tabIndex={-1}
-                      className={`text-md h-auto p-2 font-bold leading-relaxed text-inherit hover:underline ${montserrat_paragraph.variable} font-montserratParagraph`}
+                      className={`text-md h-auto p-2 leading-relaxed font-bold text-inherit hover:underline ${montserrat_paragraph.variable} font-montserratParagraph`}
                     >
                       <IconArrowRight
                         size={25}
@@ -2059,7 +2059,7 @@ export const Chat = memo(
             </div>
 */}
             {permission == 'edit' ? (
-              <div className="group absolute right-4 top-4 z-20">
+              <div className="group absolute top-4 right-4 z-20">
                 <button
                   aria-label="Admin Dashboard"
                   className="rounded-md border border-(--dashboard-border) bg-transparent p-[.35rem] text-(--foreground) hover:border-(--dashboard-button) hover:bg-transparent hover:text-(--dashboard-button)"
@@ -2069,14 +2069,14 @@ export const Chat = memo(
                 >
                   <IconSettings stroke={1.5} size={20} aria-hidden="true" />
                 </button>
-                <div className="pointer-events-none absolute right-0 top-full z-50 mt-2 whitespace-nowrap rounded bg-(--background-faded) px-2 py-1 text-sm text-(--foreground) opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="pointer-events-none absolute top-full right-0 z-50 mt-2 rounded bg-(--background-faded) px-2 py-1 text-sm whitespace-nowrap text-(--foreground) opacity-0 transition-opacity group-hover:opacity-100">
                   Admin Dashboard
                 </div>
               </div>
             ) : null}
 
             <div
-              className="relative max-w-full flex-1 overflow-y-auto overflow-x-hidden pb-32"
+              className="relative max-w-full flex-1 overflow-x-hidden overflow-y-auto pb-32"
               tabIndex={0}
               role="region"
               aria-label="Chat messages"
@@ -2150,7 +2150,7 @@ export const Chat = memo(
             </div>
 
             {/* ChatInput moved outside scroll container and positioned at bottom */}
-            <div className="absolute bottom-0 left-0 right-0 z-10">
+            <div className="absolute right-0 bottom-0 left-0 z-10">
               <ChatInput
                 stopConversationRef={stopConversationRef}
                 textareaRef={textareaRef}

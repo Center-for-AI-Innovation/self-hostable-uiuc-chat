@@ -64,13 +64,13 @@ export const TemperatureSlider: FC<Props> = ({
   return (
     <div className="flex flex-col">
       <Title
-        className={`px-4 pt-4 ${montserrat_heading.variable} rounded-lg bg-(--modal-dark) p-4 font-montserratHeading text-(--modal-text) md:rounded-lg`}
+        className={`px-4 pt-4 ${montserrat_heading.variable} font-montserratHeading rounded-lg bg-(--modal-dark) p-4 text-(--modal-text) md:rounded-lg`}
         order={isSmallScreen ? 5 : 4}
       >
         {label}
       </Title>
       <div className="mx-6 my-4 flex flex-col">
-        <div className={`mb-1 mt-2 text-center`}>
+        <div className={`mt-2 mb-1 text-center`}>
           <div className="${isSmallScreen ? 'text-xs' : ''} inline-block rounded-lg bg-(--primary) p-2 text-2xl font-bold text-white">
             {temperature.toFixed(1)}
           </div>

@@ -293,7 +293,7 @@ export default function ShareSettingsModal({
               Sharing and Access
             </h2>
             <p
-              className={`${montserrat_paragraph.variable} mt-1 font-montserratParagraph text-sm text-(--foreground-faded)`}
+              className={`${montserrat_paragraph.variable} font-montserratParagraph mt-1 text-sm text-(--foreground-faded)`}
             >
               Collaborate with members on this project
             </p>
@@ -326,7 +326,7 @@ export default function ShareSettingsModal({
                   value={shareUrl}
                   readOnly
                   aria-label="Share link"
-                  className={`${montserrat_paragraph.variable} w-full rounded-lg bg-(--background-faded) px-4 py-2.5 font-montserratParagraph text-sm text-(--foreground) ring-1 ring-(--background-dark) transition-all duration-300 focus:outline-hidden focus:ring-2 focus:ring-(--illinois-orange)`}
+                  className={`${montserrat_paragraph.variable} font-montserratParagraph w-full rounded-lg bg-(--background-faded) px-4 py-2.5 text-sm text-(--foreground) ring-1 ring-(--background-dark) transition-all duration-300 focus:ring-2 focus:ring-(--illinois-orange) focus:outline-hidden`}
                 />
               </div>
               <button
@@ -391,7 +391,7 @@ export default function ShareSettingsModal({
                     align="end"
                     side="bottom"
                     sideOffset={8}
-                    className="w-72 rounded-lg border-(--background-dark) bg-(--modal) p-1.5 text-(--foreground) data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 sm:w-80"
+                    className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 w-72 rounded-lg border-(--background-dark) bg-(--modal) p-1.5 text-(--foreground) sm:w-80"
                     style={{
                       animationDuration: '100ms',
                       willChange: 'transform, opacity',
@@ -407,7 +407,7 @@ export default function ShareSettingsModal({
                         <DropdownMenuRadioItem
                           key={opt.key}
                           value={opt.key}
-                          className="my-1 cursor-pointer gap-3 rounded-md pl-2! pr-2! hover:rounded-md hover:bg-(--background-dark) focus:rounded-md focus:bg-(--background-dark) focus:text-(--foreground) [&>span:first-child]:hidden"
+                          className="my-1 cursor-pointer gap-3 rounded-md pr-2! pl-2! hover:rounded-md hover:bg-(--background-dark) focus:rounded-md focus:bg-(--background-dark) focus:text-(--foreground) [&>span:first-child]:hidden"
                         >
                           {opt.icon}
                           <div className="flex flex-col">

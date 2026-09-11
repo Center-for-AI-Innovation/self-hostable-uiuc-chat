@@ -65,7 +65,7 @@ function TagBadge({
         aria-label={`Remove tag ${CHATBOT_TAG_CATEGORY_LABEL[tag.category]}: ${
           tag.value
         }`}
-        className="hover:bg-(--error)/10 ml-1 rounded-full p-0.5 text-(--foreground-faded) transition-colors hover:text-(--error)"
+        className="ml-1 rounded-full p-0.5 text-(--foreground-faded) transition-colors hover:bg-(--error)/10 hover:text-(--error)"
         onClick={onRemove}
         disabled={disabled}
       >
@@ -354,7 +354,7 @@ export default function ChatbotTagsEditor({
                         if (s.alreadyAdded) return
                         void addGeneralTagWithValue(s.value)
                       }}
-                      className="enabled:hover:bg-(--dashboard-border)/40 flex w-full items-center justify-between gap-3 rounded-sm px-2 py-1 text-left text-sm leading-tight text-(--foreground) disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex w-full items-center justify-between gap-3 rounded-sm px-2 py-1 text-left text-sm leading-tight text-(--foreground) enabled:hover:bg-(--dashboard-border)/40 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <span className="truncate">{s.value}</span>
                       <span className="shrink-0 text-xs text-(--foreground-faded)">

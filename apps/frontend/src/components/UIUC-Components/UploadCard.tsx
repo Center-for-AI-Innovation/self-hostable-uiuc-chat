@@ -133,7 +133,7 @@ export const UploadCard = memo(function UploadCard({
                 <h3
                   className={`${
                     montserrat_heading.variable
-                  } min-w-0 font-montserratHeading text-base font-bold text-(--illinois-orange) sm:text-xl ${
+                  } font-montserratHeading min-w-0 text-base font-bold text-(--illinois-orange) sm:text-xl ${
                     projectName.length > 40
                       ? 'max-w-[120px] truncate sm:max-w-[300px] lg:max-w-[400px]'
                       : ''
@@ -143,12 +143,12 @@ export const UploadCard = memo(function UploadCard({
                 </h3>
               </div>
 
-              <div className="-inset-0.25 relative shrink-0 rounded-3xl p-0.5">
+              <div className="relative -inset-0.25 shrink-0 rounded-3xl p-0.5">
                 <Button
                   type="button"
                   variant="dashboard"
                   onClick={() => setIsShareModalOpen(true)}
-                  className={`relative h-auto transform rounded-3xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button) ${montserrat_paragraph.variable} min-h-8 px-2 font-montserratParagraph text-sm font-normal sm:min-h-10 sm:px-4 sm:text-base`}
+                  className={`relative h-auto transform rounded-3xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button) ${montserrat_paragraph.variable} font-montserratParagraph min-h-8 px-2 text-sm font-normal sm:min-h-10 sm:px-4 sm:text-base`}
                 >
                   <span className="hidden sm:inline">Sharing and Access</span>
                   <span className="inline sm:hidden">Access</span>
@@ -181,7 +181,7 @@ export const UploadCard = memo(function UploadCard({
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-3 px-4 py-4 sm:px-6 sm:py-6 md:grid-cols-2 md:gap-4 md:px-8 min-[1192px]:grid-cols-3 min-[1192px]:gap-5">
+          <div className="grid grid-cols-1 gap-3 px-4 py-4 min-[1192px]:grid-cols-3 min-[1192px]:gap-5 sm:px-6 sm:py-6 md:grid-cols-2 md:gap-4 md:px-8">
             <CanvasIngestForm
               project_name={projectName}
               setUploadFiles={handleSetUploadFiles}
@@ -222,12 +222,12 @@ export const UploadCard = memo(function UploadCard({
             backgroundColor: 'var(--dashboard-sidebar-background)',
             color: 'var(--dashboard-foreground)',
           }}
-          className="flex-[1_1_100%] p-4 sm:p-6 min-[960px]:flex-[1_1_40%] min-[960px]:border-l min-[960px]:border-(--dashboard-border)"
+          className="flex-[1_1_100%] p-4 min-[960px]:flex-[1_1_40%] min-[960px]:border-l min-[960px]:border-(--dashboard-border) sm:p-6"
         >
           <div className="flex h-full flex-col justify-start space-y-6">
             <div className="flex flex-col">
               <h3
-                className={`${montserrat_heading.variable} mb-4 font-montserratHeading text-[1.375rem] font-bold text-(--dashboard-foreground)`}
+                className={`${montserrat_heading.variable} font-montserratHeading mb-4 text-[1.375rem] font-bold text-(--dashboard-foreground)`}
               >
                 Project Description
               </h3>
@@ -237,7 +237,7 @@ export const UploadCard = memo(function UploadCard({
                 aria-label="Project Description"
                 value={projectDescription}
                 onChange={(e) => setProjectDescription(e.target.value)}
-                className={`${montserrat_paragraph.variable} max-h-56 min-h-28 overflow-y-auto bg-(--background) font-montserratParagraph text-base text-(--foreground) dark:bg-(--background)`}
+                className={`${montserrat_paragraph.variable} font-montserratParagraph max-h-56 min-h-28 overflow-y-auto bg-(--background) text-base text-(--foreground) dark:bg-(--background)`}
               />
               <Button
                 type="button"
@@ -289,7 +289,7 @@ export const UploadCard = memo(function UploadCard({
                   ref={greetingRef}
                   id="greeting-textarea"
                   placeholder="Enter a greeting to help users get started with your bot"
-                  className={`w-full ${montserrat_paragraph.variable} max-h-28 min-h-14 overflow-y-auto bg-(--background) font-montserratParagraph text-(--foreground) dark:bg-(--background)`}
+                  className={`w-full ${montserrat_paragraph.variable} font-montserratParagraph max-h-28 min-h-14 overflow-y-auto bg-(--background) text-(--foreground) dark:bg-(--background)`}
                   value={introMessage}
                   onChange={(e) => {
                     setIntroMessage(e.target.value)
@@ -328,7 +328,7 @@ export const UploadCard = memo(function UploadCard({
                 )}
               </div>
               <p
-                className={`mt-8! px-1 py-2 ${montserrat_heading.variable} pt-0 font-montserratHeading`}
+                className={`mt-8! px-1 py-2 ${montserrat_heading.variable} font-montserratHeading pt-0`}
               >
                 <span className="label-text-unused text-lg">
                   Set example questions

@@ -39,7 +39,7 @@ function AlertTitle({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="alert-title"
       className={cn(
-        'font-medium group-has-[>svg]/alert:col-start-2 [&_a]:underline [&_a]:underline-offset-[3px] hover:[&_a]:text-foreground',
+        'hover:[&_a]:text-foreground font-medium group-has-[>svg]/alert:col-start-2 [&_a]:underline [&_a]:underline-offset-[3px]',
         className,
       )}
       {...props}
@@ -55,7 +55,7 @@ function AlertDescription({
     <div
       data-slot="alert-description"
       className={cn(
-        'text-balance text-sm text-muted-foreground md:text-pretty [&_a]:underline [&_a]:underline-offset-[3px] hover:[&_a]:text-foreground [&_p:not(:last-child)]:mb-4',
+        'text-muted-foreground hover:[&_a]:text-foreground text-sm text-balance md:text-pretty [&_a]:underline [&_a]:underline-offset-[3px] [&_p:not(:last-child)]:mb-4',
         className,
       )}
       {...props}
@@ -67,7 +67,7 @@ function AlertAction({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="alert-action"
-      className={cn('absolute right-3 top-2.5', className)}
+      className={cn('absolute top-2.5 right-3', className)}
       {...props}
     />
   )

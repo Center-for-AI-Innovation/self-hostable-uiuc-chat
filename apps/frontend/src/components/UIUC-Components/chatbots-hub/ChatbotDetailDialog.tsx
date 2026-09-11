@@ -125,19 +125,19 @@ export function ChatbotDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] max-w-lg flex-col overflow-hidden border-[#e5e7eb] bg-white p-0 text-(--illinois-blue) dark:border-[#32517a] dark:bg-[#15172b] dark:text-white *:max-w-full">
+      <DialogContent className="flex max-h-[85vh] max-w-lg flex-col overflow-hidden border-[#e5e7eb] bg-white p-0 text-(--illinois-blue) *:max-w-full dark:border-[#32517a] dark:bg-[#15172b] dark:text-white">
         <DialogTitle className="sr-only">{title} Details</DialogTitle>
         <DialogDescription className="sr-only">
           {description || `Details for the ${title} chatbot.`}
         </DialogDescription>
 
         {/* Scrollable body */}
-        <div className="scrollbar-thin-auto min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="scrollbar-thin-auto min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
           {/* Header section */}
-          <div className="space-y-3 px-6 pb-2 pt-6">
+          <div className="space-y-3 px-6 pt-6 pb-2">
             <ChatbotUserRoleBadge role={resolvedUserRole} />
 
-            <h2 className="text-2xl font-bold leading-tight">{title}</h2>
+            <h2 className="text-2xl leading-tight font-bold">{title}</h2>
 
             <p className="text-sm leading-relaxed text-(--illinois-storm-dark) dark:text-[#94a3b8]">
               {description}
@@ -233,7 +233,7 @@ export function ChatbotDetailDialog({
 
           {/* Last Updated */}
           {lastUpdatedAt && (
-            <div className="px-6 pb-4 pt-2">
+            <div className="px-6 pt-2 pb-4">
               <p className="flex items-center gap-1.5 text-xs text-(--illinois-storm-medium) dark:text-[#94a3b8]">
                 <Calendar className="h-3.5 w-3.5" />
                 Project last updated {formatRelativeTime(lastUpdatedAt)}
@@ -250,7 +250,7 @@ export function ChatbotDetailDialog({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 gap-1.5 whitespace-nowrap border-[#e5e7eb] bg-white px-4 text-sm font-medium text-(--illinois-blue) hover:bg-[#f3f4f6] dark:border-[#32517a] dark:bg-[#13294b] dark:text-white dark:hover:bg-[#1a3a6b]"
+                  className="h-10 gap-1.5 border-[#e5e7eb] bg-white px-4 text-sm font-medium whitespace-nowrap text-(--illinois-blue) hover:bg-[#f3f4f6] dark:border-[#32517a] dark:bg-[#13294b] dark:text-white dark:hover:bg-[#1a3a6b]"
                 >
                   <Settings className="h-4 w-4 shrink-0" />
                   Admin Settings
@@ -260,7 +260,7 @@ export function ChatbotDetailDialog({
             <Button
               variant="outline"
               size="sm"
-              className="h-10 gap-1.5 whitespace-nowrap border-[#e5e7eb] bg-white px-4 text-sm font-medium text-(--illinois-blue) hover:bg-[#f3f4f6] dark:border-[#32517a] dark:bg-[#13294b] dark:text-white dark:hover:bg-[#1a3a6b]"
+              className="h-10 gap-1.5 border-[#e5e7eb] bg-white px-4 text-sm font-medium whitespace-nowrap text-(--illinois-blue) hover:bg-[#f3f4f6] dark:border-[#32517a] dark:bg-[#13294b] dark:text-white dark:hover:bg-[#1a3a6b]"
               onClick={() => {
                 onOpenChange(false)
                 onShareClick()
@@ -274,7 +274,7 @@ export function ChatbotDetailDialog({
           <NextLink href={`/${course_name}/chat`}>
             <Button
               size="sm"
-              className="h-10 gap-1.5 whitespace-nowrap bg-(--illinois-blue) px-6 text-sm font-medium text-white hover:bg-(--foreground-dark) dark:bg-[#1d4ed8] dark:hover:bg-[#2563eb]"
+              className="h-10 gap-1.5 bg-(--illinois-blue) px-6 text-sm font-medium whitespace-nowrap text-white hover:bg-(--foreground-dark) dark:bg-[#1d4ed8] dark:hover:bg-[#2563eb]"
             >
               <MessageSquare className="h-4 w-4 shrink-0" />
               Start Chatting
@@ -341,7 +341,7 @@ function DocumentSummarySection({
       >
         <CollapsibleTrigger
           disabled={!hasFiles}
-          className="flex w-full items-center justify-between px-4 pb-3 pt-1 disabled:cursor-default"
+          className="flex w-full items-center justify-between px-4 pt-1 pb-3 disabled:cursor-default"
         >
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e5e7eb] dark:bg-[#1e293b]">

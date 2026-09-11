@@ -101,7 +101,7 @@ export function ChatbotHubCard(card: ChatbotCardData) {
           <Button
             variant="ghost"
             size="icon"
-            className="relative z-10 h-9 w-9 rounded-full bg-white/60 opacity-0 backdrop-blur-xs transition-opacity duration-200 hover:bg-white/80 focus-visible:opacity-100 group-hover:opacity-100 dark:bg-[#0c1f3f]/60 dark:hover:bg-[#0c1f3f]/80"
+            className="relative z-10 h-9 w-9 rounded-full bg-white/60 opacity-0 backdrop-blur-xs transition-opacity duration-200 group-hover:opacity-100 hover:bg-white/80 focus-visible:opacity-100 dark:bg-[#0c1f3f]/60 dark:hover:bg-[#0c1f3f]/80"
             aria-label={`Details for ${title}`}
             onClick={() => setIsDetailOpen(true)}
           >
@@ -114,9 +114,9 @@ export function ChatbotHubCard(card: ChatbotCardData) {
           />
         </div>
 
-        <CardContent className="flex flex-1 flex-col px-5 pb-4 pt-5">
+        <CardContent className="flex flex-1 flex-col px-5 pt-5 pb-4">
           <div className="space-y-4">
-            <h3 className="truncate text-xl font-semibold leading-7 text-(--illinois-blue) dark:text-white">
+            <h3 className="truncate text-xl leading-7 font-semibold text-(--illinois-blue) dark:text-white">
               <Link
                 href={`/${course_name}/chat`}
                 aria-label={`Open chat for ${title}`}
@@ -152,7 +152,7 @@ export function ChatbotHubCard(card: ChatbotCardData) {
                             <span
                               tabIndex={0}
                               aria-label={`Other tags: ${generalTags.join(', ')}`}
-                              className="relative z-10 inline-flex cursor-default rounded-[8px] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-(--illinois-orange) focus-visible:ring-offset-2"
+                              className="relative z-10 inline-flex cursor-default rounded-[8px] focus-visible:ring-2 focus-visible:ring-(--illinois-orange) focus-visible:ring-offset-2 focus-visible:outline-hidden"
                             />
                           }
                         >
@@ -167,7 +167,7 @@ export function ChatbotHubCard(card: ChatbotCardData) {
                             clipped at the card edge. */}
                         <TooltipContent
                           side="top"
-                          className="max-w-[260px] whitespace-normal wrap-break-word"
+                          className="max-w-[260px] wrap-break-word whitespace-normal"
                         >
                           {generalTags.join(', ')}
                         </TooltipContent>

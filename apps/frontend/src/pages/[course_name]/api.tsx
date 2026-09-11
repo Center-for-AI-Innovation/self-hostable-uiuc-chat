@@ -128,7 +128,7 @@ const ApiPage: NextPage = () => {
       <main
         id="main-content"
         tabIndex={-1}
-        className="course-page-main min-w-screen flex min-h-screen flex-col items-center"
+        className="course-page-main flex min-h-screen min-w-screen flex-col items-center"
       >
         <h1 className="sr-only">
           {router.query.course_name as string} API Settings

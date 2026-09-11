@@ -105,7 +105,7 @@ const Folder = ({
             )}
             <input
               aria-label="Rename Folder Input"
-              className="mr-12 flex-1 overflow-hidden text-ellipsis border-neutral-400 bg-transparent text-left text-[12.5px] leading-3 text-white focus:border-neutral-100"
+              className="mr-12 flex-1 overflow-hidden border-neutral-400 bg-transparent text-left text-[12.5px] leading-3 text-ellipsis text-white focus:border-neutral-100"
               type="text"
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
@@ -135,7 +135,7 @@ const Folder = ({
               withArrow
               multiline
             >
-              <div className="relative max-h-5 min-w-0 flex-1 truncate text-ellipsis whitespace-nowrap break-all text-left text-sm leading-3">
+              <div className="relative max-h-5 min-w-0 flex-1 truncate text-left text-sm leading-3 break-all text-ellipsis whitespace-nowrap">
                 {currentFolder.name}
               </div>
             </Tooltip>

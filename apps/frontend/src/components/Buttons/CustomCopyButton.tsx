@@ -57,7 +57,7 @@ const CustomCopyButton: React.FC<CustomCopyButtonProps> = ({
         <IconCopy size={18} aria-hidden="true" />
       </Button>
       <span
-        className={`${montserrat_paragraph.variable} text-md ml-3 flex items-center font-montserratParagraph text-(--dashboard-foreground) transition-colors duration-200 ease-in-out`}
+        className={`${montserrat_paragraph.variable} text-md font-montserratParagraph ml-3 flex items-center text-(--dashboard-foreground) transition-colors duration-200 ease-in-out`}
       >
         {label}
         <Tooltip

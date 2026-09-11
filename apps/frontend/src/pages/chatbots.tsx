@@ -266,7 +266,7 @@ const ChatbotsHubPage = () => {
       <ChatbotsGlobalNav hideBorder />
       <div className="mx-auto w-full pt-[72px]">
         {/* Search & Filter Bar — sticky just below the global nav */}
-        <div className="sticky top-[72px] z-30 space-y-4 border-b border-border bg-white px-4 py-6 dark:border-[#32517a] dark:bg-[#081735] sm:px-8">
+        <div className="border-border sticky top-[72px] z-30 space-y-4 border-b bg-white px-4 py-6 sm:px-8 dark:border-[#32517a] dark:bg-[#081735]">
           <ChatbotsSearchBar
             params={searchParams}
             onParamsChange={handleParamsChange}

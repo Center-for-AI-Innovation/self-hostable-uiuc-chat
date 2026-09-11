@@ -17,7 +17,7 @@ const HeaderStepNavigation = ({
     <div className="step_header mb-6">
       {project_name && (
         <p
-          className={`mb-2 text-xs font-medium uppercase tracking-wider text-(--foreground-faded) ${montserrat_paragraph.variable} font-montserratParagraph`}
+          className={`mb-2 text-xs font-medium tracking-wider text-(--foreground-faded) uppercase ${montserrat_paragraph.variable} font-montserratParagraph`}
         >
           {project_name}
         </p>

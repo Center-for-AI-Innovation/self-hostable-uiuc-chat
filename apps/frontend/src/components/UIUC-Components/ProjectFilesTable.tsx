@@ -558,7 +558,7 @@ export function ProjectFilesTable({
                       onClick={() => {
                         setShowMultiSelect(true)
                       }}
-                      className={`mb-2 w-full bg-(--dashboard-button) px-4 py-2 text-xs text-(--dashboard-button-foreground) transition-colors duration-300 hover:bg-(--dashboard-button-hover) sm:mb-0 sm:w-auto sm:px-6 sm:py-3 ${montserrat_paragraph.variable} border-0 font-montserratParagraph focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)`}
+                      className={`mb-2 w-full bg-(--dashboard-button) px-4 py-2 text-xs text-(--dashboard-button-foreground) transition-colors duration-300 hover:bg-(--dashboard-button-hover) sm:mb-0 sm:w-auto sm:px-6 sm:py-3 ${montserrat_paragraph.variable} font-montserratParagraph border-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-button)`}
                     >
                       <span className="block sm:hidden">Add to Groups</span>
                       <span className="hidden sm:block">
@@ -570,7 +570,7 @@ export function ProjectFilesTable({
                   {showMultiSelect && (
                     <div
                       ref={multiSelectRef}
-                      className="absolute right-0 top-full z-10 mt-1"
+                      className="absolute top-full right-0 z-10 mt-1"
                     >
                       <MultiSelect
                         data={

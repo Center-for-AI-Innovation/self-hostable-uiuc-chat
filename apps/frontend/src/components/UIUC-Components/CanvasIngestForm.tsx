@@ -154,7 +154,7 @@ export default function CanvasIngestForm({
               className="group relative cursor-pointer overflow-hidden rounded-2xl border border-(--dashboard-border) bg-transparent px-6 py-4 text-(--dashboard-foreground) transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
               style={{ height: '100%' }}
             >
-              <div className="-ml-2 mb-2 flex items-center justify-between">
+              <div className="mb-2 -ml-2 flex items-center justify-between">
                 <div className="flex items-center space-x-1">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full">
                     <Image
@@ -234,7 +234,7 @@ export default function CanvasIngestForm({
           <div className="mb-4 overflow-hidden rounded-md">
             <div className="relative h-0 pb-[58.5%]">
               <iframe
-                className="absolute left-0 top-0 h-full w-full rounded-md"
+                className="absolute top-0 left-0 h-full w-full rounded-md"
                 src="https://www.youtube.com/embed/OOy0JD0Gf9g"
                 title="Canvas Connection Tutorial"
                 frameBorder="0"

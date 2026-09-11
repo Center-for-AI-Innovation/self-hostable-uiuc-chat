@@ -94,10 +94,10 @@ function NomicDocumentMap({ course_name }: { course_name: string }) {
                     <div className="flex bg-(--background) backdrop-blur-xs">
                       <div className="w-1 bg-(--illinois-orange)" />
                       <div
-                        className={`${montserrat_paragraph.variable} flex-1 p-4 font-montserratParagraph`}
+                        className={`${montserrat_paragraph.variable} font-montserratParagraph flex-1 p-4`}
                       >
                         <Text
-                          className={`${montserrat_paragraph.variable} mb-4 font-montserratParagraph text-(--foreground)`}
+                          className={`${montserrat_paragraph.variable} font-montserratParagraph mb-4 text-(--foreground)`}
                         >
                           The Concept Map visualizes all queries made in this
                           project:

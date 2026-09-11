@@ -184,7 +184,7 @@ export const ThinkTagDropdown: React.FC<ThinkTagDropdownProps> = ({
       >
         <div
           ref={contentRef}
-          className={`whitespace-pre-line text-base ${montserrat_paragraph.variable} font-montserratParagraph`}
+          className={`text-base whitespace-pre-line ${montserrat_paragraph.variable} font-montserratParagraph`}
           tabIndex={isExpanded ? 0 : -1}
         >
           {formatContent(content)}

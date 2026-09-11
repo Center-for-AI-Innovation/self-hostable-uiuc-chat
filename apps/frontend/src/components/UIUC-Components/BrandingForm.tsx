@@ -176,7 +176,7 @@ const BrandingForm = ({
         </div>
 
         <div className="set_example_questions">
-          <div className="mb-3 mt-6 font-semibold">Example questions</div>
+          <div className="mt-6 mb-3 font-semibold">Example questions</div>
 
           <div>
             {metadata && (

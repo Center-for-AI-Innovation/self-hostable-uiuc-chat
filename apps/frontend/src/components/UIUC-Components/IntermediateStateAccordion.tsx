@@ -69,7 +69,7 @@ export const IntermediateStateAccordion = ({
           <Accordion.Panel
             className={`${
               montserrat_paragraph.variable
-            } rounded-lg bg-(--background-faded) pt-2 font-montserratParagraph text-sm text-white ${
+            } font-montserratParagraph rounded-lg bg-(--background-faded) pt-2 text-sm text-white ${
               error ? 'border-2 border-red-500' : ''
             }`}
           >

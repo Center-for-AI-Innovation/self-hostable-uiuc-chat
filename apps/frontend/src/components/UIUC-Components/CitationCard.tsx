@@ -258,7 +258,7 @@ export const CitationCard = ({
                 }}
               />
               {index !== undefined && (
-                <div className="absolute bottom-0 left-0 right-0">
+                <div className="absolute right-0 bottom-0 left-0">
                   <div className="absolute bottom-2 left-2">
                     <Badge
                       aria-label={'Citation ' + (index + 1)}
@@ -271,7 +271,7 @@ export const CitationCard = ({
                       {index + 1}
                     </Badge>
                   </div>
-                  <div className="absolute bottom-0 right-0">
+                  <div className="absolute right-0 bottom-0">
                     <div className="rounded-md p-2">
                       {isWebIcon || isPDF ? (
                         <IconExternalLink
@@ -301,7 +301,7 @@ export const CitationCard = ({
                 )}
               </div>
               {index !== undefined && (
-                <div className="absolute bottom-0 left-0 right-0 h-12">
+                <div className="absolute right-0 bottom-0 left-0 h-12">
                   <div className="absolute bottom-2 left-2">
                     <Badge
                       aria-label={'Citation ' + (index + 1)}
@@ -314,7 +314,7 @@ export const CitationCard = ({
                       {index + 1}
                     </Badge>
                   </div>
-                  <div className="absolute bottom-0 right-0">
+                  <div className="absolute right-0 bottom-0">
                     <div className="rounded-md p-2">
                       {isWebIcon || isPDF ? (
                         <IconExternalLink
@@ -338,7 +338,7 @@ export const CitationCard = ({
             <div className="min-w-0 flex-1">
               <div className="flex flex-col gap-1.5">
                 <Text
-                  className={`text-xs font-semibold ${montserrat_heading.variable} wrap-break-word font-montserratHeading leading-tight`}
+                  className={`text-xs font-semibold ${montserrat_heading.variable} font-montserratHeading leading-tight wrap-break-word`}
                   style={{ wordBreak: 'break-word' }}
                 >
                   {readable_filename}
@@ -353,7 +353,7 @@ export const CitationCard = ({
                   )}
                   {text && (
                     <Text
-                      className={`text-xs text-(--foreground-faded) ${montserrat_paragraph.variable} line-clamp-2 font-montserratParagraph`}
+                      className={`text-xs text-(--foreground-faded) ${montserrat_paragraph.variable} font-montserratParagraph line-clamp-2`}
                     >
                       {text}
                     </Text>

@@ -357,7 +357,7 @@ export const AgentExecutionTimeline = ({
                         {q.query}
                       </span>
                       {isDone && q.count !== undefined && (
-                        <span className="text-(--foreground-faded)/60 shrink-0">
+                        <span className="shrink-0 text-(--foreground-faded)/60">
                           {q.count}
                         </span>
                       )}
@@ -368,7 +368,7 @@ export const AgentExecutionTimeline = ({
             </div>
             {/* Summary line - always visible when collapsed (not part of delayed animation) */}
             {totalChunks > 0 && (
-              <div className="border-(--foreground-faded)/10 mt-3 flex items-center gap-1.5 border-t pt-2 text-xs text-(--foreground-faded)">
+              <div className="mt-3 flex items-center gap-1.5 border-t border-(--foreground-faded)/10 pt-2 text-xs text-(--foreground-faded)">
                 {streaming ? (
                   <>
                     <span className="h-3 w-3 shrink-0 animate-pulse rounded-full bg-(--primary)" />
@@ -438,7 +438,7 @@ export const AgentExecutionTimeline = ({
                               {`"${r.query}"`}
                             </span>
                             {r.count !== undefined && r.status === 'done' && (
-                              <span className="text-(--foreground-faded)/60 shrink-0">
+                              <span className="shrink-0 text-(--foreground-faded)/60">
                                 {r.count}
                               </span>
                             )}
@@ -455,11 +455,11 @@ export const AgentExecutionTimeline = ({
               return (
                 <div
                   key={event.id}
-                  className="flex gap-2 text-sm text-foreground animate-in fade-in-0 slide-in-from-top-2"
+                  className="text-foreground animate-in fade-in-0 slide-in-from-top-2 flex gap-2 text-sm"
                 >
                   <div className="relative mt-0.5">
                     <LoadingSpinner size="xs" />
-                    <div className="absolute bottom-0 left-1/2 top-7 -mx-px w-px bg-border" />
+                    <div className="bg-border absolute top-7 bottom-0 left-1/2 -mx-px w-px" />
                   </div>
                   <div className="flex-1">
                     <div className="text-(--foreground)">{event.title}</div>
@@ -494,7 +494,7 @@ export const AgentExecutionTimeline = ({
           })}
           {/* Total chunks indicator at bottom of expanded view */}
           {totalChunks > 0 && (
-            <div className="border-(--foreground-faded)/10 mt-3 flex items-center gap-1.5 border-t pt-2 text-xs text-(--foreground-faded) md:gap-2 md:text-sm">
+            <div className="mt-3 flex items-center gap-1.5 border-t border-(--foreground-faded)/10 pt-2 text-xs text-(--foreground-faded) md:gap-2 md:text-sm">
               {streaming ? (
                 <>
                   <span className="h-3 w-3 shrink-0 animate-pulse rounded-full bg-(--primary) md:h-4 md:w-4" />

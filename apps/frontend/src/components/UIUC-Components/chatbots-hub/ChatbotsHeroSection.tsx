@@ -5,7 +5,7 @@ import { cn } from '~/components/shadcn/lib/utils'
 
 export function ChatbotsHeroSection() {
   return (
-    <section className="relative flex min-h-[560px] items-end overflow-hidden px-4 pb-12 pt-24 sm:px-8 sm:pb-16">
+    <section className="relative flex min-h-[560px] items-end overflow-hidden px-4 pt-24 pb-12 sm:px-8 sm:pb-16">
       {/* Campus aerial photo */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -17,7 +17,7 @@ export function ChatbotsHeroSection() {
       <div className="absolute inset-0 bg-linear-to-b from-transparent via-white/60 to-white dark:from-transparent dark:via-[#081735]/60 dark:to-[#081735]" />
       <div className="relative z-10 max-w-[680px]">
         <h1
-          className={`text-4xl font-bold leading-none text-(--illinois-blue) dark:text-white sm:text-5xl ${montserrat_heading.variable} font-montserratHeading`}
+          className={`text-4xl leading-none font-bold text-(--illinois-blue) sm:text-5xl dark:text-white ${montserrat_heading.variable} font-montserratHeading`}
         >
           Illinois Flagship
         </h1>

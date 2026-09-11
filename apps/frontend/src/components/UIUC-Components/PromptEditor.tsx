@@ -971,7 +971,7 @@ CRITICAL: The optimized prompt must:
                     }}
                   />
                   <Title
-                    className={`py-2 ${montserrat_heading.variable} pl-1 pr-0 font-montserratHeading text-(--dashboard-foreground) md:pl-0 md:pr-2`}
+                    className={`py-2 ${montserrat_heading.variable} font-montserratHeading pr-0 pl-1 text-(--dashboard-foreground) md:pr-2 md:pl-0`}
                     order={4}
                   >
                     Prompt Engineering Guide
@@ -995,7 +995,7 @@ CRITICAL: The optimized prompt must:
                 <div className="mt-4 px-2 text-(--dashboard-foreground)">
                   <Text
                     size="md"
-                    className={`${montserrat_paragraph.variable} select-text font-montserratParagraph`}
+                    className={`${montserrat_paragraph.variable} font-montserratParagraph select-text`}
                   >
                     For additional insights and best practices on prompt
                     creation, please review:
@@ -1057,7 +1057,7 @@ CRITICAL: The optimized prompt must:
                       </List.Item>
                     </List>
                     <Text
-                      className={`px-1 py-2 ${montserrat_paragraph.variable} inline-block select-text font-montserratParagraph`}
+                      className={`px-1 py-2 ${montserrat_paragraph.variable} font-montserratParagraph inline-block select-text`}
                       size="md"
                       style={{ marginTop: '1.5rem' }}
                     >
@@ -1113,7 +1113,7 @@ CRITICAL: The optimized prompt must:
                 <Flex justify="space-between" align="center" mb="md">
                   <Flex align="center" className="-mt-2 gap-4">
                     <Title
-                      className={`py-2 ${montserrat_heading.variable} pl-1 pr-0 font-montserratHeading text-(--dashboard-foreground) md:pl-0 md:pr-2`}
+                      className={`py-2 ${montserrat_heading.variable} font-montserratHeading pr-0 pl-1 text-(--dashboard-foreground) md:pr-2 md:pl-0`}
                       order={4}
                     >
                       System Prompt
@@ -1546,7 +1546,7 @@ CRITICAL: The optimized prompt must:
                   Optimized System Prompt
                 </Text>
               }
-              className={`${montserrat_heading.variable} rounded-xl font-montserratHeading`}
+              className={`${montserrat_heading.variable} font-montserratHeading rounded-xl`}
               centered
               radius="lg"
               styles={{
@@ -1679,7 +1679,7 @@ CRITICAL: The optimized prompt must:
               <div className="mt-6 rounded-xl bg-(--dashboard-background-faded) p-4 sm:p-6">
                 <Title
                   order={4}
-                  className={`${montserrat_heading.variable} mb-4 font-montserratHeading text-(--foreground)`}
+                  className={`${montserrat_heading.variable} font-montserratHeading mb-4 text-(--foreground)`}
                 >
                   AI Behavior Settings
                 </Title>
@@ -2082,7 +2082,7 @@ CRITICAL: The optimized prompt must:
 
               <Flex align="center" style={{ paddingTop: '15px' }}>
                 <Title
-                  className={`px-1 py-2 ${montserrat_heading.variable} mr-[8px] font-montserratHeading`}
+                  className={`px-1 py-2 ${montserrat_heading.variable} font-montserratHeading mr-[8px]`}
                   order={3}
                 >
                   AI Behavior Settings

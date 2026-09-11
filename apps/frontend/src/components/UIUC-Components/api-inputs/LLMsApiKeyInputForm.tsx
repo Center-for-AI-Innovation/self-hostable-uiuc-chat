@@ -874,7 +874,7 @@ export default function APIKeyInputForm({
       <main
         id="main-content"
         tabIndex={-1}
-        className="course-page-main min-w-screen flex min-h-screen flex-col items-center"
+        className="course-page-main flex min-h-screen min-w-screen flex-col items-center"
       >
         <h1 className="sr-only">{projectName} — LLMs — Illinois Chat</h1>
         <div className="items-left flex w-full flex-col justify-center py-0">
@@ -910,13 +910,13 @@ export default function APIKeyInputForm({
                     <Title
                       order={2}
                       align="left"
-                      className={`pl-4 pr-2 pt-4 ${montserrat_heading.variable} font-montserratHeading text-(--foreground)`}
+                      className={`pt-4 pr-2 pl-4 ${montserrat_heading.variable} font-montserratHeading text-(--foreground)`}
                     >
                       {/* API Keys: Add LLMs to your Chatbot */}
                       Configure LLM Providers for your Chatbot
                     </Title>
                     <Title
-                      className={`${montserrat_heading.variable} flex-[1_1_50%] font-montserratHeading text-(--foreground)`}
+                      className={`${montserrat_heading.variable} font-montserratHeading flex-[1_1_50%] text-(--foreground)`}
                       order={3}
                       px={18}
                       ml={'md'}
@@ -944,7 +944,7 @@ export default function APIKeyInputForm({
                         >
                           <>
                             <Title
-                              className={`${montserrat_heading.variable} mt-4 font-montserratHeading text-(--foreground)`}
+                              className={`${montserrat_heading.variable} font-montserratHeading mt-4 text-(--foreground)`}
                               order={3}
                             >
                               Closed source LLMs
@@ -1014,7 +1014,7 @@ export default function APIKeyInputForm({
                               />
                             </Flex>
                             <Title
-                              className={`-mb-3 ${montserrat_heading.variable} mt-4 font-montserratHeading text-(--foreground)`}
+                              className={`-mb-3 ${montserrat_heading.variable} font-montserratHeading mt-4 text-(--foreground)`}
                               order={3}
                             >
                               Open source LLMs

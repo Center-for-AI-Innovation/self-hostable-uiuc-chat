@@ -302,7 +302,7 @@ export default function SetExampleQuestions({
             e.stopPropagation()
             deleteQuestion(index)
           }}
-          className="hover:bg-(--error)/10 flex size-5 items-center justify-center rounded-sm text-(--error) transition-colors"
+          className="flex size-5 items-center justify-center rounded-sm text-(--error) transition-colors hover:bg-(--error)/10"
           aria-label="Delete question"
         >
           <Trash2 className="size-4" />

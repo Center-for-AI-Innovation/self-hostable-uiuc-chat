@@ -139,7 +139,7 @@ function NavigationContent({
       {opened && (
         <nav
           aria-label="Mobile navigation"
-          className="absolute right-2 top-16 z-2 w-[calc(100%-1rem)] max-w-[330px] origin-top-right overflow-visible rounded-[10px] border border-(--navbar-border) bg-(--background-faded) shadow-lg duration-200 animate-in fade-in-0 zoom-in-95 lg:hidden"
+          className="animate-in fade-in-0 zoom-in-95 absolute top-16 right-2 z-2 w-[calc(100%-1rem)] max-w-[330px] origin-top-right overflow-visible rounded-[10px] border border-(--navbar-border) bg-(--background-faded) shadow-lg duration-200 lg:hidden"
         >
           {items.map((item, index) => (
             <Link
@@ -259,7 +259,7 @@ export default function Navbar({
   ]
 
   return (
-    <div className="fixed left-0 right-0 top-0 z-50 bg-(--navbar-background)">
+    <div className="fixed top-0 right-0 left-0 z-50 bg-(--navbar-background)">
       {/* TODO: determine z-index values for major elements (nav, modals, tooltips, etc). for now, changed z-999 to z-50 to avoid modals being under the top navigation */}
       {/***************** top navigation for all pages *****************/}
 

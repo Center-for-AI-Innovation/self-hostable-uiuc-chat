@@ -128,7 +128,7 @@ const SupportedFileUploadTypes = () => {
   return (
     <>
       <TooltipProvider>
-        <div className="mb-6 mt-8 flex flex-wrap justify-center gap-4">
+        <div className="mt-8 mb-6 flex flex-wrap justify-center gap-4">
           {fileTypes.map((type, index) => {
             if (!type.icon) {
               console.error(`Missing icon for type: ${type.label}`)
