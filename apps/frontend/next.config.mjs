@@ -13,6 +13,21 @@ const bundleAnalyzerConfig = {
 /** @type {import("next").NextConfig} */
 const config = {
   i18n: nextI18NextConfig.i18n,
+  // Turbopack equivalents of the `webpack()` block below. Turbopack handles
+  // async WASM natively, so the tiktoken/web-llm module rule isn't needed here;
+  // only the client-side Node-builtin stubs have to be restated, otherwise every
+  // route touching postgres/redis fails with "Module not found: Can't resolve 'net'".
+  turbopack: {
+    resolveAlias: {
+      net: { browser: './src/utils/empty-module.js' },
+      tls: { browser: './src/utils/empty-module.js' },
+      perf_hooks: { browser: './src/utils/empty-module.js' },
+      // package.json's `browser` field stubs these for webpack; Turbopack
+      // doesn't honor it, so they're restated here.
+      fs: { browser: './src/utils/empty-module.js' },
+      path: { browser: './src/utils/empty-module.js' },
+    },
+  },
   webpack(config, { isServer, webpack }) {
     // Merge existing experiments with the required ones
     config.experiments = {

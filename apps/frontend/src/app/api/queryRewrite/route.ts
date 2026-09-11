@@ -1,6 +1,6 @@
 // src/app/api/queryRewrite/route.ts
 
-import { routeModelRequest } from '~/utils/streamProcessing'
+import { routeModelRequest } from '~/utils/routeModelRequest'
 import { type ChatBody } from '@/types/chat'
 import { type AuthenticatedRequest } from '~/utils/appRouterAuth'
 import { withCourseAccessFromRequest } from '~/app/api/authorization'

@@ -17,7 +17,7 @@ import {
   CITATION_DISABLED_PROMPT,
   CITATION_GUIDELINES_PROMPT,
 } from '@/utils/app/const'
-import { routeModelRequest } from '~/utils/streamProcessing'
+import { routeModelRequest } from '~/utils/routeModelRequest'
 import { NextRequest, NextResponse } from 'next/server'
 import { persistMessageServer } from '~/pages/api/conversation'
 

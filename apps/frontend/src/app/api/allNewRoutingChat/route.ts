@@ -1,7 +1,7 @@
 // src/app/api/allNewRoutingChat/route.ts
 
 import { type ChatBody, type Conversation } from '@/types/chat'
-import { routeModelRequest } from '~/utils/streamProcessing'
+import { routeModelRequest } from '~/utils/routeModelRequest'
 import { buildPrompt } from '~/app/utils/buildPromptUtils'
 import { type AuthenticatedRequest } from '~/utils/appRouterAuth'
 import { withCourseAccessFromRequest } from '~/app/api/authorization'
