@@ -329,7 +329,7 @@ describe('Chatbar', () => {
     )
 
     const scrollEl = container.querySelector(
-      '.flex-grow.overflow-auto',
+      '.grow.overflow-auto',
     ) as HTMLElement
     expect(scrollEl).toBeTruthy()
 

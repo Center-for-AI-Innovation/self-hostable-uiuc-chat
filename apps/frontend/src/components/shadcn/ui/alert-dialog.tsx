@@ -101,7 +101,7 @@ function AlertDialogMedia({
     <div
       data-slot="alert-dialog-media"
       className={cn(
-        "[svg:not([class*='size-'])]:*:size-8 mb-2 inline-flex size-16 items-center justify-center rounded-md bg-muted sm:group-data-[size=default]/alert-dialog-content:row-span-2",
+        "*:[svg:not([class*='size-'])]:size-8 mb-2 inline-flex size-16 items-center justify-center rounded-md bg-muted sm:group-data-[size=default]/alert-dialog-content:row-span-2",
         className,
       )}
       {...props}
@@ -133,7 +133,7 @@ function AlertDialogDescription({
     <AlertDialogPrimitive.Description
       data-slot="alert-dialog-description"
       className={cn(
-        '[a]:*:underline [a]:*:underline-offset-[3px] hover:[a]:*:text-foreground text-balance text-sm text-muted-foreground md:text-pretty',
+        '*:[a]:underline *:[a]:underline-offset-[3px] *:[a]:hover:text-foreground text-balance text-sm text-muted-foreground md:text-pretty',
         className,
       )}
       {...props}

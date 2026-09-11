@@ -84,7 +84,9 @@ describe('Sidebar', () => {
     })
     expect(handleSearchTerm).toHaveBeenCalledWith('hi')
 
-    const scrollContainer = container.querySelector('.grow') as HTMLElement
+    const scrollContainer = container.querySelector(
+      '.grow.overflow-auto',
+    ) as HTMLElement
     fireEvent.scroll(scrollContainer)
     expect(onScroll).toHaveBeenCalled()
 
