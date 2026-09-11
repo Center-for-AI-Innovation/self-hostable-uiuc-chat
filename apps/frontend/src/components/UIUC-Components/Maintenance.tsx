@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { Title, Text } from '@mantine/core'
 import Link from 'next/link'
 
 const Maintenance = ({}: {
@@ -40,13 +39,13 @@ const Maintenance = ({}: {
             </h1>
           </Link>
 
-          <Title className="mt-8 text-amber-400" order={2}>
+          <h2 className="heading-h2 mt-8 text-amber-400">
             {maintenanceTitleText}
-          </Title>
+          </h2>
 
-          <Text size="xl" className="max-w-2xl text-gray-200">
+          <p className="max-w-2xl text-xl text-gray-200">
             {maintenanceBodyText}
-          </Text>
+          </p>
 
           <div className="mt-8 animate-pulse">
             <div className="h-2 w-24 rounded bg-amber-400"></div>

@@ -9,7 +9,6 @@ import {
   MainPageBackground,
 } from '~/components/UIUC-Components/MainPageBackground'
 import { PermissionGate } from '~/components/UIUC-Components/PermissionGate'
-import { Title } from '@mantine/core'
 
 import MakeToolsPage from '~/components/UIUC-Components/N8NPage'
 import posthog from 'posthog-js'
@@ -115,20 +114,15 @@ const ToolsPage: NextPage = () => {
   if (user_emails.length == 0) {
     return (
       <MainPageBackground>
-        <Title
-          className={montserrat.className}
-          variant="gradient"
-          gradient={{ from: 'gold', to: 'white', deg: 50 }}
-          order={3}
-          p="xl"
-          style={{ marginTop: '4rem' }}
+        <h3
+          className={`heading-h3 mt-16 bg-[linear-gradient(50deg,gold,white)] bg-clip-text p-8 text-transparent ${montserrat.className}`}
         >
           You&apos;ve encountered a software bug!<br></br>Your account has no
           email address. Please shoot me an email so I can fix it for you:{' '}
           <a className="goldUnderline" href="mailto:rohan13@illinois.edu">
             rohan13@illinois.edu
           </a>
-        </Title>
+        </h3>
       </MainPageBackground>
     )
   }

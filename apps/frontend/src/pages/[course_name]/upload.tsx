@@ -2,7 +2,6 @@ import { type NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 
-import { Flex } from '@mantine/core'
 import Head from 'next/head'
 import { useAuth } from 'react-oidc-context'
 import SettingsLayout, {
@@ -99,12 +98,7 @@ const CourseMain: NextPage = () => {
       >
         <h1 className="sr-only">{projectName} Materials</h1>
         <div className="items-left flex w-full flex-col justify-center py-0">
-          <Flex
-            direction="column"
-            align="center"
-            w="100%"
-            className="mt-8 lg:mt-4"
-          ></Flex>
+          <div className="mt-8 flex w-full flex-col items-center lg:mt-4"></div>
         </div>
       </main>
 

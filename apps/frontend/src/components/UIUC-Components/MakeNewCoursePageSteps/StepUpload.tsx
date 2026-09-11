@@ -1,7 +1,6 @@
 import React from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useQueryClient } from '@tanstack/react-query'
-import { SimpleGrid } from '@mantine/core'
 
 import HeaderStepNavigation from './HeaderStepNavigation'
 
@@ -67,14 +66,7 @@ const StepUpload = ({
           <h3 className="mt-6 mb-3 text-base font-semibold text-(--foreground)">
             Import from URLs & Platforms
           </h3>
-          <SimpleGrid
-            cols={3}
-            spacing="lg"
-            breakpoints={[
-              { maxWidth: 1192, cols: 2, spacing: 'md' },
-              { maxWidth: 768, cols: 1, spacing: 'sm' },
-            ]}
-          >
+          <div className="grid grid-cols-3 gap-5 max-[1192px]:grid-cols-2 max-[1192px]:gap-4 max-[768px]:grid-cols-1 max-[768px]:gap-3">
             <CanvasIngestForm
               project_name={project_name}
               setUploadFiles={setUploadFiles}
@@ -102,7 +94,7 @@ const StepUpload = ({
             />
 
             <CourseraIngestForm />
-          </SimpleGrid>
+          </div>
 
           {/* Upload section */}
           <h3 className="mt-6 mb-3 text-base font-semibold text-(--foreground)">

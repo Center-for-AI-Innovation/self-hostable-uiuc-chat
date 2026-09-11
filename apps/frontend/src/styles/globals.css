@@ -60,6 +60,44 @@
   top: 0;
 }
 
+/*
+ * Heading scale ported from the Mantine theme (_app.tsx MantineProvider) plus
+ * Mantine 6's own heading defaults, for every native <h1>-<h6> that replaces a
+ * migrated Mantine <Title order={n}>. h1/h2 are this app's theme overrides;
+ * h3-h6 are Mantine 6 library defaults (the theme never touched them). See
+ * docs/mantine-retirement-styles-notes.md and issue #232.
+ */
+.heading-h1 {
+  font-size: 3rem;
+  line-height: 1.3;
+  font-weight: 700;
+}
+.heading-h2 {
+  font-size: 2.2rem;
+  line-height: 1.35;
+  font-weight: 700;
+}
+.heading-h3 {
+  font-size: 1.375rem;
+  line-height: 1.4;
+  font-weight: 700;
+}
+.heading-h4 {
+  font-size: 1.125rem;
+  line-height: 1.45;
+  font-weight: 700;
+}
+.heading-h5 {
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 700;
+}
+.heading-h6 {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
 /* WCAG 1.4.10 Reflow — ensure modals and popups remain accessible at all zoom levels */
 .mantine-Modal-content,
 .mantine-Modal-body {

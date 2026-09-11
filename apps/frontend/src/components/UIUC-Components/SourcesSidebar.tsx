@@ -1,4 +1,3 @@
-import { Text } from '@mantine/core'
 import { IconArrowBarRight } from '@tabler/icons-react'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import { useCallback, useEffect, useRef } from 'react'
@@ -212,12 +211,12 @@ const SourcesSidebar = ({
         {citedContexts.length > 0 && (
           <div>
             <div className="sticky top-0 z-10 border-b border-(--sources-border) bg-(--sources-header-background) px-4 py-3">
-              <Text
+              <p
                 className={`text-sm font-semibold ${montserrat_heading.variable} font-montserratHeading`}
               >
                 Citations{' '}
                 {citedContexts.length === contexts.length && '(All Sources)'}
-              </Text>
+              </p>
             </div>
             <div className="flex flex-col gap-3 p-4">
               {citedContexts.map(({ context, displayIndex }) => (
@@ -242,11 +241,11 @@ const SourcesSidebar = ({
         {remainingContexts.length > 0 && (
           <div>
             <div className="sticky top-0 z-10 border-b border-(--sources-border) bg-(--sources-header-background) px-4 py-3">
-              <Text
+              <p
                 className={`text-sm font-semibold ${montserrat_heading.variable} font-montserratHeading`}
               >
                 {citedContexts.length === 0 ? 'All Sources' : 'More Sources'}
-              </Text>
+              </p>
             </div>
             <div className="flex flex-col gap-3 p-4">
               {remainingContexts.map(({ context, displayIndex }) => (

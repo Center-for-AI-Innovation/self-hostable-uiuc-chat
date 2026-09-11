@@ -1,22 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import {
-  // Card,
-  // Image,
-  // Text,
-  // Badge,
-  // MantineProvider,
-  // Button,
-  // Group,
-  // Stack,
-  // createStyles,
-  // FileInput,
-  // rem,
-  Title,
-  Flex,
-} from '@mantine/core'
 import { montserrat_heading } from 'fonts'
-// const rubikpuddles = Rubik_Puddles({ weight: '400', subsets: ['latin'] })
 
 export const CannotEditGPT4Page = ({
   course_name,
@@ -42,26 +26,18 @@ export const CannotEditGPT4Page = ({
           </Link>
         </div>
         <div className="items-left container flex flex-col justify-center gap-2 py-0">
-          <Flex direction="column" align="center" justify="center">
-            <Title
-              className={`${montserrat_heading.variable} font-montserratHeading`}
-              variant="gradient"
-              gradient={{ from: 'gold', to: 'white', deg: 50 }}
-              order={2}
-              p="xl"
+          <div className="flex flex-col items-center justify-center">
+            <h2
+              className={`heading-h2 ${montserrat_heading.variable} font-montserratHeading bg-[linear-gradient(50deg,gold,white)] bg-clip-text p-8 text-transparent`}
             >
               {' '}
               You cannot edit the gpt4 page.
               <br></br>
               It&apos;s for using GPT-4 by itself with no extra knowledge base.
-            </Title>
+            </h2>
 
-            <Title
-              className={`${montserrat_heading.variable} font-montserratHeading`}
-              variant="gradient"
-              gradient={{ from: 'gold', to: 'white', deg: 50 }}
-              order={3}
-              p="xl"
+            <h3
+              className={`heading-h3 ${montserrat_heading.variable} font-montserratHeading bg-[linear-gradient(50deg,gold,white)] bg-clip-text p-8 text-transparent`}
             >
               {' '}
               Go to{' '}
@@ -69,8 +45,8 @@ export const CannotEditGPT4Page = ({
                 uiuc.chat/new
               </Link>{' '}
               to make a new page.
-            </Title>
-          </Flex>
+            </h3>
+          </div>
         </div>
       </main>
     </>

@@ -10,7 +10,6 @@ import {
 import { createPortal } from 'react-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { X } from 'lucide-react'
-import { Text } from '@mantine/core'
 import { Montserrat } from 'next/font/google'
 import { montserrat_heading } from 'fonts'
 
@@ -263,14 +262,13 @@ export default function ChatbotTagsEditor({
       >
         <span className="label-text-unused text-lg">Tags</span>
       </label>
-      <Text
-        size={'sm'}
-        className={`mt-0! px-1 py-2 ${montserrat_light.className}`}
+      <p
+        className={`mt-0! px-1 py-2 text-sm ${montserrat_light.className}`}
       >
         Add up to {MAX_CHATBOT_TAGS} tags to help people discover your bot in
         the chatbot hub. Project Type and Organization are set when you create
         the chatbot.
-      </Text>
+      </p>
 
       <div
         className="mt-2 flex flex-wrap gap-2"

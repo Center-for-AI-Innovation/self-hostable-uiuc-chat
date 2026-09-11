@@ -1,5 +1,4 @@
 // src/pages/[course_name]/api.tsx
-import { Flex } from '@mantine/core'
 import { type NextPage } from 'next'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -134,13 +133,13 @@ const ApiPage: NextPage = () => {
           {router.query.course_name as string} API Settings
         </h1>
         <div className="items-left flex w-full flex-col justify-center py-0">
-          <Flex direction="column" align="center" w="100%">
+          <div className="flex w-full flex-col items-center">
             <ApiKeyManagement
               course_name={router.query.course_name as string}
               auth={auth}
               sidebarCollapsed={sidebarCollapsed}
             />
-          </Flex>
+          </div>
         </div>
       </main>
 

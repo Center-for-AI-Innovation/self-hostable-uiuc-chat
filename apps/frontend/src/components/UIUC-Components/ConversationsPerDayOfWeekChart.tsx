@@ -11,7 +11,6 @@ import {
   Legend,
 } from 'recharts'
 import axios from 'axios'
-import { Text, Title } from '@mantine/core'
 import { LoadingSpinner } from './LoadingSpinner'
 import { montserrat_paragraph } from 'fonts'
 
@@ -46,17 +45,17 @@ const ConversationsPerDayOfWeekChart: React.FC<ChartProps> = ({
     return (
       <div className="flex items-center gap-2">
         <LoadingSpinner size="xs" />
-        <Text>Loading chart...</Text>
+        <span>Loading chart...</span>
       </div>
     )
   }
 
   if (error) {
-    return <Text color="red">{error}</Text>
+    return <p className="text-(--error)">{error}</p>
   }
 
   if (!data) {
-    return <Text>No data available</Text>
+    return <p>No data available</p>
   }
 
   const chartData = daysOfWeek.map((day) => ({

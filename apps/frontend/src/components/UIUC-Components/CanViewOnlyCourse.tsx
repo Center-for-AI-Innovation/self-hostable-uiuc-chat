@@ -1,19 +1,4 @@
 import Link from 'next/link'
-import {
-  // Card,
-  // Image,
-  Text,
-  // Badge,
-  // MantineProvider,
-  // Button,
-  // Group,
-  // Stack,
-  // createStyles,
-  // FileInput,
-  // rem,
-  Title,
-  Flex,
-} from '@mantine/core'
 import GlobalHeader from './navbars/GlobalHeader'
 import { type CourseMetadata } from '~/types/courseMetadata'
 import React from 'react'
@@ -67,7 +52,7 @@ export const CanViewOnlyCourse = ({
           </Link>
         </div>
         <div className="items-left container flex flex-col justify-center gap-2 py-0">
-          <Flex direction="column" align="center" justify="center">
+          <div className="flex flex-col items-center justify-center">
             <div
               style={{
                 display: 'inline-block',
@@ -76,12 +61,8 @@ export const CanViewOnlyCourse = ({
                 padding: '1rem',
               }}
             >
-              <Title
-                className={`${montserrat_heading.variable} font-montserratHeading`}
-                variant="gradient"
-                gradient={{ from: 'gold', to: 'white', deg: 50 }}
-                order={2}
-                p="xl"
+              <h2
+                className={`heading-h2 ${montserrat_heading.variable} font-montserratHeading bg-[linear-gradient(50deg,gold,white)] bg-clip-text p-8 text-transparent`}
               >
                 {' '}
                 You cannot edit this page, but you <i>can</i> chat here:{' '}
@@ -96,30 +77,20 @@ export const CanViewOnlyCourse = ({
                     uiuc.chat/{course_name}
                   </u>
                 </Link>
-              </Title>
+              </h2>
             </div>
 
-            <Flex direction="column" align="center" justify="center">
+            <div className="flex flex-col items-center justify-center">
               {/* SHOW CREATOR AND ADMINS */}
-              <Title
-                className={`${montserrat_heading.variable} font-montserratHeading`}
-                variant="gradient"
-                gradient={{ from: 'gold', to: 'white', deg: 50 }}
-                order={3}
-                p="lg"
+              <h3
+                className={`heading-h3 ${montserrat_heading.variable} font-montserratHeading bg-[linear-gradient(50deg,gold,white)] bg-clip-text p-5 text-transparent`}
               >
                 For Admin permissions to edit the content, email the creator or
                 admins to request access:
-              </Title>
+              </h3>
               <>
-                <Text
-                  className={`${montserrat_heading.variable} font-montserratHeading`}
-                  variant="gradient"
-                  gradient={{ from: 'gold', to: 'white', deg: 50 }}
-                  // py={8}
-                  pb={10}
-                  pt={2}
-                  size={20}
+                <p
+                  className={`${montserrat_heading.variable} font-montserratHeading bg-[linear-gradient(50deg,gold,white)] bg-clip-text pt-[2px] pb-[10px] text-[20px] text-transparent`}
                 >
                   Creator:{' '}
                   <a href={`mailto:${course_metadata['course_owner']}`}>
@@ -154,17 +125,12 @@ export const CanViewOnlyCourse = ({
                       </a>
                     </>
                   )}
-                </Text>
+                </p>
               </>
-            </Flex>
+            </div>
 
-            <Title
-              className={`${montserrat_heading.variable} font-montserratHeading`}
-              variant="gradient"
-              gradient={{ from: 'gold', to: 'white', deg: 50 }}
-              order={3}
-              p="xl"
-              py={35}
+            <h3
+              className={`heading-h3 ${montserrat_heading.variable} font-montserratHeading bg-[linear-gradient(50deg,gold,white)] bg-clip-text p-8 py-[35px] text-transparent`}
             >
               {' '}
               If <i>you are</i> the creator or an admin, please sign in with the
@@ -176,8 +142,8 @@ export const CanViewOnlyCourse = ({
                 uiuc.chat/new
               </Link>{' '}
               to make a new page.
-            </Title>
-          </Flex>
+            </h3>
+          </div>
         </div>
       </main>
 
