@@ -6,7 +6,7 @@ import { useContext, useEffect, useState } from 'react'
 import HomeContext from '~/components/home/home.context'
 import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
-import { useMediaQuery } from '@mantine/hooks'
+import { useMediaQuery } from '@/components/shadcn/hooks/use-media-query'
 
 export const FancyRetrieval = () => {
   // Toggle to enable Fancy retrieval method: Multi-Query Retrieval

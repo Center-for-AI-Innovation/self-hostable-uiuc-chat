@@ -8,7 +8,7 @@ import {
   TextInput,
   Title,
 } from '@mantine/core'
-import { useMediaQuery } from '@mantine/hooks'
+import { useMediaQuery } from '@/components/shadcn/hooks/use-media-query'
 
 import {
   IconCircleCheck,

@@ -31,7 +31,7 @@ import { DataTable, type DataTableSortStatus } from 'mantine-datatable'
 import { createRef, useEffect, useRef, useState } from 'react'
 import { createGlobalStyle } from 'styled-components'
 
-import { useMediaQuery } from '@mantine/hooks'
+import { useMediaQuery } from '@/components/shadcn/hooks/use-media-query'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import { useRouter } from 'next/router'

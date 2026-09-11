@@ -1,5 +1,5 @@
 import { Switch, Table, TextInput, Title, Text } from '@mantine/core'
-import { useMediaQuery } from '@mantine/hooks'
+import { useMediaQuery } from '@/components/shadcn/hooks/use-media-query'
 import { IconSearch } from '@tabler/icons-react'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import { useContext, useMemo, useState } from 'react'

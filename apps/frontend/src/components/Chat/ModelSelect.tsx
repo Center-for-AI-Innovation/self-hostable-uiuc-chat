@@ -15,7 +15,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { useMediaQuery, useViewportSize } from '@mantine/hooks'
+import { useMediaQuery } from '@/components/shadcn/hooks/use-media-query'
 import HomeContext from '~/components/home/home.context'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import { Group, Select, Title, Text, ActionIcon, Tooltip } from '@mantine/core'
@@ -407,7 +407,13 @@ const ModelDropdown: React.FC<
   chat_ui,
 }) => {
   const { state } = useContext(HomeContext)
-  const { height: viewportHeight } = useViewportSize()
+  const [viewportHeight, setViewportHeight] = useState(0)
+  useEffect(() => {
+    const updateViewportHeight = () => setViewportHeight(window.innerHeight)
+    updateViewportHeight()
+    window.addEventListener('resize', updateViewportHeight)
+    return () => window.removeEventListener('resize', updateViewportHeight)
+  }, [])
   const selectInputRef = useRef<HTMLInputElement>(null)
   const [dropdownOpened, setDropdownOpened] = useState(false)
   const [maxDropdownHeight, setMaxDropdownHeight] = useState(

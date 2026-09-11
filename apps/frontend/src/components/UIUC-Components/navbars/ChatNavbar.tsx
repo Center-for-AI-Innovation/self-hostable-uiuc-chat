@@ -8,13 +8,18 @@ import {
   rem,
   Transition,
 } from '@mantine/core'
-import { useDisclosure } from '@mantine/hooks'
 import { IconHome, IconPlus, IconSettings } from '@tabler/icons-react'
 import { montserrat_heading } from 'fonts'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useContext, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 
 import { usePostHog } from 'posthog-js/react'
 import { useAuth } from 'react-oidc-context'
@@ -161,7 +166,8 @@ interface ChatNavbarProps {
 
 const ChatNavbar = ({ bannerUrl = '', isgpt4 = true }: ChatNavbarProps) => {
   const router = useRouter()
-  const [opened, { toggle }] = useDisclosure(false)
+  const [opened, setOpened] = useState(false)
+  const toggle = useCallback(() => setOpened((v) => !v), [])
   const [show, setShow] = useState(true)
   const [isAdminOrOwner, setIsAdminOrOwner] = useState(false)
   const auth = useAuth()

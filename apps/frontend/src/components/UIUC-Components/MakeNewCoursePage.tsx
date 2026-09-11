@@ -5,7 +5,7 @@ import React, { useRef, useState } from 'react'
 import { Card, Flex, Title } from '@mantine/core'
 import { Button } from '@/components/shadcn/ui/button'
 import { LoaderCircle } from 'lucide-react'
-import { useDebouncedValue } from '@mantine/hooks'
+import { useDebounce } from '~/hooks/useDebounce'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   callSetCourseMetadata,
@@ -61,7 +61,7 @@ const MakeNewCoursePage = ({
   const [currentStep, setStep] = useState(0)
 
   // Debounce project name input to avoid excessive API calls
-  const [debouncedProjectName] = useDebouncedValue(projectName, 1000)
+  const debouncedProjectName = useDebounce(projectName, 1000)
 
   // Check project name availability using React Query
   const { data: courseExists, isFetching: isCheckingAvailability } =

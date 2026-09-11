@@ -4,7 +4,7 @@ import { DEFAULT_TEMPERATURE } from '@/utils/app/const'
 import HomeContext from '~/components/home/home.context'
 import { Title, Slider } from '@mantine/core' // Import Slider from @mantine/core
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
-import { useMediaQuery } from '@mantine/hooks'
+import { useMediaQuery } from '@/components/shadcn/hooks/use-media-query'
 import { type AllLLMProviders } from '~/utils/modelProviders/LLMProvider'
 import { type Conversation } from '~/types/chat'
 

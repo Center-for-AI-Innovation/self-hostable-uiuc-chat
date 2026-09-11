@@ -3,7 +3,7 @@ import { IconSearch } from '@tabler/icons-react'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import { useContext, useMemo, useState } from 'react'
 import HomeContext from '~/components/home/home.context'
-import { useMediaQuery } from '@mantine/hooks'
+import { useMediaQuery } from '@/components/shadcn/hooks/use-media-query'
 
 export const DocumentGroupsItem = ({}) => {
   const {

@@ -1,7 +1,7 @@
-import { useContext, useEffect } from 'react'
+import { useCallback, useContext, useEffect, useState } from 'react'
 import { Divider, Flex, Modal, Title, createStyles, Tabs } from '@mantine/core'
 import HomeContext from '~/components/home/home.context'
-import { useDisclosure, useMediaQuery } from '@mantine/hooks'
+import { useMediaQuery } from '@/components/shadcn/hooks/use-media-query'
 import React from 'react'
 import { ModelSelect } from './ModelSelect'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
@@ -74,7 +74,9 @@ export const UserSettings = () => {
 
   const { t } = useTranslation('chat')
   const { classes } = useStyles()
-  const [opened, { open, close }] = useDisclosure(false)
+  const [opened, setOpened] = useState(false)
+  const open = useCallback(() => setOpened(true), [])
+  const close = useCallback(() => setOpened(false), [])
   const isSmallScreen = useMediaQuery('(max-width: 960px)')
   const loadModelCache = async () => {
     for (const model of webLLMModels) {

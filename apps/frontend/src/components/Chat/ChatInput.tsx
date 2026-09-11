@@ -56,7 +56,7 @@ import React from 'react'
 
 import { type CSSProperties } from 'react'
 
-import { useMediaQuery } from '@mantine/hooks'
+import { useMediaQuery } from '@/components/shadcn/hooks/use-media-query'
 import { IconChevronRight } from '@tabler/icons-react'
 import { montserrat_heading } from 'fonts'
 import { useRouteChat } from '@/hooks/queries/useRouteChat'

@@ -21,7 +21,7 @@ import { useUpdateConversation } from '@/hooks/queries/useUpdateConversation'
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { LoadingSpinner } from '../UIUC-Components/LoadingSpinner'
-import { useDebouncedState } from '@mantine/hooks'
+import { useDebounce } from '~/hooks/useDebounce'
 import posthog from 'posthog-js'
 import { saveConversationToServer } from '@/hooks/__internal__/conversation'
 
@@ -60,10 +60,10 @@ export const Chatbar = ({
     dispatch: chatDispatch,
   } = chatBarContextValue
 
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useDebouncedState(
-    searchTerm,
-    500,
-  )
+  // Only feeds the debounce once current_email/courseName are known (matches
+  // the previous useDebouncedState + gated setter behavior below).
+  const [gatedSearchTerm, setGatedSearchTerm] = useState(searchTerm)
+  const debouncedSearchTerm = useDebounce(gatedSearchTerm, 500)
 
   const queryClient = useQueryClient()
   const deleteConversationMutation = useDeleteConversation(
@@ -133,7 +133,7 @@ export const Chatbar = ({
     if (!current_email || !courseName) {
       return
     }
-    setDebouncedSearchTerm(searchTerm)
+    setGatedSearchTerm(searchTerm)
   }, [searchTerm, current_email, courseName])
 
   async function updateConversations(conversationHistory: Conversation[]) {

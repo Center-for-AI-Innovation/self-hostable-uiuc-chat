@@ -8,7 +8,7 @@ import { Dropzone } from '@mantine/dropzone'
 import { useRouter } from 'next/router'
 import { type CourseMetadata } from '~/types/courseMetadata'
 import SupportedFileUploadTypes from './SupportedFileUploadTypes'
-import { useMediaQuery } from '@mantine/hooks'
+import { useMediaQuery } from '@/components/shadcn/hooks/use-media-query'
 import { callSetCourseMetadata } from '~/utils/apiUtils'
 import {
   isActiveUpload,

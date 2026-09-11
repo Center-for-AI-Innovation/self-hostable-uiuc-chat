@@ -1,7 +1,7 @@
 // PromptEditor.tsx - Shared component for prompt editing
 // Used by both prompt.tsx page and StepPrompt wizard step
 'use client'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Collapse,
   Divider,
@@ -21,7 +21,7 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import { Button } from '@/components/shadcn/ui/button'
-import { useDisclosure, useMediaQuery } from '@mantine/hooks'
+import { useMediaQuery } from '@/components/shadcn/hooks/use-media-query'
 import {
   IconAlertTriangle,
   IconAlertTriangleFilled,
@@ -195,14 +195,22 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
   const [baseSystemPrompt, setBaseSystemPrompt] = useState('')
   const [isRightSideVisible, setIsRightSideVisible] = useState(!isEmbedded)
   const [selectedModel, setSelectedModel] = useState<string>('')
-  const [opened, { close, open }] = useDisclosure(false)
-  const [resetModalOpened, { close: closeResetModal, open: openResetModal }] =
-    useDisclosure(false)
+  const [opened, setOpened] = useState(false)
+  const open = useCallback(() => setOpened(true), [])
+  const close = useCallback(() => setOpened(false), [])
+  const [resetModalOpened, setResetModalOpened] = useState(false)
+  const openResetModal = useCallback(() => setResetModalOpened(true), [])
+  const closeResetModal = useCallback(() => setResetModalOpened(false), [])
   const [llmProviders, setLLMProviders] = useState<AllLLMProviders | null>(null)
-  const [
-    linkGeneratorOpened,
-    { open: openLinkGenerator, close: closeLinkGenerator },
-  ] = useDisclosure(false)
+  const [linkGeneratorOpened, setLinkGeneratorOpened] = useState(false)
+  const openLinkGenerator = useCallback(
+    () => setLinkGeneratorOpened(true),
+    [],
+  )
+  const closeLinkGenerator = useCallback(
+    () => setLinkGeneratorOpened(false),
+    [],
+  )
   const [messages, setMessages] = useState<
     Array<{ role: string; content: string }>
   >([])

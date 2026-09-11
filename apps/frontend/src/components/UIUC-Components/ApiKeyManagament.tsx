@@ -11,7 +11,7 @@ import {
   Title,
   useMantineTheme,
 } from '@mantine/core'
-import { useClipboard, useMediaQuery } from '@mantine/hooks'
+import { useMediaQuery } from '@/components/shadcn/hooks/use-media-query'
 import {
   IconBook,
   IconCheck,
@@ -38,7 +38,6 @@ const ApiKeyManagement = ({
 }) => {
   const theme = useMantineTheme()
   const isSmallScreen = useMediaQuery('(max-width: 960px)')
-  const { copy } = useClipboard()
 
   // Get responsive card width classes based on sidebar state
   const cardWidthClasses = useResponsiveCardWidth(sidebarCollapsed || false)
@@ -68,13 +67,13 @@ const ApiKeyManagement = ({
   const [copiedApiKey, setCopiedApiKey] = useState(false)
 
   const handleCopyCodeSnippet = (text: string) => {
-    copy(text)
+    navigator.clipboard.writeText(text)
     setCopiedCodeSnippet(true)
     setTimeout(() => setCopiedCodeSnippet(false), 2000) // Reset after 2 seconds
   }
 
   const handleCopyApiKey = (text: string) => {
-    copy(text)
+    navigator.clipboard.writeText(text)
     setCopiedApiKey(true)
     setTimeout(() => setCopiedApiKey(false), 2000) // Reset after 2 seconds
   }

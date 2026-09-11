@@ -22,7 +22,7 @@ import {
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/router'
-import { useMediaQuery } from '@mantine/hooks'
+import { useMediaQuery } from '@/components/shadcn/hooks/use-media-query'
 import { callSetCourseMetadata } from '~/utils/apiUtils'
 import { montserrat_heading, montserrat_paragraph } from 'fonts'
 import { LoadingSpinner } from './LoadingSpinner'
