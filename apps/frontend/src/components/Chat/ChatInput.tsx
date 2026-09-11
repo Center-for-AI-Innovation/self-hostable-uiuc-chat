@@ -1056,7 +1056,7 @@ export const ChatInput = ({
           {/* Chat input and preview container */}
           <div
             ref={chatInputContainerRef}
-            className="chat-input-container m-0 w-full resize-none bg-(--message-background) p-0"
+            className="chat-input-container m-0 w-full resize-none  p-0"
             onClick={() => textareaRef.current?.focus()}
             style={{
               ...chatInputContainerStyle,
