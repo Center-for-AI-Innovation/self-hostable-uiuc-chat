@@ -1,9 +1,13 @@
 import React from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderWithProviders } from '~/test-utils/renderWithProviders'
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 
 import { LinkGeneratorModal } from '~/components/Modals/LinkGeneratorModal'
+
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 describe('LinkGeneratorModal', () => {
   it('generates a link that reflects toggle state and resets on reopen', async () => {
@@ -63,6 +67,10 @@ describe('LinkGeneratorModal', () => {
   })
 
   it('copies the generated link via CopyButton', async () => {
+    // Mantine's CopyButton clears `copied` after 1s, so drive the clock by hand
+    // instead of racing it with real timers.
+    vi.useFakeTimers()
+
     const writeText = vi.fn(() => Promise.resolve())
     Object.defineProperty(navigator, 'clipboard', {
       value: { writeText },
@@ -83,7 +91,18 @@ describe('LinkGeneratorModal', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: /Copy Link/i }))
-    await waitFor(() => expect(writeText).toHaveBeenCalled())
+    expect(writeText).toHaveBeenCalled()
+
+    await act(async () => {
+      await Promise.resolve()
+    })
     expect(screen.getByText('Copied!')).toBeInTheDocument()
+
+    act(() => {
+      vi.advanceTimersByTime(1000)
+    })
+    expect(
+      screen.getByRole('button', { name: /Copy Link/i }),
+    ).toBeInTheDocument()
   })
 })
