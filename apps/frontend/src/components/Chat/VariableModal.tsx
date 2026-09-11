@@ -82,7 +82,7 @@ export const VariableModal: FC<Props> = ({
 
   return (
     <div
-      className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onKeyDown={handleKeyDown}
     >
       <div
@@ -110,7 +110,7 @@ export const VariableModal: FC<Props> = ({
 
             <textarea
               ref={index === 0 ? nameInputRef : undefined}
-              className="dark:border-opacity-50 mt-1 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow-sm dark:border-neutral-800 dark:bg-[#40414F] dark:text-neutral-100"
+              className="mt-1 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow-sm dark:border-neutral-800/50 dark:bg-[#40414F] dark:text-neutral-100"
               style={{ resize: 'none' }}
               placeholder={`Enter a value for ${variable.key}...`}
               aria-label={variable.key}
@@ -122,7 +122,7 @@ export const VariableModal: FC<Props> = ({
         ))}
 
         <button
-          className="dark:border-opacity-50 mt-6 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow-sm hover:bg-neutral-100 dark:border-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-300"
+          className="mt-6 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow-sm hover:bg-neutral-100 dark:border-neutral-800/50 dark:bg-white dark:text-black dark:hover:bg-neutral-300"
           onClick={handleSubmit}
         >
           Submit

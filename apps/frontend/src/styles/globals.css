@@ -20,14 +20,14 @@
   If we ever want to remove these styles, we need to add an explicit border
   color utility to any element that depends on these defaults.
 */
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
-  }
+/* Unlayered on purpose: preflight is imported unlayered above (see top of
+   file), and layered rules never beat unlayered ones. */
+*,
+::after,
+::before,
+::backdrop,
+::file-selector-button {
+  border-color: var(--color-gray-200, currentcolor);
 }
 
 /*
@@ -1778,13 +1778,12 @@ https://icflorescu.github.io/mantine-datatable/examples/records-selection/
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+/* Unlayered on purpose: see the border-color note near the top of this file. */
+* {
+  @apply border-border;
+}
+body {
+  @apply bg-background text-foreground;
 }
 
 .agent-thinking-dots {
